@@ -29,19 +29,19 @@ function PoiMarker({
       <span
         className={cn(
           "relative grid place-items-center rounded-full border shadow-lg transition-all duration-200",
-          selected ? "h-11 w-11 scale-110 sm:h-12 sm:w-12" : "h-9 w-9 group-hover:scale-105 sm:h-10 sm:w-10",
+          selected ? "h-10 w-10 scale-110 sm:h-12 sm:w-12" : "h-8 w-8 group-hover:scale-105 sm:h-10 sm:w-10",
           isAvailable
             ? "border-accent/20 bg-accent text-accent-foreground shadow-accent/25"
             : "border-border bg-background/90 text-muted-foreground backdrop-blur-sm",
         )}
       >
-        {isAvailable ? <MapPin className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
+        {isAvailable ? <MapPin className="h-4 w-4 sm:h-5 sm:w-5" /> : <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
         {isAvailable && <span className="absolute inset-0 rounded-full border border-accent opacity-25 animate-ping" />}
       </span>
 
       <span
         className={cn(
-          "absolute left-1/2 top-[calc(100%+0.35rem)] z-20 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-1 text-[9px] font-medium tracking-wide shadow-sm transition-opacity sm:text-[10px]",
+          "absolute left-1/2 top-[calc(100%+0.35rem)] z-20 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-1 text-[8.5px] font-semibold tracking-wide shadow-sm transition-opacity sm:text-[10px]",
           selected ? "opacity-100" : "opacity-0 group-hover:opacity-100",
           isAvailable ? "bg-foreground text-background" : "border border-border bg-background/95 text-muted-foreground",
         )}
@@ -126,26 +126,28 @@ export function MalagaCenterMap() {
   const availableCount = malagaCenterPois.filter((poi) => poi.status === "available").length
 
   return (
-    <section className="mx-auto max-w-5xl px-4 pb-8 sm:px-6 sm:pb-12">
-      <div className="mb-4 flex items-end justify-between gap-4 px-1 sm:mb-5 sm:px-0">
-        <div>
-          <p className="mb-2 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-accent/90">
-            Mapa de experiencias
-          </p>
-          <h2 className="font-sans text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-3xl">
-            Centro histórico de Málaga
-          </h2>
-          <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-            Selecciona un punto para abrir la escena o llegar al lugar exacto de activación.
-          </p>
-        </div>
-        <div className="shrink-0 rounded-full border border-border bg-card/85 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground shadow-sm">
-          {availableCount} escenas activas
+    <section className="mx-auto mt-4 w-full max-w-5xl pb-6 sm:mt-6 sm:pb-10">
+      <div className="mb-3 rounded-[1.5rem] border border-white/70 bg-background/62 p-3 text-center shadow-[0_14px_45px_rgba(61,45,28,0.08)] backdrop-blur-xl sm:mb-4 sm:p-5 sm:text-left">
+        <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-accent/90 sm:text-[10px]">
+              Mapa de experiencias
+            </p>
+            <h2 className="text-balance text-2xl font-semibold leading-tight tracking-[-0.04em] text-foreground sm:text-3xl">
+              Centro histórico de Málaga
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-muted-foreground sm:mx-0 sm:text-sm">
+              Selecciona una escena, entra al visor 180° o abre la ruta hasta el punto exacto de activación.
+            </p>
+          </div>
+          <div className="inline-flex shrink-0 rounded-full border border-accent/15 bg-accent/8 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-accent shadow-sm sm:text-[10px]">
+            {availableCount} escenas activas
+          </div>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[1.75rem] border border-border/90 bg-card shadow-[0_18px_60px_rgba(35,28,18,0.08)]">
-        <div className="relative h-[68svh] min-h-[560px] max-h-[760px] overflow-hidden bg-[linear-gradient(180deg,rgba(246,240,228,1),rgba(229,219,196,1))] sm:h-[660px]">
+      <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-background/70 p-1.5 shadow-[0_26px_90px_rgba(61,45,28,0.16)] backdrop-blur-xl sm:rounded-[2.3rem] sm:p-2">
+        <div className="relative h-[clamp(360px,52dvh,560px)] overflow-hidden rounded-[1.55rem] border border-white/50 bg-[linear-gradient(180deg,rgba(246,240,228,1),rgba(229,219,196,1))] sm:h-[620px] sm:rounded-[1.9rem] lg:h-[680px]">
           <svg
             className="absolute inset-0 h-full w-full"
             viewBox="0 0 100 100"
@@ -304,17 +306,17 @@ export function MalagaCenterMap() {
             <MapText x={72} y={88} rotate={-11}>Parque / Puerto</MapText>
           </svg>
 
-          <div className="absolute left-4 top-4 max-w-[13.5rem] rounded-2xl border border-border/80 bg-background/80 px-3.5 py-3 shadow-sm backdrop-blur-md sm:left-5 sm:top-5 sm:max-w-[17rem] sm:px-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-              <Route className="h-4 w-4 text-accent" />
+          <div className="absolute left-3 top-3 max-w-[11.5rem] rounded-2xl border border-white/70 bg-background/78 px-3 py-2.5 shadow-sm backdrop-blur-md sm:left-5 sm:top-5 sm:max-w-[17rem] sm:px-4 sm:py-3">
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-foreground sm:text-xs">
+              <Route className="h-3.5 w-3.5 text-accent sm:h-4 sm:w-4" />
               Puntos de activación
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+            <p className="mt-1.5 hidden text-xs leading-relaxed text-muted-foreground sm:block">
               Los marcadores activos abren una escena 180° y la ruta para verla in situ.
             </p>
           </div>
 
-          <div className="absolute right-4 top-4 rounded-full border border-border/80 bg-background/75 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground shadow-sm backdrop-blur-md sm:right-5 sm:top-5">
+          <div className="absolute right-3 top-3 rounded-full border border-white/70 bg-background/75 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground shadow-sm backdrop-blur-md sm:right-5 sm:top-5 sm:text-[10px]">
             <span className="inline-flex items-center gap-1.5">
               <Navigation className="h-3.5 w-3.5 text-accent" />
               Norte arriba
@@ -331,11 +333,11 @@ export function MalagaCenterMap() {
           ))}
         </div>
 
-        <div className="border-t border-border bg-background/96 p-4 sm:p-5">
+        <div className="border-t border-white/70 bg-[linear-gradient(180deg,rgba(255,252,247,0.98),rgba(247,240,230,0.98))] p-3 pb-[calc(0.85rem+env(safe-area-inset-bottom))] sm:p-5">
           <div className="flex items-start gap-3.5">
             <div
               className={cn(
-                "mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-2xl shadow-sm",
+                "mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-2xl shadow-sm sm:h-11 sm:w-11",
                 selectedPoi.status === "available" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground",
               )}
             >
@@ -344,12 +346,12 @@ export function MalagaCenterMap() {
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-sans text-xl font-semibold leading-tight tracking-[-0.03em] text-foreground sm:text-2xl">
+                <h3 className="text-lg font-semibold leading-tight tracking-[-0.03em] text-foreground sm:text-2xl">
                   {selectedPoi.title}
                 </h3>
                 <span
                   className={cn(
-                    "rounded-full px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.14em]",
+                    "rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em]",
                     selectedPoi.status === "available"
                       ? "bg-accent/12 text-accent"
                       : "bg-muted text-muted-foreground",
@@ -359,19 +361,19 @@ export function MalagaCenterMap() {
                 </span>
               </div>
 
-              <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+              <p className="mt-1.5 text-[10px] font-semibold uppercase leading-relaxed tracking-[0.14em] text-muted-foreground sm:text-[11px]">
                 {selectedPoi.locationLabel} · {selectedPoi.period}
               </p>
-              <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:mt-2.5 sm:text-sm">
                 {selectedPoi.shortDescription}
               </p>
 
-              <div className="mt-4 max-w-sm space-y-2.5">
+              <div className="mt-3 grid max-w-md grid-cols-1 gap-2 sm:mt-4 sm:grid-cols-2 sm:gap-2.5">
                 {selectedPoi.status === "available" && selectedPoi.sceneId ? (
                   <>
                     <Link
                       href={`/scene/${selectedPoi.sceneId}`}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-xs font-medium uppercase tracking-[0.16em] text-background transition-transform active:scale-[0.98]"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-background shadow-sm transition-transform active:scale-[0.98] sm:text-xs"
                     >
                       Ver escena 180°
                       <ArrowRight className="h-4 w-4" />
@@ -383,7 +385,7 @@ export function MalagaCenterMap() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(event) => openNativeDirections(event, selectedPoi)}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-xs font-medium uppercase tracking-[0.16em] text-foreground transition-colors hover:bg-muted active:scale-[0.98]"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border/80 bg-background/80 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm transition-colors hover:bg-muted active:scale-[0.98] sm:text-xs"
                       >
                         Cómo llegar
                         <Navigation className="h-4 w-4" />
@@ -391,7 +393,7 @@ export function MalagaCenterMap() {
                     ) : null}
                   </>
                 ) : (
-                  <div className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-muted/60 px-5 py-3 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  <div className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-muted/60 px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:col-span-2">
                     <Clock className="h-4 w-4" />
                     Escena en preparación
                   </div>
