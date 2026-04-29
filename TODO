@@ -1,0 +1,9 @@
+--- Boton de help --- 
+      <button
+        onClick={onToggleHelp}
+        className="h-10 px-3 rounded-xl text-white/80 text-xs border border-white/10 bg-white/5 active:opacity-70"
+        aria-label="Help"
+      >
+        Help
+      </button>
+--- Boton de help --- 

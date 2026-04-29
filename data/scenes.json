@@ -1,0 +1,63 @@
+[
+  {
+    "id": "carreteria-1487",
+    "title": "Muralla Nazarí — Málaga, 1487",
+    "subtitle": "Una reconstruccion histórica inmersiva de 180º",
+    "description": "Colócate frente a los restos y alinea el pasado con el presente antes de entrar en la reconstrucción inmersiva.",
+    "poster": "/assets/carreteria/poster.jpg",
+    "overlay": "/assets/carreteria/alignment-overlay.png",
+    "media": {
+      "type": "image",
+      "src": "/assets/carreteria/panorama.png",
+      "projection": "180"
+    },
+    "camera": {
+      "initialYaw": 0,
+      "initialPitch": 0,
+      "minYaw": -90,
+      "maxYaw": 90,
+      "minPitch": -25,
+      "maxPitch": 25
+    }
+  },
+  {
+    "id": "atarazanas-nazari",
+    "title": "Atarazanas medievales — Málaga nazarí",
+    "subtitle": "Reconstrucción histórica inmersiva de 180º",
+    "description": "Sitúate junto al actual Mercado de Atarazanas y entra en una reconstrucción prudente de su fase medieval vinculada al frente portuario de Málaga.",
+    "poster": "/assets/atarazanas/panorama.png",
+    "media": {
+      "type": "image",
+      "src": "/assets/atarazanas/panorama.png",
+      "projection": "180"
+    },
+    "camera": {
+      "initialYaw": 0,
+      "initialPitch": 0,
+      "minYaw": -90,
+      "maxYaw": 90,
+      "minPitch": -25,
+      "maxPitch": 25
+    }
+  },
+  {
+    "id": "teatro-romano-malaca",
+    "title": "Teatro Romano — Malaca romana",
+    "subtitle": "Reconstrucción histórica inmersiva de 180º",
+    "description": "Sitúate en el entorno del Teatro Romano y entra en una reconstrucción prudente de la Malaca romana junto al frente de la Alcazaba.",
+    "poster": "/assets/teatro-romano/panorama.png",
+    "media": {
+      "type": "image",
+      "src": "/assets/teatro-romano/panorama.png",
+      "projection": "180"
+    },
+    "camera": {
+      "initialYaw": 0,
+      "initialPitch": 0,
+      "minYaw": -90,
+      "maxYaw": 90,
+      "minPitch": -25,
+      "maxPitch": 25
+    }
+  }
+]
