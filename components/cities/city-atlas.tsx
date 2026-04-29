@@ -117,16 +117,16 @@ export function CityAtlas() {
   const availableCount = timelessCities.filter((city) => city.status === "available").length
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-12">
+    <section className="mx-auto w-full max-w-6xl px-4 pt-10 pb-[calc(2rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-14 sm:pb-12">
       <header className="mx-auto mb-7 flex w-full max-w-3xl flex-col items-center text-center sm:mb-9">
         <div className="flex flex-col items-center text-center">
-          <p className="font-serif text-[2rem] font-light uppercase leading-none tracking-[0.28em] text-[#8A5A37] sm:text-[2.6rem]">
+          <p className="font-serif text-[1.75rem] font-light uppercase leading-none tracking-[0.28em] text-[#8A5A37] sm:text-[2.6rem]">
             Timeless
           </p>
 
           <div className="mt-2 h-px w-32 bg-gradient-to-r from-transparent via-[#B88954] to-transparent" />
 
-          <p className="mt-3 font-sans text-[9px] font-semibold uppercase tracking-[0.28em] text-[#9B6139]/80 sm:text-[10px]">
+          <p className="mt-3 font-sans text-[8px] font-semibold uppercase tracking-[0.28em] text-[#9B6139]/80 sm:text-[10px]">
             By Rocket Development
           </p>
         </div>
