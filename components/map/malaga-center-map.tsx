@@ -294,16 +294,13 @@ export function MalagaCenterMap() {
               {selectedPoi.title}
             </h3>
 
-            <span
-              className={cn(
-                "mt-4 inline-flex rounded-full px-4 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em]",
-                selectedPoi.status === "available"
-                  ? "border border-accent/15 bg-accent/10 text-accent"
-                  : "border border-border bg-muted text-muted-foreground",
-              )}
-            >
-              {selectedPoi.status === "available" ? "Escena activa" : "Próximamente"}
-            </span>
+            {selectedPoi.status !== "available" && (
+              <span
+                className="mt-4 inline-flex rounded-full border border-border bg-muted px-4 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground"
+              >
+                Próximamente
+              </span>
+            )}
 
             <p className="mt-4 max-w-xs font-sans text-[9px] font-bold uppercase leading-relaxed tracking-[0.22em] text-[#7b6a58] sm:max-w-sm sm:text-[11px]">
               {selectedPoi.locationLabel}
