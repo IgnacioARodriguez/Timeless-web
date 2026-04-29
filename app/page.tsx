@@ -1,21 +1,5 @@
 import { BrandLockup } from "@/components/brand/brand-lockup"
 import { MalagaCenterMap } from "@/components/map/malaga-center-map"
-import { Compass, MapPinned, Route } from "lucide-react"
-
-const highlights = [
-  {
-    icon: MapPinned,
-    label: "3 escenas activas",
-  },
-  {
-    icon: Compass,
-    label: "Puntos reales",
-  },
-  {
-    icon: Route,
-    label: "Ruta al lugar",
-  },
-]
 
 export default function HomePage() {
   return (
@@ -41,23 +25,6 @@ export default function HomePage() {
             <p className="mt-4 max-w-xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
               Explora Málaga centro desde puntos reales de activación. Cada escena abre una reconstrucción inmersiva de 180° vinculada al lugar donde estás.
             </p>
-
-            <div className="mt-5 grid w-full max-w-xl grid-cols-3 gap-2 sm:mt-7 sm:gap-3">
-              {highlights.map((item) => {
-                const Icon = item.icon
-                return (
-                  <div
-                    key={item.label}
-                    className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-2xl border border-white/70 bg-card/70 px-2 py-3 shadow-sm backdrop-blur"
-                  >
-                    <Icon className="h-4 w-4 text-accent" />
-                    <span className="text-center text-[9px] font-semibold uppercase leading-snug tracking-[0.13em] text-muted-foreground sm:text-[10px]">
-                      {item.label}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
           </div>
         </section>
 
