@@ -316,11 +316,12 @@ export function MalagaCenterMap() {
             </p>
           </div>
 
-          <div className="absolute right-3 top-3 rounded-full border border-white/70 bg-background/75 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground shadow-sm backdrop-blur-md sm:right-5 sm:top-5 sm:text-[10px]">
-            <span className="inline-flex items-center gap-1.5">
-              <Navigation className="h-3.5 w-3.5 text-accent" />
-              Norte arriba
-            </span>
+          <div
+            className="absolute bottom-3 right-3 z-20 grid h-10 w-10 place-items-center rounded-full border border-white/70 bg-background/80 text-accent shadow-md backdrop-blur-md sm:bottom-5 sm:right-5 sm:h-11 sm:w-11"
+            aria-label="Norte arriba"
+            title="Norte arriba"
+          >
+            <Navigation className="h-5 w-5 -rotate-45" />
           </div>
 
           {malagaCenterPois.map((poi) => (
