@@ -50,7 +50,7 @@ function PoiMarker({
             ? "h-12 w-12 scale-105 border-white/70 bg-accent text-accent-foreground shadow-[0_12px_28px_rgba(184,107,56,0.38)]"
             : isAvailable
               ? "h-10 w-10 border-white/65 bg-accent text-accent-foreground shadow-[0_10px_24px_rgba(184,107,56,0.28)] group-hover:scale-105"
-              : "h-8 w-8 border-white/75 bg-background/86 text-muted-foreground/75 shadow-black/10 opacity-75 backdrop-blur-sm",
+              : "h-8 w-8 border-white/75 bg-background/86 text-muted-foreground/75 opacity-75 shadow-black/10 backdrop-blur-sm",
         )}
       >
         {isAvailable ? (
@@ -60,7 +60,7 @@ function PoiMarker({
         )}
 
         {selected && isAvailable && (
-          <span className="absolute inset-0 rounded-full border border-accent opacity-25 animate-ping" />
+          <span className="absolute inset-0 animate-ping rounded-full border border-accent opacity-25" />
         )}
       </span>
 
@@ -92,64 +92,74 @@ function SceneSelector({
   onSelect: (poi: MapPoi) => void
 }) {
   return (
-    <div className="border-t border-white/65 bg-background/96 px-3 py-4 sm:px-4 sm:py-5">
+    <div className="border-t border-white/65 bg-background/96 px-3 py-2.5 sm:px-4 sm:py-3">
       <div className="mx-auto max-w-3xl">
-        <p className="mb-3 text-center text-[9px] font-bold uppercase tracking-[0.22em] text-accent/85 sm:text-left sm:text-[10px]">
-          Escenas disponibles
-        </p>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-accent/85 sm:text-[9px]">
+            Escenas disponibles
+          </p>
 
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {pois.map((poi) => {
-            const selected = selectedPoi.id === poi.id
+          {pois.length > 3 && (
+            <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
+              {pois.length} escenas
+            </span>
+          )}
+        </div>
 
-            return (
-              <button
-                key={poi.id}
-                type="button"
-                onClick={() => onSelect(poi)}
-                className={cn(
-                  "flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition-all active:scale-[0.99]",
-                  selected
-                    ? "border-accent/20 bg-accent text-accent-foreground shadow-[0_10px_24px_rgba(184,107,56,0.22)]"
-                    : "border-border bg-background/82 text-foreground shadow-sm hover:border-accent/30",
-                )}
-              >
-                <span className="flex min-w-0 items-center gap-3">
-                  <span
-                    className={cn(
-                      "grid h-8 w-8 shrink-0 place-items-center rounded-full",
-                      selected
-                        ? "bg-accent-foreground/14 text-accent-foreground"
-                        : "bg-accent/10 text-accent",
-                    )}
-                  >
-                    <MapPin className="h-4 w-4" />
-                  </span>
+        <div className="max-h-[8.9rem] overflow-y-auto pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+            {pois.map((poi) => {
+              const selected = selectedPoi.id === poi.id
 
-                  <span className="min-w-0">
-                    <span className="block truncate text-xs font-bold uppercase tracking-[0.14em]">
-                      {getPoiMapLabel(poi)}
-                    </span>
+              return (
+                <button
+                  key={poi.id}
+                  type="button"
+                  onClick={() => onSelect(poi)}
+                  className={cn(
+                    "flex w-full items-center justify-between gap-2 rounded-xl border px-2.5 py-2 text-left transition-all active:scale-[0.99]",
+                    selected
+                      ? "border-accent/20 bg-accent text-accent-foreground shadow-[0_6px_14px_rgba(184,107,56,0.18)]"
+                      : "border-border bg-background/82 text-foreground shadow-sm hover:border-accent/30",
+                  )}
+                >
+                  <span className="flex min-w-0 items-center gap-2">
                     <span
                       className={cn(
-                        "mt-0.5 block truncate text-[11px] leading-relaxed",
-                        selected ? "text-accent-foreground/75" : "text-muted-foreground",
+                        "grid h-6 w-6 shrink-0 place-items-center rounded-full",
+                        selected
+                          ? "bg-accent-foreground/14 text-accent-foreground"
+                          : "bg-accent/10 text-accent",
                       )}
                     >
-                      {poi.period}
+                      <MapPin className="h-3 w-3" />
+                    </span>
+
+                    <span className="min-w-0">
+                      <span className="block truncate text-[10px] font-bold uppercase tracking-[0.12em]">
+                        {getPoiMapLabel(poi)}
+                      </span>
+                      <span
+                        className={cn(
+                          "mt-0.5 block truncate text-[9px] leading-tight",
+                          selected ? "text-accent-foreground/75" : "text-muted-foreground",
+                        )}
+                      >
+                        {poi.period}
+                      </span>
                     </span>
                   </span>
-                </span>
 
-                <span
-                  className={cn(
-                    "h-2 w-2 shrink-0 rounded-full",
-                    selected ? "bg-accent-foreground" : "bg-accent/55",
-                  )}
-                />
-              </button>
-            )
-          })}
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 shrink-0 rounded-full",
+                      selected ? "bg-accent-foreground" : "bg-accent/50",
+                    )}
+                  />
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -204,8 +214,6 @@ export function MalagaCenterMap() {
 
   const [selectedPoi, setSelectedPoi] = useState<MapPoi>(initialPoi)
 
-  const availableCount = availablePois.length
-
   return (
     <section className="mx-auto mt-2 w-full max-w-5xl pb-6 sm:mt-4 sm:pb-10">
       <div className="mb-3 rounded-[1.5rem] border border-white/70 bg-background/62 p-3 text-center shadow-[0_14px_45px_rgba(61,45,28,0.08)] backdrop-blur-xl sm:mb-4 sm:p-5 sm:text-left">
@@ -259,7 +267,7 @@ export function MalagaCenterMap() {
 
         <div className="border-t border-white/65 bg-background/96 pb-6 pt-1.5 sm:pb-7 sm:pt-2">
           {selectedPoi.previewImage && (
-            <div className="mb-6 w-full overflow-hidden rounded-[1.55rem] border border-white/50 bg-muted shadow-sm sm:rounded-[1.9rem]">
+            <div className="mb-5 w-full overflow-hidden rounded-[1.55rem] border border-white/50 bg-muted shadow-sm sm:rounded-[1.9rem]">
               <div className="relative aspect-[16/7] w-full sm:aspect-[21/8]">
                 <img
                   src={selectedPoi.previewImage}
@@ -277,37 +285,41 @@ export function MalagaCenterMap() {
             </div>
           )}
 
-          <div className="mx-auto flex max-w-md flex-col items-center px-4 text-center sm:px-6">
-            <h3 className="max-w-sm text-center font-sans text-[1.75rem] font-bold leading-tight tracking-[-0.04em] text-foreground sm:text-3xl">
+          <div className="mx-auto flex max-w-md flex-col items-center px-5 pb-1 text-center sm:px-6">
+            <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-accent/85 sm:text-[10px]">
+              Escena seleccionada
+            </p>
+
+            <h3 className="mt-3 max-w-sm text-center font-serif text-[2.25rem] font-light leading-none tracking-[-0.055em] text-[#241811] sm:text-[2.8rem]">
               {selectedPoi.title}
             </h3>
 
             <span
               className={cn(
-                "mt-3 inline-flex rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em]",
+                "mt-4 inline-flex rounded-full px-4 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em]",
                 selectedPoi.status === "available"
-                  ? "bg-accent/12 text-accent"
-                  : "bg-muted text-muted-foreground",
+                  ? "border border-accent/15 bg-accent/10 text-accent"
+                  : "border border-border bg-muted text-muted-foreground",
               )}
             >
               {selectedPoi.status === "available" ? "Escena activa" : "Próximamente"}
             </span>
 
-            <p className="mt-4 max-w-xs font-sans text-[11px] font-bold uppercase leading-relaxed tracking-[0.2em] text-muted-foreground sm:max-w-sm">
+            <p className="mt-4 max-w-xs font-sans text-[9px] font-bold uppercase leading-relaxed tracking-[0.22em] text-[#7b6a58] sm:max-w-sm sm:text-[11px]">
               {selectedPoi.locationLabel}
               {selectedPoi.period ? ` · ${selectedPoi.period}` : ""}
             </p>
 
-            <p className="mt-4 max-w-sm text-center font-sans text-sm leading-relaxed text-muted-foreground sm:text-base">
+            <p className="mt-4 max-w-[19rem] text-center font-sans text-[0.85rem] leading-relaxed text-[#6f6255] sm:max-w-sm sm:text-base">
               {selectedPoi.shortDescription}
             </p>
 
-            <div className="mt-6 flex w-full max-w-sm flex-col items-center gap-3">
+            <div className="mt-6 flex w-full max-w-sm flex-col items-center gap-2.5">
               {selectedPoi.status === "available" && selectedPoi.sceneId ? (
                 <>
                   <Link
                     href={`/scene/${selectedPoi.sceneId}`}
-                    className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-foreground px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-background shadow-md transition-transform active:scale-[0.98]"
+                    className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-[#17110d] px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#f8f0e3] shadow-[0_12px_28px_rgba(23,17,13,0.18)] transition-transform active:scale-[0.98]"
                   >
                     Ver escena 180°
                     <ArrowRight className="h-4 w-4" />
@@ -319,7 +331,7 @@ export function MalagaCenterMap() {
                       onClick={(event) => openNativeDirections(event, selectedPoi)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-border bg-background px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-foreground shadow-sm transition-transform active:scale-[0.98]"
+                      className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-[#d8c8b4] bg-white/58 px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#241811] shadow-sm backdrop-blur-sm transition-transform active:scale-[0.98]"
                     >
                       Cómo llegar
                       <Navigation className="h-4 w-4 -rotate-45" />
@@ -327,7 +339,7 @@ export function MalagaCenterMap() {
                   )}
                 </>
               ) : (
-                <div className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-muted/60 px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                <div className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-muted/60 px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   <Clock className="h-4 w-4" />
                   Escena no disponible
                 </div>
