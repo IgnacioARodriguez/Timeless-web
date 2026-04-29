@@ -166,18 +166,25 @@ function SceneSelector({
   )
 }
 
+function hasValidDirections(poi: MapPoi) {
+  if (!poi.directions) return false
+
+  const { latitude, longitude } = poi.directions
+  return Number.isFinite(latitude) && Number.isFinite(longitude)
+}
+
 function getGoogleMapsDirectionsUrl(poi: MapPoi) {
-  if (!poi.directions) return undefined
+  if (!hasValidDirections(poi) || !poi.directions) return "#"
 
   const { latitude, longitude } = poi.directions
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=walking`
 }
 
 function getAppleMapsDirectionsUrl(poi: MapPoi) {
-  if (!poi.directions) return undefined
+  if (!hasValidDirections(poi) || !poi.directions) return "#"
 
-  const { latitude, longitude, label } = poi.directions
-  return `https://maps.apple.com/?daddr=${latitude},${longitude}&q=${encodeURIComponent(label)}&dirflg=w`
+  const { latitude, longitude } = poi.directions
+  return `https://maps.apple.com/?saddr=Current%20Location&daddr=${latitude},${longitude}&dirflg=w`
 }
 
 function shouldPreferAppleMaps() {
@@ -322,7 +329,7 @@ export function MalagaCenterMap() {
                     <ArrowRight className="h-4 w-4" />
                   </Link>
 
-                  {selectedPoi.directions && (
+                  {hasValidDirections(selectedPoi) && (
                     <a
                       href={getGoogleMapsDirectionsUrl(selectedPoi)}
                       onClick={(event) => openNativeDirections(event, selectedPoi)}

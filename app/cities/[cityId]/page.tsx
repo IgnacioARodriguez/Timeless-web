@@ -1,7 +1,6 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
 import { MalagaCenterMap } from "@/components/map/malaga-center-map"
+import { BackButton } from "@/components/navigation/back-button"
 import { getCityById, timelessCities } from "@/data/cities"
 import type { Metadata } from "next"
 
@@ -43,13 +42,12 @@ export default async function CityPage({ params }: CityPageProps) {
         <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-white/45 to-transparent" />
       </div>
 
-      <Link
+      <BackButton
         href="/"
-        className="absolute left-4 top-4 z-40 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/70 bg-background/72 text-foreground shadow-sm backdrop-blur-md transition-transform active:scale-[0.98] sm:left-6 sm:top-6"
-        aria-label="Volver al atlas de ciudades"
-      >
-        <ArrowLeft className="h-4 w-4" />
-      </Link>
+        label="Volver al atlas de ciudades"
+        variant="light"
+        className="absolute left-4 top-4 z-40 sm:left-6 sm:top-6"
+      />
 
       <section className="mx-auto max-w-5xl px-4 pt-7 pb-1 text-center sm:px-6 sm:pt-9 sm:pb-2">
         <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-accent">

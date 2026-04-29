@@ -12,8 +12,8 @@ export const malagaCenterPois: MapPoi[] = [
     sceneId: "carreteria-1487",
     previewImage: "/assets/carreteria/panorama.png",
     directions: {
-      lat: 36.723456,
-      lng: -4.423008,
+      latitude: 36.723456,
+      longitude: -4.423008,
       label: "Muralla de Carretería",
     },
     mapPosition: { x: 18.0, y: 17.4 },
@@ -39,8 +39,8 @@ export const malagaCenterPois: MapPoi[] = [
     sceneId: "atarazanas-nazari",
     previewImage: "/assets/atarazanas/panorama.png",
     directions: {
-      lat: 36.718676,
-      lng: -4.424228,
+      latitude: 36.718676,
+      longitude: -4.424228,
       label: "Mercado de Atarazanas",
     },
     mapPosition: { x: 9.6, y: 63.3 },
@@ -66,8 +66,8 @@ export const malagaCenterPois: MapPoi[] = [
     sceneId: "teatro-romano-malaca",
     previewImage: "/assets/teatro-romano/panorama.png",
     directions: {
-      lat: 36.72125299697328,
-      lng: -4.4172272713502485,
+      latitude: 36.72125299697328,
+      longitude: -4.4172272713502485,
       label: "Teatro Romano de Málaga",
     },
     mapPosition: { x: 49.3, y: 37.3 },

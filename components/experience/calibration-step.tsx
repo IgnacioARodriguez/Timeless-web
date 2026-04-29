@@ -81,7 +81,7 @@ export function CalibrationStep({ scene, onReady, onError }: CalibrationStepProp
       <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/50 to-transparent z-10 pointer-events-none" />
 
       {/* Scene label */}
-      <div className="absolute top-0 left-0 right-0 z-10 px-5 pt-8">
+      <div className="absolute top-0 left-0 right-0 z-10 px-5 pl-16 pt-8">
         <p className="text-[10px] tracking-[0.25em] uppercase text-background/40 font-sans mb-0.5">
           Calibration
         </p>
