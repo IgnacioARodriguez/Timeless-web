@@ -12,7 +12,7 @@ export const timelessCities: TimelessCity[] = [
     scenesCount: 3,
     status: "available",
     href: "/cities/malaga",
-    coverImage: "/assets/carreteria/poster.jpg",
+    coverImage: "/assets/carreteria/hero-malaga.png",
     accentLabel: "Disponible ahora",
   },
   {

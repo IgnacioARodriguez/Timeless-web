@@ -54,19 +54,11 @@ function CityCard({ city, index }: { city: TimelessCity; index: number }) {
             )}
           >
             {isAvailable ? <Sparkles className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-            {city.accentLabel}
           </span>
 
-          <span className="rounded-full border border-white/20 bg-black/18 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-white/85 backdrop-blur-md">
-            {String(index + 1).padStart(2, "0")}
-          </span>
         </div>
 
         <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-          <p className="mb-2 flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/72 sm:justify-start">
-            <MapPin className="h-3.5 w-3.5" />
-            {city.country} · {city.regionLabel}
-          </p>
 
           <h2 className="text-center font-serif text-4xl font-light leading-none tracking-[-0.04em] text-white sm:text-left sm:text-5xl">
             {city.name}
@@ -132,10 +124,6 @@ export function CityAtlas() {
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground sm:mx-0 sm:text-base">
             Cada ciudad reúne escenas históricas de 180° vinculadas a puntos reales de activación.
           </p>
-        </div>
-
-        <div className="rounded-full border border-accent/15 bg-accent/8 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-accent shadow-sm">
-          {availableCount} ciudad activa
         </div>
       </div>
 
