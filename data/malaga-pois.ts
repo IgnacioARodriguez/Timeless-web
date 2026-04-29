@@ -10,7 +10,7 @@ export const malagaCenterPois: MapPoi[] = [
     locationLabel: "Calle Carretería 62–64",
     status: "available",
     sceneId: "carreteria-1487",
-    previewImage: "/assets/carreteria/panorama.jpg",
+    previewImage: "/assets/carreteria/panorama.png",
     directions: {
       lat: 36.723456,
       lng: -4.423008,
