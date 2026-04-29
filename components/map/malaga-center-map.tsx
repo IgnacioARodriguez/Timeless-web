@@ -334,72 +334,72 @@ export function MalagaCenterMap() {
           ))}
         </div>
 
-        <div className="border-t border-white/70 bg-[linear-gradient(180deg,rgba(255,252,247,0.98),rgba(247,240,230,0.98))] p-3 pb-[calc(0.85rem+env(safe-area-inset-bottom))] sm:p-5">
-          <div className="flex items-start gap-3.5">
+        <div className="border-t border-white/65 bg-background/96 px-5 py-6 sm:px-6 sm:py-7">
+          <div className="mx-auto flex max-w-md flex-col items-center text-center">
             <div
               className={cn(
-                "mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-2xl shadow-sm sm:h-11 sm:w-11",
-                selectedPoi.status === "available" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground",
+                "grid h-14 w-14 place-items-center rounded-2xl shadow-sm",
+                selectedPoi.status === "available"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-muted text-muted-foreground",
               )}
             >
-              <Landmark className="h-5 w-5" />
+              <Landmark className="h-6 w-6" />
             </div>
 
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-lg font-semibold leading-tight tracking-[-0.03em] text-foreground sm:text-2xl">
-                  {selectedPoi.title}
-                </h3>
-                <span
-                  className={cn(
-                    "rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em]",
-                    selectedPoi.status === "available"
-                      ? "bg-accent/12 text-accent"
-                      : "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {selectedPoi.status === "available" ? "Escena activa" : "En preparación"}
-                </span>
-              </div>
+            <h3 className="mt-4 font-sans text-2xl font-bold leading-tight tracking-[-0.03em] text-foreground sm:text-3xl">
+              {selectedPoi.title}
+            </h3>
 
-              <p className="mt-1.5 text-[10px] font-semibold uppercase leading-relaxed tracking-[0.14em] text-muted-foreground sm:text-[11px]">
-                {selectedPoi.locationLabel} · {selectedPoi.period}
-              </p>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:mt-2.5 sm:text-sm">
-                {selectedPoi.shortDescription}
-              </p>
+            <span
+              className={cn(
+                "mt-3 inline-flex rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em]",
+                selectedPoi.status === "available"
+                  ? "bg-accent/12 text-accent"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              {selectedPoi.status === "available" ? "Escena activa" : "Próximamente"}
+            </span>
 
-              <div className="mt-3 grid max-w-md grid-cols-1 gap-2 sm:mt-4 sm:grid-cols-2 sm:gap-2.5">
-                {selectedPoi.status === "available" && selectedPoi.sceneId ? (
-                  <>
-                    <Link
-                      href={`/scene/${selectedPoi.sceneId}`}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-background shadow-sm transition-transform active:scale-[0.98] sm:text-xs"
+            <p className="mt-4 max-w-xs font-sans text-[11px] font-bold uppercase leading-relaxed tracking-[0.2em] text-muted-foreground sm:max-w-sm">
+              {selectedPoi.locationLabel}
+              {selectedPoi.period ? ` · ${selectedPoi.period}` : ""}
+            </p>
+
+            <p className="mt-4 max-w-sm text-center font-sans text-sm leading-relaxed text-muted-foreground sm:text-base">
+              {selectedPoi.shortDescription}
+            </p>
+
+            <div className="mt-6 flex w-full max-w-sm flex-col items-center gap-3">
+              {selectedPoi.status === "available" && selectedPoi.sceneId ? (
+                <>
+                  <Link
+                    href={`/scene/${selectedPoi.sceneId}`}
+                    className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-foreground px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-background shadow-md transition-transform active:scale-[0.98]"
+                  >
+                    Ver escena 180°
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+
+                  {selectedPoi.directions && (
+                    <a
+                      href={getGoogleMapsDirectionsUrl(selectedPoi.directions)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-border bg-background px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-foreground shadow-sm transition-transform active:scale-[0.98]"
                     >
-                      Ver escena 180°
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-
-                    {selectedPoi.directions ? (
-                      <a
-                        href={getGoogleMapsDirectionsUrl(selectedPoi)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(event) => openNativeDirections(event, selectedPoi)}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border/80 bg-background/80 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground shadow-sm transition-colors hover:bg-muted active:scale-[0.98] sm:text-xs"
-                      >
-                        Cómo llegar
-                        <Navigation className="h-4 w-4" />
-                      </a>
-                    ) : null}
-                  </>
-                ) : (
-                  <div className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-muted/60 px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:col-span-2">
-                    <Clock className="h-4 w-4" />
-                    Escena en preparación
-                  </div>
-                )}
-              </div>
+                      Cómo llegar
+                      <Navigation className="h-4 w-4 -rotate-45" />
+                    </a>
+                  )}
+                </>
+              ) : (
+                <div className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-muted/60 px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  Escena no disponible
+                </div>
+              )}
             </div>
           </div>
         </div>
