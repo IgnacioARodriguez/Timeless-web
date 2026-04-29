@@ -139,6 +139,9 @@ export function MalagaCenterMap() {
             Selecciona un punto para abrir la escena o llegar al lugar exacto de activación.
           </p>
         </div>
+        <div className="shrink-0 rounded-full border border-border bg-card/85 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground shadow-sm">
+          {availableCount} escenas activas
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-[1.75rem] border border-border/90 bg-card shadow-[0_18px_60px_rgba(35,28,18,0.08)]">
