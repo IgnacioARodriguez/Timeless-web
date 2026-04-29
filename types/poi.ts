@@ -8,13 +8,14 @@ export interface MapPoi {
   locationLabel: string
   status: PoiStatus
   sceneId?: string
+  previewImage?: string
+  directions?: {
+    lat: number
+    lng: number
+    label: string
+  }
   mapPosition: {
     x: number
     y: number
-  }
-  directions?: {
-    latitude: number
-    longitude: number
-    label: string
   }
 }
