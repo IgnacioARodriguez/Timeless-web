@@ -2,7 +2,7 @@ import type { MapPoi } from "@/types/poi"
 
 export const malagaCenterPois: MapPoi[] = [
   {
-    id: "carreteria-62-64",
+    id: "muralla-carreteria",
     title: "Muralla de Carretería",
     period: "Sistema defensivo islámico",
     shortDescription:
@@ -10,33 +10,50 @@ export const malagaCenterPois: MapPoi[] = [
     locationLabel: "Calle Carretería 62–64",
     status: "available",
     sceneId: "carreteria-1487",
-    previewImage: "/assets/carreteria/panorama.png",
+    previewImage: "/assets/carreteria/poster.jpg",
     directions: {
-      lat: 36.723456,
-      lng: -4.423008,
+      latitude: 36.723456,
+      longitude: -4.423008,
       label: "Muralla de Carretería",
     },
-    mapPosition: { x: 34, y: 36 },
+    mapPosition: { x: 18.0, y: 17.4 },
   },
   {
-    id: "plaza-merced",
-    title: "Plaza de la Merced",
-    period: "Espacio urbano histórico",
+    id: "plaza-constitucion",
+    title: "Plaza de la Constitución",
+    period: "Centro histórico",
     shortDescription:
-      "Punto previsto para una futura escena del crecimiento urbano y el borde noreste del centro histórico.",
-    locationLabel: "Plaza de la Merced",
+      "Punto central del trazado urbano histórico de Málaga. Escena futura.",
+    locationLabel: "Plaza de la Constitución",
     status: "coming-soon",
-    mapPosition: { x: 66, y: 28 },
+    mapPosition: { x: 26.5, y: 38.5 },
   },
   {
-    id: "alcazaba",
-    title: "Alcazaba",
-    period: "Fortificación palatina",
+    id: "atarazanas",
+    title: "Atarazanas",
+    period: "Infraestructura portuaria medieval",
     shortDescription:
-      "Punto previsto para una futura escena del sistema defensivo y palatino de Málaga.",
-    locationLabel: "Calle Alcazabilla",
+      "Reconstrucción inmersiva del entorno de las Atarazanas medievales antes de su transformación en mercado moderno.",
+    locationLabel: "Mercado de Atarazanas",
+    status: "available",
+    sceneId: "atarazanas-nazari",
+    previewImage: "/assets/atarazanas/panorama.png",
+    directions: {
+      latitude: 36.718676,
+      longitude: -4.424228,
+      label: "Mercado de Atarazanas",
+    },
+    mapPosition: { x: 9.6, y: 63.3 },
+  },
+  {
+    id: "calle-larios",
+    title: "Calle Larios",
+    period: "Málaga moderna e histórica",
+    shortDescription:
+      "Uno de los ejes urbanos más emblemáticos del centro histórico. Escena futura.",
+    locationLabel: "Calle Larios",
     status: "coming-soon",
-    mapPosition: { x: 76, y: 45 },
+    mapPosition: { x: 28.1, y: 64.5 },
   },
   {
     id: "teatro-romano",
@@ -49,71 +66,20 @@ export const malagaCenterPois: MapPoi[] = [
     sceneId: "teatro-romano-malaca",
     previewImage: "/assets/teatro-romano/panorama.png",
     directions: {
-      lat: 36.721207,
-      lng: -4.416538,
+      latitude: 36.721207,
+      longitude: -4.416538,
       label: "Teatro Romano de Málaga",
     },
-    mapPosition: { x: 69, y: 51 },
+    mapPosition: { x: 49.3, y: 37.3 },
   },
   {
-    id: "catedral",
-    title: "Catedral de Málaga",
-    period: "Edad Moderna",
+    id: "plaza-merced",
+    title: "Plaza de la Merced",
+    period: "Espacio urbano histórico",
     shortDescription:
-      "Punto previsto para una futura escena sobre la transformación urbana tras la conquista castellana.",
-    locationLabel: "Entorno de la Catedral",
+      "Entorno histórico destacado del centro de Málaga. Escena futura.",
+    locationLabel: "Plaza de la Merced",
     status: "coming-soon",
-    mapPosition: { x: 58, y: 59 },
-  },
-  {
-    id: "plaza-constitucion",
-    title: "Plaza de la Constitución",
-    period: "Centro cívico histórico",
-    shortDescription:
-      "Punto previsto como nodo central para conectar Larios, Catedral, Carretería y el entorno comercial histórico.",
-    locationLabel: "Plaza de la Constitución",
-    status: "coming-soon",
-    mapPosition: { x: 48, y: 51 },
-  },
-  {
-    id: "calle-larios",
-    title: "Calle Larios",
-    period: "Eje urbano moderno",
-    shortDescription:
-      "Punto previsto para explicar la lectura urbana del centro actual y su relación con el casco histórico.",
-    locationLabel: "Calle Marqués de Larios",
-    status: "coming-soon",
-    mapPosition: { x: 46, y: 64 },
-  },
-  {
-    id: "atarazanas",
-    title: "Atarazanas",
-    period: "Infraestructura portuaria medieval",
-    shortDescription:
-      "Reconstrucción inmersiva del entorno de las Atarazanas medievales de Málaga antes de su transformación en mercado moderno.",
-    locationLabel: "Mercado de Atarazanas",
-    status: "available",
-    sceneId: "atarazanas-nazari",
-    previewImage: "/assets/atarazanas/panorama.png",
-    directions: {
-      lat: 36.718676,
-      lng: -4.424228,
-      label: "Mercado de Atarazanas",
-    },
-    mapPosition: { x: 34, y: 67 },
-  },
-  {
-    id: "parque-puerto",
-    title: "Parque y Puerto",
-    period: "Borde marítimo histórico",
-    shortDescription:
-      "Punto previsto para conectar el centro histórico con el frente marítimo y la evolución del puerto.",
-    locationLabel: "Parque de Málaga / Muelle Uno",
-    status: "coming-soon",
-    mapPosition: { x: 72, y: 86 },
+    mapPosition: { x: 47.4, y: 24.1 },
   },
 ]
-
-export function getAvailablePois() {
-  return malagaCenterPois.filter((poi) => poi.status === "available")
-}
