@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
-import { BrandLockup } from "@/components/brand/brand-lockup"
 import { MalagaCenterMap } from "@/components/map/malaga-center-map"
 import { getCityById, timelessCities } from "@/data/cities"
 import type { Metadata } from "next"
@@ -35,7 +34,6 @@ export default async function CityPage({ params }: CityPageProps) {
   const city = getCityById(cityId)
 
   if (!city || city.status !== "available") notFound()
-
   if (city.id !== "malaga") notFound()
 
   return (
@@ -45,23 +43,20 @@ export default async function CityPage({ params }: CityPageProps) {
         <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-white/45 to-transparent" />
       </div>
 
-      <header className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 pt-5 pb-3 sm:px-6 sm:pt-8 sm:pb-5">
-        <Link
-          href="/"
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/70 bg-background/68 text-foreground shadow-sm backdrop-blur-md transition-transform active:scale-[0.98]"
-          aria-label="Volver al atlas de ciudades"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
+      <Link
+        href="/"
+        className="absolute left-4 top-4 z-40 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/70 bg-background/72 text-foreground shadow-sm backdrop-blur-md transition-transform active:scale-[0.98] sm:left-6 sm:top-6"
+        aria-label="Volver al atlas de ciudades"
+      >
+        <ArrowLeft className="h-4 w-4" />
+      </Link>
 
-        <div className="h-10 w-10" aria-hidden="true" />
-      </header>
-
-      <section className="mx-auto max-w-5xl px-4 pb-1 text-center sm:px-6 sm:pb-2">
+      <section className="mx-auto max-w-5xl px-4 pt-7 pb-1 text-center sm:px-6 sm:pt-9 sm:pb-2">
         <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-accent">
           {city.country} · {city.regionLabel}
         </p>
-        <h1 className="mt-2 font-serif text-[2.15rem] font-light leading-none tracking-[-0.05em] text-foreground sm:text-5xl">
+
+        <h1 className="mt-2 font-serif text-[2.45rem] font-light leading-none tracking-[-0.055em] text-foreground sm:text-5xl">
           {city.name}
         </h1>
       </section>
