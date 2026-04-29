@@ -41,7 +41,7 @@ function CityCard({ city, index }: { city: TimelessCity; index: number }) {
           : "border-white/55 bg-background/62 opacity-85",
       )}
     >
-      <div className="relative h-[11.5rem] sm:h-[16.5rem] lg:h-[18rem]">
+      <div className="relative h-[12rem] sm:h-[16.5rem] lg:h-[18rem]">
         <CityCover city={city} />
 
         <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
