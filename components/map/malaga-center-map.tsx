@@ -336,18 +336,26 @@ export function MalagaCenterMap() {
 
         <div className="border-t border-white/65 bg-background/96 px-5 py-6 sm:px-6 sm:py-7">
           <div className="mx-auto flex max-w-md flex-col items-center text-center">
-            <div
-              className={cn(
-                "grid h-14 w-14 place-items-center rounded-2xl shadow-sm",
-                selectedPoi.status === "available"
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-muted text-muted-foreground",
-              )}
-            >
-              <Landmark className="h-6 w-6" />
-            </div>
+            {selectedPoi.previewImage && (
+              <div className="mb-5 w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-muted shadow-sm">
+                <div className="relative aspect-[16/7] w-full">
+                  <img
+                    src={selectedPoi.previewImage}
+                    alt={`Vista previa de ${selectedPoi.title}`}
+                    className="h-full w-full object-cover"
+                    draggable={false}
+                  />
 
-            <h3 className="mt-4 font-sans text-2xl font-bold leading-tight tracking-[-0.03em] text-foreground sm:text-3xl">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
+
+                  <div className="absolute bottom-3 left-3 rounded-full border border-white/30 bg-black/35 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-white shadow-sm backdrop-blur-md">
+                    Preview reconstrucción
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <h3 className="max-w-sm text-center font-sans text-[1.75rem] font-bold leading-tight tracking-[-0.04em] text-foreground sm:text-3xl">
               {selectedPoi.title}
             </h3>
 
