@@ -66,7 +66,7 @@ function CityCard({ city }: { city: TimelessCity }) {
             {city.name}
           </h2>
 
-          <p className="mx-auto mt-2 line-clamp-2 max-w-sm text-center text-xs leading-relaxed text-white/78 sm:mx-0 sm:text-left sm:text-sm">
+          <p className="mx-auto mt-2 line-clamp-3 max-w-sm text-center text-xs leading-relaxed text-white/78 sm:mx-0 sm:text-left sm:text-sm">
             {city.description}
           </p>
 
