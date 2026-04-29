@@ -1,4 +1,4 @@
-export type MapPoiStatus = "available" | "coming-soon"
+export type PoiStatus = "available" | "coming-soon"
 
 export interface MapPoi {
   id: string
@@ -6,7 +6,7 @@ export interface MapPoi {
   period: string
   shortDescription: string
   locationLabel: string
-  status: MapPoiStatus
+  status: PoiStatus
   sceneId?: string
   mapPosition: {
     x: number

@@ -11,6 +11,11 @@ export const malagaCenterPois: MapPoi[] = [
     status: "available",
     sceneId: "carreteria-1487",
     mapPosition: { x: 34, y: 36 },
+    directions: {
+      latitude: 36.723456,
+      longitude: -4.423008,
+      label: "Punto de activación — Muralla de Carretería 62–64",
+    },
   },
   {
     id: "plaza-merced",
@@ -42,6 +47,11 @@ export const malagaCenterPois: MapPoi[] = [
     status: "available",
     sceneId: "teatro-romano-malaca",
     mapPosition: { x: 69, y: 51 },
+    directions: {
+      latitude: 36.721207,
+      longitude: -4.416538,
+      label: "Punto de activación — Teatro Romano de Málaga",
+    },
   },
   {
     id: "catedral",
@@ -83,6 +93,11 @@ export const malagaCenterPois: MapPoi[] = [
     status: "available",
     sceneId: "atarazanas-nazari",
     mapPosition: { x: 34, y: 67 },
+    directions: {
+      latitude: 36.718676,
+      longitude: -4.424228,
+      label: "Punto de activación — Mercado de Atarazanas",
+    },
   },
   {
     id: "parque-puerto",
