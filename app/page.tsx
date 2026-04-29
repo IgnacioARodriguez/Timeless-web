@@ -1,33 +1,15 @@
 import { BrandLockup } from "@/components/brand/brand-lockup"
-import { MalagaCenterMap } from "@/components/map/malaga-center-map"
+import { CityAtlas } from "@/components/cities/city-atlas"
 
 export default function HomePage() {
   return (
-    <main className="min-h-svh bg-background">
-      <header className="px-4 pt-6 pb-4 sm:px-6 sm:pt-10 sm:pb-6">
-        <BrandLockup variant="light" showByline />
-      </header>
+    <main className="relative min-h-dvh overflow-x-hidden bg-[#f3eadb] text-foreground">
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(218,178,110,0.28),transparent_34%),linear-gradient(180deg,#f8f0e3_0%,#efe2cf_48%,#e5d2b9_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/45 to-transparent" />
+      </div>
 
-      <section className="px-4 pb-5 sm:px-6 sm:pt-2 sm:pb-8">
-        <p className="mb-4 font-sans text-[10px] uppercase tracking-[0.24em] text-accent sm:mb-6 sm:text-xs">
-          Historical Immersive Experiences
-        </p>
-        <h1 className="mb-4 max-w-xl text-balance font-serif text-3xl font-light leading-[1.12] text-foreground sm:mb-6 sm:text-5xl">
-          Elige un punto.<br />
-          Entra en su pasado.
-        </h1>
-        <p className="max-w-md text-pretty font-sans text-sm leading-relaxed text-muted-foreground sm:text-base">
-          Explora el centro histórico de Málaga desde un mapa interactivo. Cada punto abre una reconstrucción inmersiva de 180° vinculada a un lugar concreto.
-        </p>
-      </section>
-
-      <MalagaCenterMap />
-
-      <footer className="px-6 pb-8">
-        <p className="text-center font-sans text-[10px] uppercase tracking-[0.15em] text-muted-foreground/50">
-          Experiencias disponibles: Carretería, Atarazanas y Teatro Romano
-        </p>
-      </footer>
+      <CityAtlas />
     </main>
   )
 }
