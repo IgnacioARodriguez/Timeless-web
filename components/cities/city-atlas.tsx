@@ -142,10 +142,6 @@ export function CityAtlas() {
         <p className="mt-5 max-w-[21rem] text-center font-sans text-base leading-relaxed text-[#6E5D4B] sm:max-w-xl sm:text-lg">
           Cada ciudad reúne escenas históricas de 180° vinculadas a puntos reales de activación.
         </p>
-
-        <div className="mt-6 inline-flex rounded-full border border-[#B86B38]/20 bg-white/35 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#A6633A] shadow-sm backdrop-blur-sm">
-          {availableCount} {availableCount === 1 ? "ciudad activa" : "ciudades activas"}
-        </div>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
