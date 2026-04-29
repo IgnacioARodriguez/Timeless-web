@@ -41,32 +41,10 @@ function CityCard({ city, index }: { city: TimelessCity; index: number }) {
           : "border-white/55 bg-background/62 opacity-85",
       )}
     >
-      <div className="relative h-[14.5rem] sm:h-[16.5rem] lg:h-[18rem]">
+      <div className="relative h-[11.5rem] sm:h-[16.5rem] lg:h-[18rem]">
         <CityCover city={city} />
 
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 p-4 sm:p-5">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] backdrop-blur-md sm:text-[10px]",
-              isAvailable
-                ? "border-white/25 bg-white/12 text-white"
-                : "border-white/25 bg-black/15 text-white/80",
-            )}
-          >
-            {isAvailable ? <Sparkles className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-            {city.accentLabel}
-          </span>
-
-          <span className="rounded-full border border-white/20 bg-black/18 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/85 backdrop-blur-md sm:text-[10px]">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-        </div>
-
         <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-          <p className="mb-1.5 flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-white/72 sm:justify-start sm:text-[10px]">
-            <MapPin className="h-3.5 w-3.5" />
-            {city.country} · {city.regionLabel}
-          </p>
 
           <h2 className="text-center font-serif text-4xl font-light leading-none tracking-[-0.04em] text-white sm:text-left sm:text-[2.7rem]">
             {city.name}
