@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type MouseEvent } from "react"
 import Link from "next/link"
-import { ArrowRight, Clock, Landmark, Lock, MapPin, Navigation, Route } from "lucide-react"
+import { ArrowRight, Clock, Lock, MapPin, Navigation, Route } from "lucide-react"
 import { malagaCenterPois } from "@/data/malaga-pois"
 import type { MapPoi } from "@/types/poi"
 import { cn } from "@/lib/utils"
@@ -29,21 +29,32 @@ function PoiMarker({
       <span
         className={cn(
           "relative grid place-items-center rounded-full border shadow-lg transition-all duration-200",
-          selected ? "h-10 w-10 scale-110 sm:h-12 sm:w-12" : "h-8 w-8 group-hover:scale-105 sm:h-10 sm:w-10",
+          selected
+            ? "h-10 w-10 scale-110 sm:h-12 sm:w-12"
+            : "h-8 w-8 group-hover:scale-105 sm:h-10 sm:w-10",
           isAvailable
             ? "border-accent/20 bg-accent text-accent-foreground shadow-accent/25"
             : "border-border bg-background/90 text-muted-foreground backdrop-blur-sm",
         )}
       >
-        {isAvailable ? <MapPin className="h-4 w-4 sm:h-5 sm:w-5" /> : <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-        {isAvailable && <span className="absolute inset-0 rounded-full border border-accent opacity-25 animate-ping" />}
+        {isAvailable ? (
+          <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+        ) : (
+          <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        )}
+
+        {isAvailable && (
+          <span className="absolute inset-0 rounded-full border border-accent opacity-25 animate-ping" />
+        )}
       </span>
 
       <span
         className={cn(
           "absolute left-1/2 top-[calc(100%+0.35rem)] z-20 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-1 text-[8.5px] font-semibold tracking-wide shadow-sm transition-opacity sm:text-[10px]",
           selected ? "opacity-100" : "opacity-0 group-hover:opacity-100",
-          isAvailable ? "bg-foreground text-background" : "border border-border bg-background/95 text-muted-foreground",
+          isAvailable
+            ? "bg-foreground text-background"
+            : "border border-border bg-background/95 text-muted-foreground",
         )}
       >
         {poi.title}
@@ -121,6 +132,7 @@ export function MalagaCenterMap() {
     () => malagaCenterPois.find((poi) => poi.status === "available") ?? malagaCenterPois[0],
     [],
   )
+
   const [selectedPoi, setSelectedPoi] = useState<MapPoi>(initialPoi)
 
   const availableCount = malagaCenterPois.filter((poi) => poi.status === "available").length
@@ -133,13 +145,16 @@ export function MalagaCenterMap() {
             <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-accent/90 sm:text-[10px]">
               Mapa de experiencias
             </p>
+
             <h2 className="text-balance text-2xl font-semibold leading-tight tracking-[-0.04em] text-foreground sm:text-3xl">
               Centro histórico de Málaga
             </h2>
+
             <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-muted-foreground sm:mx-0 sm:text-sm">
               Selecciona una escena, entra al visor 180° o abre la ruta hasta el punto exacto de activación.
             </p>
           </div>
+
           <div className="inline-flex shrink-0 rounded-full border border-accent/15 bg-accent/8 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-accent shadow-sm sm:text-[10px]">
             {availableCount} escenas activas
           </div>
@@ -167,7 +182,6 @@ export function MalagaCenterMap() {
             <rect width="100" height="100" className="fill-[#efe5d2]" />
             <rect width="100" height="100" filter="url(#map-paper-noise)" opacity="0.42" />
 
-            {/* Oeste: río Guadalmedina. Es una referencia visual clave para que el mapa lea como Málaga. */}
             <path
               d="M0 0 C8 10, 4 21, 10 32 C15 43, 9 54, 14 66 C18 76, 12 88, 17 100 L0 100 Z"
               className="fill-[#d8e5dd]"
@@ -181,7 +195,6 @@ export function MalagaCenterMap() {
               className="text-foreground/18"
             />
 
-            {/* Sur: Alameda, Parque y borde portuario. */}
             <path
               d="M12 78 C29 74, 43 76, 57 75 C74 74, 87 70, 100 65 L100 100 L13 100 C17 92, 18 84, 12 78 Z"
               className="fill-[#d7e3d2]"
@@ -205,14 +218,12 @@ export function MalagaCenterMap() {
               className="text-foreground/22"
             />
 
-            {/* Centro histórico: mancha compacta entre río, Carretería, Alcazaba y Alameda. */}
             <path
               d="M19 38 C28 27, 43 24, 56 24 C69 25, 76 33, 78 45 C80 58, 72 68, 58 72 C44 76, 29 73, 20 66 C13 58, 13 47, 19 38 Z"
               className="fill-[#eadcc2] stroke-foreground/10"
               strokeWidth="0.5"
             />
 
-            {/* Este: ladera Alcazaba / Gibralfaro. */}
             <path
               d="M72 18 C86 18, 98 27, 100 41 L100 63 C92 62, 84 58, 78 50 C70 39, 66 28, 72 18 Z"
               className="fill-[#d8cfab]"
@@ -225,7 +236,6 @@ export function MalagaCenterMap() {
               className="text-foreground/15"
             />
 
-            {/* Calles principales reconocibles. */}
             <path
               d="M20 38 C31 31, 43 29, 57 26 C62 25, 66 24, 71 23"
               fill="none"
@@ -286,7 +296,6 @@ export function MalagaCenterMap() {
               className="text-foreground/13"
             />
 
-            {/* Bloques urbanos esquemáticos para evitar que parezca un parque abstracto. */}
             <path d="M26 43 L34 39 L39 45 L31 49 Z" className="fill-background/35 stroke-foreground/8" strokeWidth="0.3" />
             <path d="M40 34 L49 31 L53 38 L44 41 Z" className="fill-background/32 stroke-foreground/8" strokeWidth="0.3" />
             <path d="M53 40 L61 37 L66 44 L58 48 Z" className="fill-background/30 stroke-foreground/8" strokeWidth="0.3" />
@@ -296,14 +305,35 @@ export function MalagaCenterMap() {
 
             <circle cx="48" cy="51" r="3.4" className="fill-background/65 stroke-foreground/15" strokeWidth="0.55" />
             <circle cx="66" cy="28" r="3.1" className="fill-background/50 stroke-foreground/12" strokeWidth="0.45" />
-            <circle cx="69" cy="47" r="4.6" fill="none" stroke="currentColor" strokeWidth="0.7" strokeDasharray="1.6 2.4" className="text-accent/45" />
+            <circle
+              cx="69"
+              cy="47"
+              r="4.6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="0.7"
+              strokeDasharray="1.6 2.4"
+              className="text-accent/45"
+            />
 
-            <MapText x={9} y={48} rotate={82}>Guadalmedina</MapText>
-            <MapText x={47} y={78} rotate={-6} emphasis>Alameda Principal</MapText>
-            <MapText x={47} y={63} rotate={98}>Calle Larios</MapText>
-            <MapText x={44} y={35} rotate={-11} emphasis>Calle Carretería</MapText>
-            <MapText x={86} y={35} rotate={34}>Alcazaba / Gibralfaro</MapText>
-            <MapText x={72} y={88} rotate={-11}>Parque / Puerto</MapText>
+            <MapText x={9} y={48} rotate={82}>
+              Guadalmedina
+            </MapText>
+            <MapText x={47} y={78} rotate={-6} emphasis>
+              Alameda Principal
+            </MapText>
+            <MapText x={47} y={63} rotate={98}>
+              Calle Larios
+            </MapText>
+            <MapText x={44} y={35} rotate={-11} emphasis>
+              Calle Carretería
+            </MapText>
+            <MapText x={86} y={35} rotate={34}>
+              Alcazaba / Gibralfaro
+            </MapText>
+            <MapText x={72} y={88} rotate={-11}>
+              Parque / Puerto
+            </MapText>
           </svg>
 
           <div className="absolute left-3 top-3 max-w-[11.5rem] rounded-2xl border border-white/70 bg-background/78 px-3 py-2.5 shadow-sm backdrop-blur-md sm:left-5 sm:top-5 sm:max-w-[17rem] sm:px-4 sm:py-3">
@@ -311,6 +341,7 @@ export function MalagaCenterMap() {
               <Route className="h-3.5 w-3.5 text-accent sm:h-4 sm:w-4" />
               Puntos de activación
             </div>
+
             <p className="mt-1.5 hidden text-xs leading-relaxed text-muted-foreground sm:block">
               Los marcadores activos abren una escena 180° y la ruta para verla in situ.
             </p>
@@ -325,36 +356,31 @@ export function MalagaCenterMap() {
           </div>
 
           {malagaCenterPois.map((poi) => (
-            <PoiMarker
-              key={poi.id}
-              poi={poi}
-              selected={selectedPoi.id === poi.id}
-              onSelect={setSelectedPoi}
-            />
+            <PoiMarker key={poi.id} poi={poi} selected={selectedPoi.id === poi.id} onSelect={setSelectedPoi} />
           ))}
         </div>
 
-        <div className="border-t border-white/65 bg-background/96 px-5 py-6 sm:px-6 sm:py-7">
-          <div className="mx-auto flex max-w-md flex-col items-center text-center">
-            {selectedPoi.previewImage && (
-              <div className="mb-5 w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-muted shadow-sm">
-                <div className="relative aspect-[16/7] w-full">
-                  <img
-                    src={selectedPoi.previewImage}
-                    alt={`Vista previa de ${selectedPoi.title}`}
-                    className="h-full w-full object-cover"
-                    draggable={false}
-                  />
+        <div className="border-t border-white/65 bg-background/96 pb-6 pt-1.5 sm:pb-7 sm:pt-2">
+          {selectedPoi.previewImage && (
+            <div className="mb-6 w-full overflow-hidden rounded-[1.55rem] border border-white/50 bg-muted shadow-sm sm:rounded-[1.9rem]">
+              <div className="relative aspect-[16/7] w-full sm:aspect-[21/8]">
+                <img
+                  src={selectedPoi.previewImage}
+                  alt={`Vista previa de ${selectedPoi.title}`}
+                  className="h-full w-full object-cover"
+                  draggable={false}
+                />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent" />
 
-                  <div className="absolute bottom-3 left-3 rounded-full border border-white/30 bg-black/35 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-white shadow-sm backdrop-blur-md">
-                    Preview reconstrucción
-                  </div>
+                <div className="absolute bottom-3 left-3 rounded-full border border-white/30 bg-black/40 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-white shadow-sm backdrop-blur-md sm:bottom-4 sm:left-4">
+                  Preview reconstrucción
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
+          <div className="mx-auto flex max-w-md flex-col items-center px-4 text-center sm:px-6">
             <h3 className="max-w-sm text-center font-sans text-[1.75rem] font-bold leading-tight tracking-[-0.04em] text-foreground sm:text-3xl">
               {selectedPoi.title}
             </h3>
@@ -362,9 +388,7 @@ export function MalagaCenterMap() {
             <span
               className={cn(
                 "mt-3 inline-flex rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em]",
-                selectedPoi.status === "available"
-                  ? "bg-accent/12 text-accent"
-                  : "bg-muted text-muted-foreground",
+                selectedPoi.status === "available" ? "bg-accent/12 text-accent" : "bg-muted text-muted-foreground",
               )}
             >
               {selectedPoi.status === "available" ? "Escena activa" : "Próximamente"}
@@ -392,7 +416,8 @@ export function MalagaCenterMap() {
 
                   {selectedPoi.directions && (
                     <a
-                      href={getGoogleMapsDirectionsUrl(selectedPoi.directions)}
+                      href={getGoogleMapsDirectionsUrl(selectedPoi)}
+                      onClick={(event) => openNativeDirections(event, selectedPoi)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-border bg-background px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] text-foreground shadow-sm transition-transform active:scale-[0.98]"
