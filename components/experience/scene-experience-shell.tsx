@@ -19,6 +19,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
   const [calibration, setCalibration] = useState<CalibrationOffset | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [permissions, setPermissions] = useState<PermissionsState | null>(null)
+  const [autoStartAmbientAudio, setAutoStartAmbientAudio] = useState(false)
 
   function handleError(message: string) {
     setErrorMessage(message)
@@ -34,6 +35,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
     setCalibration(null)
     setErrorMessage(null)
     setPermissions(null)
+    setAutoStartAmbientAudio(false)
     setStep("intro")
   }
 
@@ -55,6 +57,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
       setCalibration(null)
       setErrorMessage(null)
       setPermissions(null)
+      setAutoStartAmbientAudio(false)
       setStep("intro")
     }
   }
@@ -86,6 +89,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
         <PermissionsStep
           onGranted={(grantedPermissions) => {
             setPermissions(grantedPermissions)
+            setAutoStartAmbientAudio(true)
             setStep("calibration")
           }}
           onError={handleError}
@@ -106,6 +110,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
           calibration={calibration}
           motionEnabled={permissions?.orientation === "granted"}
           cameraPassthroughEnabled={permissions?.camera === "granted"}
+          autoStartAmbientAudio={autoStartAmbientAudio}
           onExit={handleRestart}
           onError={handleError}
         />

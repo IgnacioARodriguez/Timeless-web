@@ -3,13 +3,13 @@ import type { MapPoi } from "@/types/poi"
 export const malagaCenterPois: MapPoi[] = [
   {
     id: "muralla-carreteria",
-    title: "Muralla de Carretería",
-    period: "Sistema defensivo islámico",
+    title: "Muralla almohade de Carretería",
+    period: "Muralla almohade · siglo XIII",
     shortDescription:
-      "Reconstrucción inmersiva del lienzo, torre, barbacana y liza conservados en calle Carretería 62–64.",
+      "Reconstrucción inmersiva de la fase almohade del lienzo, la torre, la barbacana y la liza conservados en calle Carretería 62–64.",
     locationLabel: "Calle Carretería 62–64",
     status: "available",
-    sceneId: "carreteria-1487",
+    sceneId: "carreteria-almohade",
     previewImage: "/assets/carreteria/panorama.png",
     directions: {
       latitude: 36.723456,

@@ -7,7 +7,7 @@ import { LoadingState } from "@/components/viewer/loading-state"
 import { ViewerErrorState } from "@/components/viewer/error-state"
 import { ViewerControls } from "@/components/viewer/viewer-controls"
 import { requestCameraStream, stopCameraStream } from "@/lib/camera"
-import type { Scene, SceneAnimationLayer, SceneHotspot } from "@/types/scene"
+import type { Scene, SceneHotspot } from "@/types/scene"
 import type { CalibrationOffset } from "@/types/experience"
 
 interface Viewer180Props {
@@ -15,6 +15,7 @@ interface Viewer180Props {
   calibration: CalibrationOffset
   motionEnabled?: boolean
   cameraPassthroughEnabled?: boolean
+  autoStartAmbientAudio?: boolean
   onExit?: () => void
 }
 
@@ -31,9 +32,6 @@ const TEXTURE_EDGE_FADE_END = 1.05
 const TEXTURE_EDGE_FADE_SHAPE_X = 0.92
 const TEXTURE_EDGE_FADE_SHAPE_Y = 1.02
 const TEXTURE_EDGE_FADE_POWER = 4.0
-const ANIMATION_RADIUS = 410
-const ANIMATION_POSITION_LERP = 0.12
-const ANIMATION_UPDATE_EPSILON = 0.35
 interface HotspotScreenPosition {
   id: string
   left: number
@@ -42,30 +40,12 @@ interface HotspotScreenPosition {
   scale: number
 }
 
-interface AnimationScreenPosition {
-  id: string
-  left: number
-  top: number
-  visible: boolean
-  scale: number
-}
 
 function hotspotToWorldPosition(hotspot: SceneHotspot) {
   return new THREE.Vector3(0, 0, -HOTSPOT_RADIUS).applyEuler(
     new THREE.Euler(
       THREE.MathUtils.degToRad(hotspot.pitch),
       THREE.MathUtils.degToRad(hotspot.yaw),
-      0,
-      "YXZ"
-    )
-  )
-}
-
-function animationToWorldPosition(animation: SceneAnimationLayer) {
-  return new THREE.Vector3(0, 0, -ANIMATION_RADIUS).applyEuler(
-    new THREE.Euler(
-      THREE.MathUtils.degToRad(animation.pitch),
-      THREE.MathUtils.degToRad(animation.yaw),
       0,
       "YXZ"
     )
@@ -130,156 +110,6 @@ function createEdgeFadeMaterial(texture: THREE.Texture) {
   return material
 }
 
-function renderSceneAnimation(animation: SceneAnimationLayer) {
-  if (animation.type === "dust") {
-    return (
-      <div className="relative h-full w-full">
-        {Array.from({ length: 18 }).map((_, index) => {
-          const size = 1 + (index % 3) * 0.6
-
-          return (
-            <span
-              key={index}
-              className="absolute block rounded-full"
-              style={{
-                width: `${size}px`,
-                height: `${size}px`,
-                left: `${6 + ((index * 5.3) % 84)}%`,
-                top: `${42 + ((index * 7.1) % 30)}%`,
-                background:
-                  index % 3 === 0
-                    ? "rgba(120, 104, 84, 0.20)"
-                    : index % 3 === 1
-                      ? "rgba(150, 132, 102, 0.16)"
-                      : "rgba(95, 82, 66, 0.14)",
-                filter: "blur(0.35px)",
-                animation: `timeless-dust ${7 + (index % 5)}s linear infinite`,
-                animationDelay: `${index * 0.35}s`,
-              }}
-            />
-          )
-        })}
-      </div>
-    )
-  }
-
-  if (animation.type === "smoke") {
-    return (
-      <div className="relative h-full w-full">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <span
-            key={index}
-            className="absolute block rounded-full"
-            style={{
-              width: `${38 + index * 16}px`,
-              height: `${22 + index * 9}px`,
-              left: `${18 + index * 14}%`,
-              top: `${44 - index * 6}%`,
-              background: "rgba(120, 120, 120, 0.10)",
-              filter: "blur(10px)",
-              animation: `timeless-smoke ${9 + index * 1.5}s ease-in-out infinite`,
-              animationDelay: `${index * 0.9}s`,
-            }}
-          />
-        ))}
-      </div>
-    )
-  }
-
-  if (animation.type === "birds") {
-    return (
-      <div className="relative h-full w-full">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <span
-            key={index}
-            className="absolute block"
-            style={{
-              left: `${12 + index * 25}%`,
-              top: `${28 + index * 10}%`,
-              width: `${8 + index * 1.5}px`,
-              height: `${5 + index}px`,
-              animation: `timeless-birds ${10 + index * 1.5}s ease-in-out infinite`,
-              animationDelay: `${index * 0.9}s`,
-              opacity: 0.28,
-            }}
-          >
-            <svg
-              viewBox="0 0 24 12"
-              className="h-full w-full"
-              aria-hidden="true"
-            >
-              <path
-                d="M1 8 C4 3, 8 3, 12 8 C16 3, 20 3, 23 8"
-                fill="none"
-                stroke="rgba(28,28,28,0.65)"
-                strokeWidth="1.25"
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
-        ))}
-      </div>
-    )
-  }
-
-  if (animation.type === "flame") {
-    return (
-      <div className="relative flex h-full w-full items-center justify-center">
-        <span
-          className="block rounded-full"
-          style={{
-            width: "7px",
-            height: "13px",
-            background: "rgba(255, 170, 70, 0.42)",
-            filter: "blur(1.3px)",
-            animation: "timeless-flame 0.45s ease-in-out infinite alternate",
-          }}
-        />
-      </div>
-    )
-  }
-
-  if (animation.type === "water") {
-    return (
-      <div className="relative h-full w-full overflow-hidden rounded-[999px]">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <span
-            key={index}
-            className="absolute left-[-20%] right-[-20%] h-[2px] rounded-full"
-            style={{
-              top: `${28 + index * 14}%`,
-              background: "rgba(255,255,255,0.10)",
-              filter: "blur(0.4px)",
-              animation: `timeless-water ${6 + index}s ease-in-out infinite`,
-              animationDelay: `${index * 0.8}s`,
-            }}
-          />
-        ))}
-      </div>
-    )
-  }
-
-  if (animation.type === "cloth") {
-    return (
-      <div className="relative flex h-full w-full items-start justify-center">
-        <span
-          className="block origin-top"
-          style={{
-            width: "9px",
-            height: "17px",
-            background: "rgba(115, 82, 62, 0.28)",
-            borderRadius: "2px 2px 6px 6px",
-            filter: "blur(0.2px)",
-            animation: "timeless-cloth 2.8s ease-in-out infinite",
-          }}
-        />
-      </div>
-    )
-  }
-
-  return null
-}
-
 function getScreenAngle() {
   const screenOrientation = window.screen.orientation
   if (screenOrientation && typeof screenOrientation.angle === "number") {
@@ -326,6 +156,7 @@ export function Viewer180({
   calibration: _calibration,
   motionEnabled = false,
   cameraPassthroughEnabled = false,
+  autoStartAmbientAudio = false,
   onExit,
 }: Viewer180Props) {
   const isImage = scene.media.type === "image"
@@ -343,12 +174,8 @@ export function Viewer180({
   const [hotspotPositions, setHotspotPositions] = useState<
     HotspotScreenPosition[]
   >([])
-  const [animationPositions, setAnimationPositions] = useState<
-    AnimationScreenPosition[]
-  >([])
 
   const hotspots = useMemo(() => scene.hotspots ?? [], [scene.hotspots])
-  const animations = useMemo(() => scene.animations ?? [], [scene.animations])
   const activeHotspot = useMemo(
     () => hotspots.find((hotspot) => hotspot.id === activeHotspotId) ?? null,
     [hotspots, activeHotspotId]
@@ -357,6 +184,7 @@ export function Viewer180({
     () => hotspotPositions.find((position) => position.id === activeHotspotId),
     [hotspotPositions, activeHotspotId]
   )
+  const activeHotspotFocus = activeHotspot?.focus ?? null
 
   const containerRef = useRef<HTMLDivElement>(null)
   const cameraPassthroughVideoRef = useRef<HTMLVideoElement>(null)
@@ -370,10 +198,14 @@ export function Viewer180({
   const frameRef = useRef<number | null>(null)
   const smoothedHotspotPositionsRef = useRef<Map<string, HotspotScreenPosition>>(new Map())
   const lastHotspotPositionsRef = useRef<HotspotScreenPosition[]>([])
-  const smoothedAnimationPositionsRef = useRef<Map<string, AnimationScreenPosition>>(new Map())
-  const lastAnimationPositionsRef = useRef<AnimationScreenPosition[]>([])
 
   const hiddenVideoRef = useRef<HTMLVideoElement | null>(null)
+  const ambientAudioRef = useRef<HTMLAudioElement | null>(null)
+  const ambientAudioAutoStartedRef = useRef(false)
+
+  const ambientAudio = scene.ambientAudio
+  const hasAmbientAudio = Boolean(ambientAudio?.src)
+  const [isAmbientAudioPlaying, setIsAmbientAudioPlaying] = useState(false)
 
   // The calibration step stores raw device sensor readings. Do not apply those
   // values directly as camera degrees: a phone held upright commonly reports
@@ -425,12 +257,54 @@ export function Viewer180({
   useEffect(() => {
     setActiveHotspotId(null)
     setHotspotPositions([])
-    setAnimationPositions([])
     smoothedHotspotPositionsRef.current.clear()
     lastHotspotPositionsRef.current = []
-    smoothedAnimationPositionsRef.current.clear()
-    lastAnimationPositionsRef.current = []
+
+    ambientAudioAutoStartedRef.current = false
+    const audio = ambientAudioRef.current
+    if (audio) {
+      audio.pause()
+      audio.currentTime = 0
+    }
+    setIsAmbientAudioPlaying(false)
   }, [scene.id])
+
+  useEffect(() => {
+    const audio = ambientAudioRef.current
+    if (!audio || !ambientAudio) return
+
+    audio.volume = clamp(ambientAudio.volume ?? 0.35, 0, 1)
+    audio.loop = ambientAudio.loop ?? true
+  }, [ambientAudio])
+
+  useEffect(() => {
+    const audio = ambientAudioRef.current
+
+    if (
+      !autoStartAmbientAudio ||
+      !isEntered ||
+      hasError ||
+      !hasAmbientAudio ||
+      !ambientAudio ||
+      !audio ||
+      isAmbientAudioPlaying ||
+      ambientAudioAutoStartedRef.current
+    ) {
+      return
+    }
+
+    ambientAudioAutoStartedRef.current = true
+    audio.volume = clamp(ambientAudio.volume ?? 0.35, 0, 1)
+    audio.loop = ambientAudio.loop ?? true
+
+    audio
+      .play()
+      .then(() => setIsAmbientAudioPlaying(true))
+      .catch(() => {
+        ambientAudioAutoStartedRef.current = false
+        setIsAmbientAudioPlaying(false)
+      })
+  }, [ambientAudio, autoStartAmbientAudio, hasAmbientAudio, hasError, isAmbientAudioPlaying, isEntered])
 
 
   // Camera passthrough: render the real camera behind the WebGL canvas.
@@ -768,8 +642,8 @@ export function Viewer180({
 
     window.addEventListener("resize", handleResize)
 
-    const animate = () => {
-      frameRef.current = window.requestAnimationFrame(animate)
+    const renderLoop = () => {
+      frameRef.current = window.requestAnimationFrame(renderLoop)
 
       // Suavizado para quitar jitter del sensor.
       yawRef.current = THREE.MathUtils.lerp(
@@ -871,78 +745,10 @@ export function Viewer180({
         }
       }
 
-      if (animations.length > 0) {
-        const width = currentRenderer.domElement.clientWidth
-        const height = currentRenderer.domElement.clientHeight
-        const previousPositions = smoothedAnimationPositionsRef.current
-
-        const nextPositions = animations.map((animation) => {
-          const previous = previousPositions.get(animation.id)
-          const projected = animationToWorldPosition(animation).project(currentCamera)
-
-          const edgeDistance = Math.max(
-            Math.abs(projected.x),
-            Math.abs(projected.y)
-          )
-
-          const visible =
-            projected.z > -1 &&
-            projected.z < 1 &&
-            projected.x > -1.15 &&
-            projected.x < 1.15 &&
-            projected.y > -1.15 &&
-            projected.y < 1.15
-
-          const rawLeft = (projected.x * 0.5 + 0.5) * width
-          const rawTop = (-projected.y * 0.5 + 0.5) * height
-          const rawScale = THREE.MathUtils.clamp(1 - edgeDistance * 0.18, 0.75, 1)
-
-          const left = previous
-            ? THREE.MathUtils.lerp(previous.left, rawLeft, ANIMATION_POSITION_LERP)
-            : rawLeft
-          const top = previous
-            ? THREE.MathUtils.lerp(previous.top, rawTop, ANIMATION_POSITION_LERP)
-            : rawTop
-          const scale = previous
-            ? THREE.MathUtils.lerp(previous.scale, rawScale, ANIMATION_POSITION_LERP)
-            : rawScale
-
-          const nextPosition = {
-            id: animation.id,
-            left: Math.round(left * 2) / 2,
-            top: Math.round(top * 2) / 2,
-            visible,
-            scale: Math.round(scale * 1000) / 1000,
-          }
-
-          previousPositions.set(animation.id, nextPosition)
-          return nextPosition
-        })
-
-        const previousState = lastAnimationPositionsRef.current
-        const shouldPublish =
-          previousState.length !== nextPositions.length ||
-          nextPositions.some((nextPosition, index) => {
-            const previous = previousState[index]
-            if (!previous) return true
-            return (
-              previous.visible !== nextPosition.visible ||
-              Math.abs(previous.left - nextPosition.left) > ANIMATION_UPDATE_EPSILON ||
-              Math.abs(previous.top - nextPosition.top) > ANIMATION_UPDATE_EPSILON ||
-              Math.abs(previous.scale - nextPosition.scale) > 0.01
-            )
-          })
-
-        if (shouldPublish) {
-          lastAnimationPositionsRef.current = nextPositions
-          setAnimationPositions(nextPositions)
-        }
-      }
-
       currentRenderer.render(currentThreeScene, currentCamera)
     }
 
-    animate()
+    renderLoop()
 
     return () => {
       disposed = true
@@ -993,11 +799,15 @@ export function Viewer180({
       threeSceneRef.current = null
       cameraRef.current = null
     }
-  }, [scene, hotspots, animations, isImage, isVideo, setMediaError, setMediaReady])
+  }, [scene, hotspots, isImage, isVideo, setMediaError, setMediaReady])
 
   // Finger drag is always available. If gyro is active, dragging temporarily
   // overrides sensor updates and re-anchors motion from the new view.
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (activeHotspotId) {
+      setActiveHotspotId(null)
+    }
+
     e.currentTarget.setPointerCapture?.(e.pointerId)
 
     dragRef.current = {
@@ -1059,6 +869,25 @@ export function Viewer180({
       .catch(() => setIsPlaying(false))
   }, [isVideo])
 
+  const toggleAmbientAudio = useCallback(() => {
+    const audio = ambientAudioRef.current
+    if (!audio || !ambientAudio) return
+
+    audio.volume = clamp(ambientAudio.volume ?? 0.35, 0, 1)
+    audio.loop = ambientAudio.loop ?? true
+
+    if (isAmbientAudioPlaying) {
+      audio.pause()
+      setIsAmbientAudioPlaying(false)
+      return
+    }
+
+    audio
+      .play()
+      .then(() => setIsAmbientAudioPlaying(true))
+      .catch(() => setIsAmbientAudioPlaying(false))
+  }, [ambientAudio, isAmbientAudioPlaying])
+
   const requestFullscreen = useCallback(async () => {
     const el = document.documentElement as HTMLElement & {
       webkitRequestFullscreen?: () => Promise<void> | void
@@ -1117,121 +946,6 @@ export function Viewer180({
       )}
 
       <div ref={containerRef} className="absolute inset-0" />
-
-      {isEntered && !hasError && animations.length > 0 && (
-        <div className="absolute inset-0 z-[18] pointer-events-none">
-          <style jsx global>{`
-            @keyframes timeless-dust {
-              0% {
-                transform: translate3d(0, 2px, 0);
-                opacity: 0;
-              }
-              18% {
-                opacity: 1;
-              }
-              75% {
-                opacity: 0.75;
-              }
-              100% {
-                transform: translate3d(10px, -10px, 0);
-                opacity: 0;
-              }
-            }
-
-            @keyframes timeless-smoke {
-              0% {
-                transform: translate3d(0, 8px, 0) scale(0.92);
-                opacity: 0;
-              }
-              20% {
-                opacity: 1;
-              }
-              100% {
-                transform: translate3d(10px, -24px, 0) scale(1.18);
-                opacity: 0;
-              }
-            }
-
-            @keyframes timeless-birds {
-              0% {
-                transform: translate3d(-8px, 2px, 0) scale(0.96);
-                opacity: 0;
-              }
-              15% {
-                opacity: 1;
-              }
-              85% {
-                opacity: 1;
-              }
-              100% {
-                transform: translate3d(18px, -4px, 0) scale(1.04);
-                opacity: 0;
-              }
-            }
-
-            @keyframes timeless-flame {
-              0% {
-                transform: scaleY(0.86) scaleX(1);
-                opacity: 0.5;
-              }
-              100% {
-                transform: scaleY(1.12) scaleX(0.84);
-                opacity: 0.85;
-              }
-            }
-
-            @keyframes timeless-water {
-              0% {
-                transform: translateX(-8px);
-                opacity: 0.05;
-              }
-              50% {
-                transform: translateX(8px);
-                opacity: 0.14;
-              }
-              100% {
-                transform: translateX(-8px);
-                opacity: 0.05;
-              }
-            }
-
-            @keyframes timeless-cloth {
-              0% {
-                transform: rotate(-4deg) skewY(0deg);
-              }
-              50% {
-                transform: rotate(3deg) skewY(2deg);
-              }
-              100% {
-                transform: rotate(-4deg) skewY(0deg);
-              }
-            }
-          `}</style>
-
-          {animations.map((animation) => {
-            const position = animationPositions.find((p) => p.id === animation.id)
-            if (!position?.visible) return null
-
-            return (
-              <div
-                key={animation.id}
-                className="absolute will-change-transform"
-                style={{
-                  left: position.left,
-                  top: position.top,
-                  width: animation.width ?? 120,
-                  height: animation.height ?? 70,
-                  opacity: animation.opacity ?? 0.22,
-                  transform: `translate3d(-50%, -50%, 0) scale(${position.scale})`,
-                }}
-                aria-hidden="true"
-              >
-                {renderSceneAnimation(animation)}
-              </div>
-            )
-          })}
-        </div>
-      )}
 
       {isLoading && <LoadingState />}
 
@@ -1296,10 +1010,35 @@ export function Viewer180({
                 >
                   {hotspot.label}
                 </span>
-                <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-white/20" />
               </button>
             )
           })}
+        </div>
+      )}
+
+      {isEntered && !hasError && activeHotspot && activeHotspotFocus && activeHotspotPosition?.visible && (
+        <div className="absolute inset-0 z-[24] pointer-events-none">
+          <div
+            className="absolute border border-white/90 bg-white/5 shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_0_22px_rgba(255,255,255,0.24)] backdrop-blur-[1px]"
+            style={{
+              left: activeHotspotPosition.left + (activeHotspotFocus.offsetX ?? 0),
+              top: activeHotspotPosition.top + (activeHotspotFocus.offsetY ?? 0),
+              width: activeHotspotFocus.width,
+              height: activeHotspotFocus.height,
+              borderWidth: activeHotspotFocus.strokeWidth ?? 2,
+              borderColor: activeHotspotFocus.strokeColor ?? "rgba(255,255,255,0.92)",
+              borderRadius: activeHotspotFocus.shape === "rect" ? "1rem" : "999px",
+              transform: `translate3d(-50%, -50%, 0) scale(${activeHotspotPosition.scale})`,
+            }}
+            aria-hidden="true"
+          >
+            <div
+              className="absolute inset-[6px] border border-white/30"
+              style={{
+                borderRadius: activeHotspotFocus.shape === "rect" ? "0.8rem" : "999px",
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -1381,19 +1120,32 @@ export function Viewer180({
         </div>
       )}
 
+      {hasAmbientAudio && ambientAudio?.src && (
+        <audio
+          ref={ambientAudioRef}
+          src={ambientAudio.src}
+          loop={ambientAudio.loop ?? true}
+          preload="auto"
+          aria-label={ambientAudio.label ?? "Sonido ambiente"}
+        />
+      )}
+
       {isEntered && !hasError && (
         <>
           <ViewerControls
-            isMuted={isMuted}
+            isMuted={isVideo ? isMuted : !isAmbientAudioPlaying}
             isPlaying={isPlaying}
             gyroEnabled={gyroEnabled}
-            onToggleMute={toggleMute}
+            onToggleMute={isVideo ? toggleMute : toggleAmbientAudio}
             onReplay={replay}
             onToggleHelp={() => setShowHelp((s) => !s)}
             onRequestFullscreen={requestFullscreen}
             supportsFullscreen={supportsFullscreen}
-            showMute={isVideo}
+            showMute={isVideo || hasAmbientAudio}
             showReplay={isVideo}
+            muteLabel={isVideo ? "Mute" : "Silencio"}
+            unmuteLabel={isVideo ? "Unmute" : "Sonido"}
+            replayLabel="Replay"
           />
         </>
       )}

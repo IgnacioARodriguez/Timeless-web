@@ -60,7 +60,7 @@ function PoiMarker({
         )}
 
         {selected && isAvailable && (
-          <span className="absolute inset-0 animate-ping rounded-full border border-accent opacity-25" />
+          <span className="absolute inset-0 rounded-full border border-accent opacity-25" />
         )}
       </span>
 
