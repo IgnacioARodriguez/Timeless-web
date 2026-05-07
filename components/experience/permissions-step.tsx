@@ -7,7 +7,7 @@ import { requestOrientationPermission } from "@/lib/device-orientation"
 import type { PermissionsState } from "@/types/experience"
 
 interface PermissionsStepProps {
-  onGranted: () => void
+  onGranted: (permissions: PermissionsState) => void
   onError: (message: string) => void
 }
 
@@ -24,19 +24,20 @@ export function PermissionsStep({ onGranted, onError }: PermissionsStepProps) {
     let cameraState: PermissionsState["camera"] = "idle"
     let orientationState: PermissionsState["orientation"] = "idle"
 
+    // Orientation first: iOS requires this permission request to happen directly
+    // from the user's tap/click gesture.
+    const orientationResult = await requestOrientationPermission()
+    orientationState = orientationResult
+
     // Camera
     try {
       const stream = await requestCameraStream()
-      // Stop immediately — the calibration step will re-request it
-      stream.getTracks().forEach((t) => t.stop())
+      // Stop immediately — the calibration step will re-request it.
+      stream.getTracks().forEach((track) => track.stop())
       cameraState = "granted"
     } catch {
       cameraState = "denied"
     }
-
-    // Orientation
-    const orientationResult = await requestOrientationPermission()
-    orientationState = orientationResult
 
     const updated: PermissionsState = {
       camera: cameraState,
@@ -52,8 +53,8 @@ export function PermissionsStep({ onGranted, onError }: PermissionsStepProps) {
       return
     }
 
-    // Orientation unavailable is non-fatal — gyro fallback will kick in
-    onGranted()
+    // Orientation denied/unavailable is non-fatal: the viewer still supports finger drag.
+    onGranted(updated)
   }
 
   return (
@@ -68,26 +69,8 @@ export function PermissionsStep({ onGranted, onError }: PermissionsStepProps) {
           Antes de empezar
         </p>
         <h2 className="font-serif font-light text-3xl leading-snug text-foreground mb-6 text-balance">
-          Se necesitan permisos
+          Aceptá los permisos para iniciar la experiencia de cámara y movimiento
         </h2>
-
-        <div className="flex flex-col gap-5 mb-10">
-          <PermissionRow
-            label="Cámara"
-            description="Para superponer la imagen histórica en la vista en directo"
-            state={permissions.camera}
-          />
-          <PermissionRow
-            label="Movimiento y orientación"
-            description="Para que puedas explorar usando el giroscopio de tu dispositivo"
-            state={permissions.orientation}
-          />
-        </div>
-
-        <p className="text-sm leading-relaxed text-muted-foreground text-pretty mb-10">
-          La señal de tu cámara nunca se almacena ni se transmite. Todo el procesamiento se realiza
-          en tu dispositivo.
-        </p>
 
         <button
           onClick={handleGrantPermissions}
@@ -95,7 +78,7 @@ export function PermissionsStep({ onGranted, onError }: PermissionsStepProps) {
           className="w-full bg-foreground text-background font-sans text-xs tracking-[0.2em] uppercase py-4 rounded-xl disabled:opacity-40 transition-opacity duration-200 active:opacity-70"
           aria-label="Grant camera and orientation permissions"
         >
-          {requesting ? "Solicitando..." : "Permitir acceso"}
+          {requesting ? "Solicitando..." : "Aceptar permisos e iniciar"}
         </button>
       </div>
     </div>

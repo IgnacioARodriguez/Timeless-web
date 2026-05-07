@@ -1,22 +1,283 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import { clamp } from "@/lib/calibration"
 import { LoadingState } from "@/components/viewer/loading-state"
 import { ViewerErrorState } from "@/components/viewer/error-state"
 import { ViewerControls } from "@/components/viewer/viewer-controls"
-import type { Scene } from "@/types/scene"
+import { requestCameraStream, stopCameraStream } from "@/lib/camera"
+import type { Scene, SceneAnimationLayer, SceneHotspot } from "@/types/scene"
 import type { CalibrationOffset } from "@/types/experience"
 
 interface Viewer180Props {
   scene: Scene
   calibration: CalibrationOffset
+  motionEnabled?: boolean
+  cameraPassthroughEnabled?: boolean
   onExit?: () => void
 }
 
-type IOSPermissionDeviceOrientationEvent = typeof DeviceOrientationEvent & {
-  requestPermission?: () => Promise<"granted" | "denied">
+const VIEWER_FOV = 125
+const HORIZON_PITCH_OFFSET = 4
+const HOTSPOT_RADIUS = 420
+const HOTSPOT_POSITION_LERP = 0.18
+const HOTSPOT_UPDATE_EPSILON = 0.35
+const HOTSPOT_ENTER_MARGIN = 1.04
+const HOTSPOT_EXIT_MARGIN = 1.18
+const GYRO_TARGET_DEADZONE_DEG = 0.08
+const TEXTURE_EDGE_FADE_START = 0.92
+const TEXTURE_EDGE_FADE_END = 1.05
+const TEXTURE_EDGE_FADE_SHAPE_X = 0.92
+const TEXTURE_EDGE_FADE_SHAPE_Y = 1.02
+const TEXTURE_EDGE_FADE_POWER = 4.0
+const ANIMATION_RADIUS = 410
+const ANIMATION_POSITION_LERP = 0.12
+const ANIMATION_UPDATE_EPSILON = 0.35
+interface HotspotScreenPosition {
+  id: string
+  left: number
+  top: number
+  visible: boolean
+  scale: number
+}
+
+interface AnimationScreenPosition {
+  id: string
+  left: number
+  top: number
+  visible: boolean
+  scale: number
+}
+
+function hotspotToWorldPosition(hotspot: SceneHotspot) {
+  return new THREE.Vector3(0, 0, -HOTSPOT_RADIUS).applyEuler(
+    new THREE.Euler(
+      THREE.MathUtils.degToRad(hotspot.pitch),
+      THREE.MathUtils.degToRad(hotspot.yaw),
+      0,
+      "YXZ"
+    )
+  )
+}
+
+function animationToWorldPosition(animation: SceneAnimationLayer) {
+  return new THREE.Vector3(0, 0, -ANIMATION_RADIUS).applyEuler(
+    new THREE.Euler(
+      THREE.MathUtils.degToRad(animation.pitch),
+      THREE.MathUtils.degToRad(animation.yaw),
+      0,
+      "YXZ"
+    )
+  )
+}
+
+function createEdgeFadeMaterial(texture: THREE.Texture) {
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+  })
+
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        "#include <common>",
+        `
+        #include <common>
+        varying vec2 vFadeUv;
+        `
+      )
+      .replace(
+        "#include <uv_vertex>",
+        `
+        #include <uv_vertex>
+        vFadeUv = uv;
+        `
+      )
+
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        "#include <common>",
+        `
+        #include <common>
+        varying vec2 vFadeUv;
+        `
+      )
+      .replace(
+        "vec4 diffuseColor = vec4( diffuse, opacity );",
+        `
+        vec4 diffuseColor = vec4( diffuse, opacity );
+
+        vec2 centeredUv = abs((vFadeUv - 0.5) * 2.0);
+
+        float dx = pow(centeredUv.x / ${TEXTURE_EDGE_FADE_SHAPE_X.toFixed(2)}, ${TEXTURE_EDGE_FADE_POWER.toFixed(1)});
+        float dy = pow(centeredUv.y / ${TEXTURE_EDGE_FADE_SHAPE_Y.toFixed(2)}, ${TEXTURE_EDGE_FADE_POWER.toFixed(1)});
+        float edgeDistance = pow(dx + dy, 1.0 / ${TEXTURE_EDGE_FADE_POWER.toFixed(1)});
+
+        float edgeFade = 1.0 - smoothstep(
+          ${TEXTURE_EDGE_FADE_START.toFixed(2)},
+          ${TEXTURE_EDGE_FADE_END.toFixed(2)},
+          edgeDistance
+        );
+
+        diffuseColor.a *= edgeFade;
+        `
+      )
+  }
+
+  material.needsUpdate = true
+  return material
+}
+
+function renderSceneAnimation(animation: SceneAnimationLayer) {
+  if (animation.type === "dust") {
+    return (
+      <div className="relative h-full w-full">
+        {Array.from({ length: 18 }).map((_, index) => {
+          const size = 1 + (index % 3) * 0.6
+
+          return (
+            <span
+              key={index}
+              className="absolute block rounded-full"
+              style={{
+                width: `${size}px`,
+                height: `${size}px`,
+                left: `${6 + ((index * 5.3) % 84)}%`,
+                top: `${42 + ((index * 7.1) % 30)}%`,
+                background:
+                  index % 3 === 0
+                    ? "rgba(120, 104, 84, 0.20)"
+                    : index % 3 === 1
+                      ? "rgba(150, 132, 102, 0.16)"
+                      : "rgba(95, 82, 66, 0.14)",
+                filter: "blur(0.35px)",
+                animation: `timeless-dust ${7 + (index % 5)}s linear infinite`,
+                animationDelay: `${index * 0.35}s`,
+              }}
+            />
+          )
+        })}
+      </div>
+    )
+  }
+
+  if (animation.type === "smoke") {
+    return (
+      <div className="relative h-full w-full">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <span
+            key={index}
+            className="absolute block rounded-full"
+            style={{
+              width: `${38 + index * 16}px`,
+              height: `${22 + index * 9}px`,
+              left: `${18 + index * 14}%`,
+              top: `${44 - index * 6}%`,
+              background: "rgba(120, 120, 120, 0.10)",
+              filter: "blur(10px)",
+              animation: `timeless-smoke ${9 + index * 1.5}s ease-in-out infinite`,
+              animationDelay: `${index * 0.9}s`,
+            }}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  if (animation.type === "birds") {
+    return (
+      <div className="relative h-full w-full">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <span
+            key={index}
+            className="absolute block"
+            style={{
+              left: `${12 + index * 25}%`,
+              top: `${28 + index * 10}%`,
+              width: `${8 + index * 1.5}px`,
+              height: `${5 + index}px`,
+              animation: `timeless-birds ${10 + index * 1.5}s ease-in-out infinite`,
+              animationDelay: `${index * 0.9}s`,
+              opacity: 0.28,
+            }}
+          >
+            <svg
+              viewBox="0 0 24 12"
+              className="h-full w-full"
+              aria-hidden="true"
+            >
+              <path
+                d="M1 8 C4 3, 8 3, 12 8 C16 3, 20 3, 23 8"
+                fill="none"
+                stroke="rgba(28,28,28,0.65)"
+                strokeWidth="1.25"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  if (animation.type === "flame") {
+    return (
+      <div className="relative flex h-full w-full items-center justify-center">
+        <span
+          className="block rounded-full"
+          style={{
+            width: "7px",
+            height: "13px",
+            background: "rgba(255, 170, 70, 0.42)",
+            filter: "blur(1.3px)",
+            animation: "timeless-flame 0.45s ease-in-out infinite alternate",
+          }}
+        />
+      </div>
+    )
+  }
+
+  if (animation.type === "water") {
+    return (
+      <div className="relative h-full w-full overflow-hidden rounded-[999px]">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <span
+            key={index}
+            className="absolute left-[-20%] right-[-20%] h-[2px] rounded-full"
+            style={{
+              top: `${28 + index * 14}%`,
+              background: "rgba(255,255,255,0.10)",
+              filter: "blur(0.4px)",
+              animation: `timeless-water ${6 + index}s ease-in-out infinite`,
+              animationDelay: `${index * 0.8}s`,
+            }}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  if (animation.type === "cloth") {
+    return (
+      <div className="relative flex h-full w-full items-start justify-center">
+        <span
+          className="block origin-top"
+          style={{
+            width: "9px",
+            height: "17px",
+            background: "rgba(115, 82, 62, 0.28)",
+            borderRadius: "2px 2px 6px 6px",
+            filter: "blur(0.2px)",
+            animation: "timeless-cloth 2.8s ease-in-out infinite",
+          }}
+        />
+      </div>
+    )
+  }
+
+  return null
 }
 
 function getScreenAngle() {
@@ -60,19 +321,46 @@ function deviceQuaternionFromOrientation(
   return quaternion
 }
 
-export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
+export function Viewer180({
+  scene,
+  calibration: _calibration,
+  motionEnabled = false,
+  cameraPassthroughEnabled = false,
+  onExit,
+}: Viewer180Props) {
   const isImage = scene.media.type === "image"
   const isVideo = scene.media.type === "video"
 
-  const [gyroEnabled, setGyroEnabled] = useState(false)
+  const [gyroEnabled, setGyroEnabled] = useState(motionEnabled)
   const [isLoading, setIsLoading] = useState(true)
   const [isEntered, setIsEntered] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const [cameraPassthroughReady, setCameraPassthroughReady] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [isPlaying, setIsPlaying] = useState(isImage)
   const [isMuted, setIsMuted] = useState(isVideo ? scene.media.muted : false)
+  const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null)
+  const [hotspotPositions, setHotspotPositions] = useState<
+    HotspotScreenPosition[]
+  >([])
+  const [animationPositions, setAnimationPositions] = useState<
+    AnimationScreenPosition[]
+  >([])
+
+  const hotspots = useMemo(() => scene.hotspots ?? [], [scene.hotspots])
+  const animations = useMemo(() => scene.animations ?? [], [scene.animations])
+  const activeHotspot = useMemo(
+    () => hotspots.find((hotspot) => hotspot.id === activeHotspotId) ?? null,
+    [hotspots, activeHotspotId]
+  )
+  const activeHotspotPosition = useMemo(
+    () => hotspotPositions.find((position) => position.id === activeHotspotId),
+    [hotspotPositions, activeHotspotId]
+  )
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const cameraPassthroughVideoRef = useRef<HTMLVideoElement>(null)
+  const cameraPassthroughStreamRef = useRef<MediaStream | null>(null)
 
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const threeSceneRef = useRef<THREE.Scene | null>(null)
@@ -80,11 +368,19 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
   const meshRef = useRef<THREE.Mesh | null>(null)
   const textureRef = useRef<THREE.Texture | null>(null)
   const frameRef = useRef<number | null>(null)
+  const smoothedHotspotPositionsRef = useRef<Map<string, HotspotScreenPosition>>(new Map())
+  const lastHotspotPositionsRef = useRef<HotspotScreenPosition[]>([])
+  const smoothedAnimationPositionsRef = useRef<Map<string, AnimationScreenPosition>>(new Map())
+  const lastAnimationPositionsRef = useRef<AnimationScreenPosition[]>([])
 
   const hiddenVideoRef = useRef<HTMLVideoElement | null>(null)
 
-  const calibrationYaw = calibration?.yawOffset ?? 0
-  const calibrationPitch = calibration?.pitchOffset ?? 0
+  // The calibration step stores raw device sensor readings. Do not apply those
+  // values directly as camera degrees: a phone held upright commonly reports
+  // beta around 90°, which would make the viewer start by looking upward.
+  // The immersive viewer must start from the scene-defined visual center.
+  const calibrationYaw = 0
+  const calibrationPitch = 0
 
   // Orientación renderizada actual.
   const yawRef = useRef(scene.camera.initialYaw + calibrationYaw)
@@ -119,31 +415,83 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
     setHasError(true)
   }, [])
 
-  const enableGyro = useCallback(async () => {
-    try {
-      baselineDeviceQuaternionRef.current = null
-
-      // Ancla visual actual. Así no “salta” al activar motion.
-      motionAnchorYawRef.current = targetYawRef.current
-      motionAnchorPitchRef.current = targetPitchRef.current
-
-      const maybeIOS = DeviceOrientationEvent as IOSPermissionDeviceOrientationEvent
-
-      if (typeof maybeIOS.requestPermission === "function") {
-        const result = await maybeIOS.requestPermission()
-        setGyroEnabled(result === "granted")
-      } else {
-        setGyroEnabled(true)
-      }
-    } catch {
-      setGyroEnabled(false)
-    }
-  }, [])
-
-  const disableGyro = useCallback(() => {
-    setGyroEnabled(false)
+  useEffect(() => {
+    setGyroEnabled(motionEnabled)
     baselineDeviceQuaternionRef.current = null
-  }, [])
+    motionAnchorYawRef.current = targetYawRef.current
+    motionAnchorPitchRef.current = targetPitchRef.current
+  }, [motionEnabled])
+
+  useEffect(() => {
+    setActiveHotspotId(null)
+    setHotspotPositions([])
+    setAnimationPositions([])
+    smoothedHotspotPositionsRef.current.clear()
+    lastHotspotPositionsRef.current = []
+    smoothedAnimationPositionsRef.current.clear()
+    lastAnimationPositionsRef.current = []
+  }, [scene.id])
+
+
+  // Camera passthrough: render the real camera behind the WebGL canvas.
+  // The WebGL renderer is transparent, so empty areas outside the historical
+  // image show the live camera instead of a black background. This is not
+  // full AR tracking; it is a practical MVP fallback for viewer edges.
+  useEffect(() => {
+    const video = cameraPassthroughVideoRef.current
+
+    if (!cameraPassthroughEnabled || !video) {
+      setCameraPassthroughReady(false)
+      return
+    }
+
+    let cancelled = false
+
+    async function startCameraPassthrough() {
+      try {
+        const stream = await requestCameraStream({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        })
+
+        if (cancelled) {
+          stopCameraStream(stream)
+          return
+        }
+
+        cameraPassthroughStreamRef.current = stream
+        video.srcObject = stream
+        video.muted = true
+        video.playsInline = true
+        video.setAttribute("playsinline", "true")
+        video.setAttribute("webkit-playsinline", "true")
+
+        await video.play()
+
+        if (!cancelled) {
+          setCameraPassthroughReady(true)
+        }
+      } catch {
+        // Non-fatal: if the camera cannot start, the viewer still works and
+        // transparent areas fall back to black.
+        setCameraPassthroughReady(false)
+      }
+    }
+
+    startCameraPassthrough()
+
+    return () => {
+      cancelled = true
+      setCameraPassthroughReady(false)
+      stopCameraStream(cameraPassthroughStreamRef.current)
+      cameraPassthroughStreamRef.current = null
+
+      if (video) {
+        video.pause()
+        video.srcObject = null
+      }
+    }
+  }, [cameraPassthroughEnabled])
 
   useEffect(() => {
     const onChange = () => {
@@ -166,7 +514,7 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
   // Gyro 3D relativo con quaternion.
   useEffect(() => {
     function handleOrientation(e: DeviceOrientationEvent) {
-      if (!gyroEnabled) return
+      if (!gyroEnabled || dragRef.current.active) return
       if (e.alpha == null || e.beta == null || e.gamma == null) return
 
       const currentDeviceQuaternion = deviceQuaternionFromOrientation(
@@ -214,8 +562,13 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
         scene.camera.maxPitch + calibrationPitch
       )
 
-      targetYawRef.current = nextYaw
-      targetPitchRef.current = nextPitch
+      if (Math.abs(nextYaw - targetYawRef.current) > GYRO_TARGET_DEADZONE_DEG) {
+        targetYawRef.current = nextYaw
+      }
+
+      if (Math.abs(nextPitch - targetPitchRef.current) > GYRO_TARGET_DEADZONE_DEG) {
+        targetPitchRef.current = nextPitch
+      }
     }
 
     window.addEventListener("deviceorientation", handleOrientation, true)
@@ -254,20 +607,22 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
-      alpha: false,
+      alpha: true,
     })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.setClearColor(0x000000, 0)
+    renderer.domElement.style.background = "transparent"
     container.appendChild(renderer.domElement)
     rendererRef.current = renderer
 
     const threeScene = new THREE.Scene()
-    threeScene.background = new THREE.Color(0x000000)
+    threeScene.background = null
     threeSceneRef.current = threeScene
 
     const camera = new THREE.PerspectiveCamera(
-      70,
+      VIEWER_FOV,
       container.clientWidth / container.clientHeight,
       0.1,
       1100
@@ -275,17 +630,44 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
     camera.rotation.order = "YXZ"
     cameraRef.current = camera
 
-    // 180° reales en horizontal.
-    const geometry = new THREE.SphereGeometry(
-      500,
-      64,
-      40,
-      -Math.PI / 2,
-      Math.PI,
-      0,
-      Math.PI
-    )
-    geometry.scale(-1, 1, 1)
+    const createGeometry = (texture: THREE.Texture) => {
+      if (scene.media.projection === "flat") {
+        const image = texture.image as
+          | HTMLImageElement
+          | HTMLCanvasElement
+          | HTMLVideoElement
+          | undefined
+
+        const width = image instanceof HTMLVideoElement ? image.videoWidth : image?.width
+        const height = image instanceof HTMLVideoElement ? image.videoHeight : image?.height
+        const aspect = width && height ? width / height : 16 / 9
+
+        // Flat mode is for normal rectilinear images, not real spherical panoramas.
+        // It avoids the wall bending caused by wrapping a non-equirectangular image
+        // onto a sphere. This is correct for the current Carretería test image.
+        const distance = 500
+        const planeHeight =
+          2 * distance * Math.tan(THREE.MathUtils.degToRad(VIEWER_FOV / 2)) * 1.04
+        const planeWidth = planeHeight * aspect
+        const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight, 1, 1)
+
+        return { geometry, positionZ: -distance, rotationY: 0 }
+      }
+
+      // Real 180° panoramas must be equirectangular/hemispherical assets.
+      const geometry = new THREE.SphereGeometry(
+        500,
+        64,
+        40,
+        -Math.PI / 2,
+        Math.PI,
+        0,
+        Math.PI
+      )
+      geometry.scale(-1, 1, 1)
+
+      return { geometry, positionZ: 0, rotationY: Math.PI / 2 }
+    }
 
     const createMesh = (texture: THREE.Texture) => {
       if (disposed) {
@@ -298,20 +680,16 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
       texture.magFilter = THREE.LinearFilter
       texture.generateMipmaps = false
 
-      const material = new THREE.MeshBasicMaterial({
-        map: texture,
-      })
+      const material = createEdgeFadeMaterial(texture)
 
-      const sphere = new THREE.Mesh(geometry, material)
+      const { geometry, positionZ, rotationY } = createGeometry(texture)
+      const mesh = new THREE.Mesh(geometry, material)
+      mesh.position.z = positionZ
+      mesh.rotation.y = rotationY
 
-      // Corrige la orientación base del hemisferio:
-      // el centro útil del panorama debe quedar justo enfrente
-      // de la cámara al iniciar.
-      sphere.rotation.y = Math.PI / 2
-
-      meshRef.current = sphere
+      meshRef.current = mesh
       textureRef.current = texture
-      threeScene.add(sphere)
+      threeScene.add(mesh)
       setMediaReady()
     }
 
@@ -326,7 +704,6 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
         undefined,
         () => {
           if (disposed) return
-          geometry.dispose()
           setMediaError()
         }
       )
@@ -360,7 +737,6 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
 
       onVideoError = () => {
         if (disposed) return
-        geometry.dispose()
         setMediaError()
       }
 
@@ -414,7 +790,154 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
       if (!currentCamera || !currentRenderer || !currentThreeScene) return
 
       currentCamera.rotation.y = THREE.MathUtils.degToRad(yawRef.current)
-      currentCamera.rotation.x = THREE.MathUtils.degToRad(pitchRef.current)
+      currentCamera.rotation.x = THREE.MathUtils.degToRad(
+        pitchRef.current + HORIZON_PITCH_OFFSET
+      )
+
+      if (hotspots.length > 0) {
+        const width = currentRenderer.domElement.clientWidth
+        const height = currentRenderer.domElement.clientHeight
+        const previousPositions = smoothedHotspotPositionsRef.current
+
+        const nextPositions = hotspots.map((hotspot) => {
+          const previous = previousPositions.get(hotspot.id)
+          const projected = hotspotToWorldPosition(hotspot).project(currentCamera)
+
+          const edgeDistance = Math.max(
+            Math.abs(projected.x),
+            Math.abs(projected.y)
+          )
+
+          // Hysteresis: once a hotspot is visible, keep it visible a little
+          // longer near the edge so it does not flicker when the gyro jitters.
+          const margin = previous?.visible
+            ? HOTSPOT_EXIT_MARGIN
+            : HOTSPOT_ENTER_MARGIN
+
+          const visible =
+            projected.z > -1 &&
+            projected.z < 1 &&
+            projected.x > -margin &&
+            projected.x < margin &&
+            projected.y > -margin &&
+            projected.y < margin
+
+          const rawLeft = (projected.x * 0.5 + 0.5) * width
+          const rawTop = (-projected.y * 0.5 + 0.5) * height
+          const rawScale = THREE.MathUtils.clamp(1 - edgeDistance * 0.25, 0.7, 1)
+
+          // Smooth the 2D overlay separately from the Three.js camera.
+          // Without this, tiny sensor noise is very visible in HTML hotspots.
+          const left = previous
+            ? THREE.MathUtils.lerp(previous.left, rawLeft, HOTSPOT_POSITION_LERP)
+            : rawLeft
+          const top = previous
+            ? THREE.MathUtils.lerp(previous.top, rawTop, HOTSPOT_POSITION_LERP)
+            : rawTop
+          const scale = previous
+            ? THREE.MathUtils.lerp(previous.scale, rawScale, HOTSPOT_POSITION_LERP)
+            : rawScale
+
+          const nextPosition = {
+            id: hotspot.id,
+            // Round to half pixels to reduce sub-pixel shimmer on mobile.
+            left: Math.round(left * 2) / 2,
+            top: Math.round(top * 2) / 2,
+            visible,
+            scale: Math.round(scale * 1000) / 1000,
+          }
+
+          previousPositions.set(hotspot.id, nextPosition)
+          return nextPosition
+        })
+
+        const previousState = lastHotspotPositionsRef.current
+        const shouldPublish =
+          previousState.length !== nextPositions.length ||
+          nextPositions.some((nextPosition, index) => {
+            const previous = previousState[index]
+            if (!previous) return true
+            return (
+              previous.visible !== nextPosition.visible ||
+              Math.abs(previous.left - nextPosition.left) > HOTSPOT_UPDATE_EPSILON ||
+              Math.abs(previous.top - nextPosition.top) > HOTSPOT_UPDATE_EPSILON ||
+              Math.abs(previous.scale - nextPosition.scale) > 0.01
+            )
+          })
+
+        if (shouldPublish) {
+          lastHotspotPositionsRef.current = nextPositions
+          setHotspotPositions(nextPositions)
+        }
+      }
+
+      if (animations.length > 0) {
+        const width = currentRenderer.domElement.clientWidth
+        const height = currentRenderer.domElement.clientHeight
+        const previousPositions = smoothedAnimationPositionsRef.current
+
+        const nextPositions = animations.map((animation) => {
+          const previous = previousPositions.get(animation.id)
+          const projected = animationToWorldPosition(animation).project(currentCamera)
+
+          const edgeDistance = Math.max(
+            Math.abs(projected.x),
+            Math.abs(projected.y)
+          )
+
+          const visible =
+            projected.z > -1 &&
+            projected.z < 1 &&
+            projected.x > -1.15 &&
+            projected.x < 1.15 &&
+            projected.y > -1.15 &&
+            projected.y < 1.15
+
+          const rawLeft = (projected.x * 0.5 + 0.5) * width
+          const rawTop = (-projected.y * 0.5 + 0.5) * height
+          const rawScale = THREE.MathUtils.clamp(1 - edgeDistance * 0.18, 0.75, 1)
+
+          const left = previous
+            ? THREE.MathUtils.lerp(previous.left, rawLeft, ANIMATION_POSITION_LERP)
+            : rawLeft
+          const top = previous
+            ? THREE.MathUtils.lerp(previous.top, rawTop, ANIMATION_POSITION_LERP)
+            : rawTop
+          const scale = previous
+            ? THREE.MathUtils.lerp(previous.scale, rawScale, ANIMATION_POSITION_LERP)
+            : rawScale
+
+          const nextPosition = {
+            id: animation.id,
+            left: Math.round(left * 2) / 2,
+            top: Math.round(top * 2) / 2,
+            visible,
+            scale: Math.round(scale * 1000) / 1000,
+          }
+
+          previousPositions.set(animation.id, nextPosition)
+          return nextPosition
+        })
+
+        const previousState = lastAnimationPositionsRef.current
+        const shouldPublish =
+          previousState.length !== nextPositions.length ||
+          nextPositions.some((nextPosition, index) => {
+            const previous = previousState[index]
+            if (!previous) return true
+            return (
+              previous.visible !== nextPosition.visible ||
+              Math.abs(previous.left - nextPosition.left) > ANIMATION_UPDATE_EPSILON ||
+              Math.abs(previous.top - nextPosition.top) > ANIMATION_UPDATE_EPSILON ||
+              Math.abs(previous.scale - nextPosition.scale) > 0.01
+            )
+          })
+
+        if (shouldPublish) {
+          lastAnimationPositionsRef.current = nextPositions
+          setAnimationPositions(nextPositions)
+        }
+      }
 
       currentRenderer.render(currentThreeScene, currentCamera)
     }
@@ -452,8 +975,6 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
         meshRef.current.geometry.dispose()
         threeSceneRef.current?.remove(meshRef.current)
         meshRef.current = null
-      } else {
-        geometry.dispose()
       }
 
       if (textureRef.current) {
@@ -472,11 +993,12 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
       threeSceneRef.current = null
       cameraRef.current = null
     }
-  }, [scene, isImage, isVideo, setMediaError, setMediaReady])
+  }, [scene, hotspots, animations, isImage, isVideo, setMediaError, setMediaReady])
 
-  // Drag fallback solo cuando gyro está desactivado.
-  function onPointerDown(e: React.PointerEvent) {
-    if (gyroEnabled) return
+  // Finger drag is always available. If gyro is active, dragging temporarily
+  // overrides sensor updates and re-anchors motion from the new view.
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.currentTarget.setPointerCapture?.(e.pointerId)
 
     dragRef.current = {
       active: true,
@@ -487,7 +1009,7 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
     }
   }
 
-  function onPointerMove(e: React.PointerEvent) {
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!dragRef.current.active) return
 
     const dx = e.clientX - dragRef.current.startX
@@ -511,7 +1033,14 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
   }
 
   function onPointerUp() {
+    const wasDragging = dragRef.current.active
     dragRef.current.active = false
+
+    if (wasDragging && gyroEnabled) {
+      baselineDeviceQuaternionRef.current = null
+      motionAnchorYawRef.current = targetYawRef.current
+      motionAnchorPitchRef.current = targetPitchRef.current
+    }
   }
 
   const toggleMute = useCallback(() => {
@@ -560,6 +1089,7 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
       // @ts-expect-error iOS Safari
       !!document.documentElement.webkitRequestFullscreen)
 
+
   return (
     <div
       className="relative w-full h-svh overflow-hidden bg-black select-none touch-none"
@@ -567,8 +1097,141 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
+      {cameraPassthroughEnabled && (
+        <video
+          ref={cameraPassthroughVideoRef}
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+            cameraPassthroughReady ? "opacity-100" : "opacity-0"
+          }`}
+          style={{
+            filter: "saturate(0.75) contrast(0.88) brightness(0.9) blur(0.6px)",
+            transform: "scale(1.01)",
+          }}
+          aria-hidden="true"
+          muted
+          playsInline
+          autoPlay
+        />
+      )}
+
       <div ref={containerRef} className="absolute inset-0" />
+
+      {isEntered && !hasError && animations.length > 0 && (
+        <div className="absolute inset-0 z-[18] pointer-events-none">
+          <style jsx global>{`
+            @keyframes timeless-dust {
+              0% {
+                transform: translate3d(0, 2px, 0);
+                opacity: 0;
+              }
+              18% {
+                opacity: 1;
+              }
+              75% {
+                opacity: 0.75;
+              }
+              100% {
+                transform: translate3d(10px, -10px, 0);
+                opacity: 0;
+              }
+            }
+
+            @keyframes timeless-smoke {
+              0% {
+                transform: translate3d(0, 8px, 0) scale(0.92);
+                opacity: 0;
+              }
+              20% {
+                opacity: 1;
+              }
+              100% {
+                transform: translate3d(10px, -24px, 0) scale(1.18);
+                opacity: 0;
+              }
+            }
+
+            @keyframes timeless-birds {
+              0% {
+                transform: translate3d(-8px, 2px, 0) scale(0.96);
+                opacity: 0;
+              }
+              15% {
+                opacity: 1;
+              }
+              85% {
+                opacity: 1;
+              }
+              100% {
+                transform: translate3d(18px, -4px, 0) scale(1.04);
+                opacity: 0;
+              }
+            }
+
+            @keyframes timeless-flame {
+              0% {
+                transform: scaleY(0.86) scaleX(1);
+                opacity: 0.5;
+              }
+              100% {
+                transform: scaleY(1.12) scaleX(0.84);
+                opacity: 0.85;
+              }
+            }
+
+            @keyframes timeless-water {
+              0% {
+                transform: translateX(-8px);
+                opacity: 0.05;
+              }
+              50% {
+                transform: translateX(8px);
+                opacity: 0.14;
+              }
+              100% {
+                transform: translateX(-8px);
+                opacity: 0.05;
+              }
+            }
+
+            @keyframes timeless-cloth {
+              0% {
+                transform: rotate(-4deg) skewY(0deg);
+              }
+              50% {
+                transform: rotate(3deg) skewY(2deg);
+              }
+              100% {
+                transform: rotate(-4deg) skewY(0deg);
+              }
+            }
+          `}</style>
+
+          {animations.map((animation) => {
+            const position = animationPositions.find((p) => p.id === animation.id)
+            if (!position?.visible) return null
+
+            return (
+              <div
+                key={animation.id}
+                className="absolute will-change-transform"
+                style={{
+                  left: position.left,
+                  top: position.top,
+                  width: animation.width ?? 120,
+                  height: animation.height ?? 70,
+                  opacity: animation.opacity ?? 0.22,
+                  transform: `translate3d(-50%, -50%, 0) scale(${position.scale})`,
+                }}
+                aria-hidden="true"
+              >
+                {renderSceneAnimation(animation)}
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {isLoading && <LoadingState />}
 
@@ -596,6 +1259,105 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
         </div>
       )}
 
+      {isEntered && !hasError && hotspots.length > 0 && (
+        <div className="absolute inset-0 z-20 pointer-events-none">
+          {hotspots.map((hotspot) => {
+            const position = hotspotPositions.find((p) => p.id === hotspot.id)
+            if (!position?.visible) return null
+
+            const isActive = activeHotspotId === hotspot.id
+
+            return (
+              <button
+                key={hotspot.id}
+                type="button"
+                className="absolute pointer-events-auto rounded-full border border-white/60 bg-black/35 text-white shadow-[0_0_24px_rgba(255,255,255,0.25)] backdrop-blur-md will-change-transform active:scale-95"
+                style={{
+                  left: position.left,
+                  top: position.top,
+                  transform: `translate3d(-50%, -50%, 0) scale(${position.scale})`,
+                }}
+                aria-pressed={isActive}
+                aria-label={`Abrir información: ${hotspot.title}`}
+                onPointerDown={(event) => event.stopPropagation()}
+                onPointerMove={(event) => event.stopPropagation()}
+                onPointerUp={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setActiveHotspotId((current) =>
+                    current === hotspot.id ? null : hotspot.id
+                  )
+                }}
+              >
+                <span
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold tracking-[0.08em] ${
+                    isActive ? "bg-white text-black" : "bg-white/15 text-white"
+                  }`}
+                >
+                  {hotspot.label}
+                </span>
+                <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-white/20" />
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {isEntered && !hasError && activeHotspot && (
+        <div
+          className="absolute z-30 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-white/15 bg-black/75 p-4 text-white shadow-2xl backdrop-blur-md pointer-events-auto will-change-transform"
+          style={
+            activeHotspotPosition?.visible
+              ? {
+                  left: activeHotspotPosition.left,
+                  top: activeHotspotPosition.top,
+                  transform: "translate3d(-50%, calc(-100% - 1.25rem), 0)",
+                }
+              : { left: 16, bottom: 96 }
+          }
+          onPointerDown={(event) => event.stopPropagation()}
+          onPointerMove={(event) => event.stopPropagation()}
+          onPointerUp={(event) => event.stopPropagation()}
+        >
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-1 text-[10px] uppercase tracking-[0.22em] text-white/40">
+                Punto histórico
+              </p>
+              <h2 className="font-serif text-lg font-light leading-tight text-white">
+                {activeHotspot.title}
+              </h2>
+            </div>
+            <button
+              type="button"
+              className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-white/60 active:opacity-60"
+              aria-label="Cerrar punto histórico"
+              onClick={() => setActiveHotspotId(null)}
+            >
+              ×
+            </button>
+          </div>
+
+          <p className="mb-4 text-sm leading-relaxed text-white/70">
+            {activeHotspot.description}
+          </p>
+
+          {activeHotspot.audio?.src && (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-white/35">
+                {activeHotspot.audio.label ?? "Audio explicativo"}
+              </p>
+              <audio
+                className="w-full"
+                src={activeHotspot.audio.src}
+                controls
+                preload="none"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {showHelp && (
         <div className="absolute inset-0 z-20 bg-black/70 flex flex-col items-center justify-center px-8 text-center">
           <p className="text-xs tracking-[0.2em] uppercase text-white/40 font-sans mb-4">
@@ -603,11 +1365,11 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
           </p>
           <p className="text-sm leading-relaxed text-white/70 text-pretty mb-2">
             {gyroEnabled
-              ? "Rotate your device to look around the scene."
-              : "Drag across the screen to look around the scene."}
+              ? "Girá el móvil para mirar alrededor. También podés arrastrar con el dedo para ajustar la vista."
+              : "Arrastrá con el dedo para mirar alrededor de la escena."}
           </p>
           <p className="text-sm leading-relaxed text-white/50 text-pretty mb-8">
-            The view is anchored to your calibration alignment.
+            La vista queda anclada a la calibración inicial.
           </p>
           <button
             onClick={() => setShowHelp(false)}
@@ -621,15 +1383,6 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
 
       {isEntered && !hasError && (
         <>
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20">
-            <button
-              onClick={gyroEnabled ? disableGyro : enableGyro}
-              className="font-sans text-[10px] tracking-[0.2em] uppercase text-white/70 border border-white/15 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full"
-            >
-              {gyroEnabled ? "Deshabilitar movimiento" : "Habilitar movimiento"}
-            </button>
-          </div>
-
           <ViewerControls
             isMuted={isMuted}
             isPlaying={isPlaying}
@@ -638,7 +1391,7 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
             onReplay={replay}
             onToggleHelp={() => setShowHelp((s) => !s)}
             onRequestFullscreen={requestFullscreen}
-            supportsFullscreen={true}
+            supportsFullscreen={supportsFullscreen}
             showMute={isVideo}
             showReplay={isVideo}
           />

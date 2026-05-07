@@ -5,7 +5,10 @@ export interface CalibrationOffset {
   pitch: number
 }
 
+export type CameraPermissionState = "idle" | "granted" | "denied"
+export type OrientationPermissionState = "idle" | "granted" | "denied" | "unavailable"
+
 export interface PermissionsState {
-  camera: "idle" | "granted" | "denied"
-  orientation: "idle" | "granted" | "denied" | "unavailable"
+  camera: CameraPermissionState
+  orientation: OrientationPermissionState
 }
