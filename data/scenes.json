@@ -261,12 +261,12 @@
         "label": "Orchestra",
         "title": "El espacio central",
         "description": "La orchestra era la zona semicircular situada entre las gradas y el escenario. Era un espacio importante dentro del teatro, visible para todos los espectadores.",
-        "yaw": -24,
-        "pitch": -7,
+        "yaw": 0,
+        "pitch": -25,
         "focus": {
           "shape": "ellipse",
-          "width": 250,
-          "height": 115,
+          "width": 300,
+          "height": 250,
           "offsetX": 8,
           "offsetY": 10
         }
@@ -277,10 +277,10 @@
         "title": "El frente del escenario",
         "description": "Esta parte marcaba el límite entre la zona de representación y el espacio del público. Ayuda a entender dónde actuaban los intérpretes y cómo se organizaba la escena.",
         "yaw": 26,
-        "pitch": -4,
+        "pitch": -55,
         "focus": {
           "shape": "rect",
-          "width": 280,
+          "width": 600,
           "height": 95,
           "offsetX": 0,
           "offsetY": 10
@@ -306,7 +306,7 @@
         "label": "Asientos",
         "title": "Los asientos principales",
         "description": "Las primeras filas estaban reservadas para personas destacadas de la ciudad. No todo el público se sentaba igual: el lugar dentro del teatro también reflejaba la posición social.",
-        "yaw": 18,
+        "yaw": 45,
         "pitch": 0,
         "focus": {
           "shape": "ellipse",
@@ -321,11 +321,11 @@
         "label": "Ciudad",
         "title": "El teatro dentro de Malaca",
         "description": "El teatro formaba parte de la ciudad romana de Malaca. Su ubicación junto a la ladera y cerca del área urbana muestra que era un espacio público importante, no solo un lugar de espectáculo.",
-        "yaw": 58,
-        "pitch": 9,
+        "yaw": -35,
+        "pitch": 35,
         "focus": {
           "shape": "ellipse",
-          "width": 280,
+          "width": 350,
           "height": 150,
           "offsetX": 0,
           "offsetY": 0
