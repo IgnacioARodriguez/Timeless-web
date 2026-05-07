@@ -19,6 +19,9 @@ type IOSPermissionDeviceOrientationEvent = typeof DeviceOrientationEvent & {
   requestPermission?: () => Promise<"granted" | "denied">
 }
 
+const VIEWER_FOV = 125
+const HORIZON_PITCH_OFFSET = 4
+
 function getScreenAngle() {
   const screenOrientation = window.screen.orientation
   if (screenOrientation && typeof screenOrientation.angle === "number") {
@@ -267,7 +270,7 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
     threeSceneRef.current = threeScene
 
     const camera = new THREE.PerspectiveCamera(
-      70,
+      VIEWER_FOV,
       container.clientWidth / container.clientHeight,
       0.1,
       1100
@@ -414,7 +417,9 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
       if (!currentCamera || !currentRenderer || !currentThreeScene) return
 
       currentCamera.rotation.y = THREE.MathUtils.degToRad(yawRef.current)
-      currentCamera.rotation.x = THREE.MathUtils.degToRad(pitchRef.current)
+      currentCamera.rotation.x = THREE.MathUtils.degToRad(
+        pitchRef.current + HORIZON_PITCH_OFFSET
+      )
 
       currentRenderer.render(currentThreeScene, currentCamera)
     }
@@ -638,7 +643,7 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
             onReplay={replay}
             onToggleHelp={() => setShowHelp((s) => !s)}
             onRequestFullscreen={requestFullscreen}
-            supportsFullscreen={true}
+            supportsFullscreen={supportsFullscreen}
             showMute={isVideo}
             showReplay={isVideo}
           />
