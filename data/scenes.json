@@ -213,7 +213,13 @@
           "offsetY": 10
         }
       }
-    ]
+    ],
+    "ambientAudio": {
+      "src": "/assets/audio/atarazanas-ambient.mp3",
+      "label": "Sonido ambiente del puerto y las atarazanas",
+      "volume": 0.34,
+      "loop": true
+    }
   },
   {
     "id": "teatro-romano-malaca",
@@ -237,28 +243,100 @@
     "hotspots": [
       {
         "id": "cavea-gradas",
-        "label": "1",
-        "title": "Cavea y gradas",
-        "description": "La cavea era el graderío donde se sentaba el público. En el teatro romano de Málaga se adapta a la pendiente natural del terreno, por eso la reconstrucción debe leerse como una grada integrada en la ladera, no como una estructura aislada.",
+        "label": "Gradas",
+        "title": "Las gradas del teatro",
+        "description": "Aquí se sentaba el público. Las gradas aprovechaban la pendiente natural del terreno, por eso el teatro no era un edificio aislado: estaba integrado en la ladera de la ciudad romana.",
         "yaw": 0,
-        "pitch": 7
+        "pitch": 7,
+        "focus": {
+          "shape": "ellipse",
+          "width": 390,
+          "height": 210,
+          "offsetX": 0,
+          "offsetY": 8
+        }
       },
       {
         "id": "orchestra",
-        "label": "2",
-        "title": "Orchestra",
-        "description": "La orchestra era el espacio semicircular situado entre las gradas y la escena. Funcionaba como zona de transición visual y ceremonial entre el público y la representación.",
-        "yaw": -26,
-        "pitch": -7
+        "label": "Orchestra",
+        "title": "El espacio central",
+        "description": "La orchestra era la zona semicircular situada entre las gradas y el escenario. Era un espacio importante dentro del teatro, visible para todos los espectadores.",
+        "yaw": -24,
+        "pitch": -7,
+        "focus": {
+          "shape": "ellipse",
+          "width": 250,
+          "height": 115,
+          "offsetX": 8,
+          "offsetY": 10
+        }
       },
       {
         "id": "frons-pulpiti",
-        "label": "3",
-        "title": "Frons pulpiti",
-        "description": "El frons pulpiti era el frente decorado del escenario elevado. Desde este punto del visor ayuda a entender dónde terminaba la zona de representación y comenzaba el espacio del público.",
-        "yaw": 28,
-        "pitch": -3
+        "label": "Escenario",
+        "title": "El frente del escenario",
+        "description": "Esta parte marcaba el límite entre la zona de representación y el espacio del público. Ayuda a entender dónde actuaban los intérpretes y cómo se organizaba la escena.",
+        "yaw": 26,
+        "pitch": -4,
+        "focus": {
+          "shape": "rect",
+          "width": 280,
+          "height": 95,
+          "offsetX": 0,
+          "offsetY": 10
+        }
+      },
+      {
+        "id": "aditus-laterales",
+        "label": "Accesos",
+        "title": "Las entradas laterales",
+        "description": "Por estos accesos se entraba al área baja del teatro. Conectaban la parte exterior con la orchestra y permitían organizar el movimiento de personas dentro del edificio.",
+        "yaw": -56,
+        "pitch": -2,
+        "focus": {
+          "shape": "rect",
+          "width": 180,
+          "height": 130,
+          "offsetX": 10,
+          "offsetY": 14
+        }
+      },
+      {
+        "id": "proedria-asientos",
+        "label": "Asientos",
+        "title": "Los asientos principales",
+        "description": "Las primeras filas estaban reservadas para personas destacadas de la ciudad. No todo el público se sentaba igual: el lugar dentro del teatro también reflejaba la posición social.",
+        "yaw": 18,
+        "pitch": 0,
+        "focus": {
+          "shape": "ellipse",
+          "width": 260,
+          "height": 95,
+          "offsetX": 0,
+          "offsetY": 6
+        }
+      },
+      {
+        "id": "ladera-ciudad-romana",
+        "label": "Ciudad",
+        "title": "El teatro dentro de Malaca",
+        "description": "El teatro formaba parte de la ciudad romana de Malaca. Su ubicación junto a la ladera y cerca del área urbana muestra que era un espacio público importante, no solo un lugar de espectáculo.",
+        "yaw": 58,
+        "pitch": 9,
+        "focus": {
+          "shape": "ellipse",
+          "width": 280,
+          "height": 150,
+          "offsetX": 0,
+          "offsetY": 0
+        }
       }
-    ]
+    ],
+    "ambientAudio": {
+      "src": "/assets/audio/teatro-romano-ambient.mp3",
+      "label": "Sonido ambiente del teatro romano",
+      "volume": 0.3,
+      "loop": true
+    }
   }
 ]
