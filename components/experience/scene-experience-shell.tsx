@@ -105,6 +105,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
           scene={scene}
           calibration={calibration}
           motionEnabled={permissions?.orientation === "granted"}
+          cameraPassthroughEnabled={permissions?.camera === "granted"}
           onExit={handleRestart}
           onError={handleError}
         />

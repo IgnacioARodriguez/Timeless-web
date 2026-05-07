@@ -6,13 +6,15 @@ import { clamp } from "@/lib/calibration"
 import { LoadingState } from "@/components/viewer/loading-state"
 import { ViewerErrorState } from "@/components/viewer/error-state"
 import { ViewerControls } from "@/components/viewer/viewer-controls"
-import type { Scene, SceneHotspot } from "@/types/scene"
+import { requestCameraStream, stopCameraStream } from "@/lib/camera"
+import type { Scene, SceneAnimationLayer, SceneHotspot } from "@/types/scene"
 import type { CalibrationOffset } from "@/types/experience"
 
 interface Viewer180Props {
   scene: Scene
   calibration: CalibrationOffset
   motionEnabled?: boolean
+  cameraPassthroughEnabled?: boolean
   onExit?: () => void
 }
 
@@ -24,9 +26,23 @@ const HOTSPOT_UPDATE_EPSILON = 0.35
 const HOTSPOT_ENTER_MARGIN = 1.04
 const HOTSPOT_EXIT_MARGIN = 1.18
 const GYRO_TARGET_DEADZONE_DEG = 0.08
-
-
+const TEXTURE_EDGE_FADE_START = 0.92
+const TEXTURE_EDGE_FADE_END = 1.05
+const TEXTURE_EDGE_FADE_SHAPE_X = 0.92
+const TEXTURE_EDGE_FADE_SHAPE_Y = 1.02
+const TEXTURE_EDGE_FADE_POWER = 4.0
+const ANIMATION_RADIUS = 410
+const ANIMATION_POSITION_LERP = 0.12
+const ANIMATION_UPDATE_EPSILON = 0.35
 interface HotspotScreenPosition {
+  id: string
+  left: number
+  top: number
+  visible: boolean
+  scale: number
+}
+
+interface AnimationScreenPosition {
   id: string
   left: number
   top: number
@@ -43,6 +59,225 @@ function hotspotToWorldPosition(hotspot: SceneHotspot) {
       "YXZ"
     )
   )
+}
+
+function animationToWorldPosition(animation: SceneAnimationLayer) {
+  return new THREE.Vector3(0, 0, -ANIMATION_RADIUS).applyEuler(
+    new THREE.Euler(
+      THREE.MathUtils.degToRad(animation.pitch),
+      THREE.MathUtils.degToRad(animation.yaw),
+      0,
+      "YXZ"
+    )
+  )
+}
+
+function createEdgeFadeMaterial(texture: THREE.Texture) {
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+  })
+
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        "#include <common>",
+        `
+        #include <common>
+        varying vec2 vFadeUv;
+        `
+      )
+      .replace(
+        "#include <uv_vertex>",
+        `
+        #include <uv_vertex>
+        vFadeUv = uv;
+        `
+      )
+
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        "#include <common>",
+        `
+        #include <common>
+        varying vec2 vFadeUv;
+        `
+      )
+      .replace(
+        "vec4 diffuseColor = vec4( diffuse, opacity );",
+        `
+        vec4 diffuseColor = vec4( diffuse, opacity );
+
+        vec2 centeredUv = abs((vFadeUv - 0.5) * 2.0);
+
+        float dx = pow(centeredUv.x / ${TEXTURE_EDGE_FADE_SHAPE_X.toFixed(2)}, ${TEXTURE_EDGE_FADE_POWER.toFixed(1)});
+        float dy = pow(centeredUv.y / ${TEXTURE_EDGE_FADE_SHAPE_Y.toFixed(2)}, ${TEXTURE_EDGE_FADE_POWER.toFixed(1)});
+        float edgeDistance = pow(dx + dy, 1.0 / ${TEXTURE_EDGE_FADE_POWER.toFixed(1)});
+
+        float edgeFade = 1.0 - smoothstep(
+          ${TEXTURE_EDGE_FADE_START.toFixed(2)},
+          ${TEXTURE_EDGE_FADE_END.toFixed(2)},
+          edgeDistance
+        );
+
+        diffuseColor.a *= edgeFade;
+        `
+      )
+  }
+
+  material.needsUpdate = true
+  return material
+}
+
+function renderSceneAnimation(animation: SceneAnimationLayer) {
+  if (animation.type === "dust") {
+    return (
+      <div className="relative h-full w-full">
+        {Array.from({ length: 18 }).map((_, index) => {
+          const size = 1 + (index % 3) * 0.6
+
+          return (
+            <span
+              key={index}
+              className="absolute block rounded-full"
+              style={{
+                width: `${size}px`,
+                height: `${size}px`,
+                left: `${6 + ((index * 5.3) % 84)}%`,
+                top: `${42 + ((index * 7.1) % 30)}%`,
+                background:
+                  index % 3 === 0
+                    ? "rgba(120, 104, 84, 0.20)"
+                    : index % 3 === 1
+                      ? "rgba(150, 132, 102, 0.16)"
+                      : "rgba(95, 82, 66, 0.14)",
+                filter: "blur(0.35px)",
+                animation: `timeless-dust ${7 + (index % 5)}s linear infinite`,
+                animationDelay: `${index * 0.35}s`,
+              }}
+            />
+          )
+        })}
+      </div>
+    )
+  }
+
+  if (animation.type === "smoke") {
+    return (
+      <div className="relative h-full w-full">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <span
+            key={index}
+            className="absolute block rounded-full"
+            style={{
+              width: `${38 + index * 16}px`,
+              height: `${22 + index * 9}px`,
+              left: `${18 + index * 14}%`,
+              top: `${44 - index * 6}%`,
+              background: "rgba(120, 120, 120, 0.10)",
+              filter: "blur(10px)",
+              animation: `timeless-smoke ${9 + index * 1.5}s ease-in-out infinite`,
+              animationDelay: `${index * 0.9}s`,
+            }}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  if (animation.type === "birds") {
+    return (
+      <div className="relative h-full w-full">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <span
+            key={index}
+            className="absolute block"
+            style={{
+              left: `${12 + index * 25}%`,
+              top: `${28 + index * 10}%`,
+              width: `${8 + index * 1.5}px`,
+              height: `${5 + index}px`,
+              animation: `timeless-birds ${10 + index * 1.5}s ease-in-out infinite`,
+              animationDelay: `${index * 0.9}s`,
+              opacity: 0.28,
+            }}
+          >
+            <svg
+              viewBox="0 0 24 12"
+              className="h-full w-full"
+              aria-hidden="true"
+            >
+              <path
+                d="M1 8 C4 3, 8 3, 12 8 C16 3, 20 3, 23 8"
+                fill="none"
+                stroke="rgba(28,28,28,0.65)"
+                strokeWidth="1.25"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  if (animation.type === "flame") {
+    return (
+      <div className="relative flex h-full w-full items-center justify-center">
+        <span
+          className="block rounded-full"
+          style={{
+            width: "7px",
+            height: "13px",
+            background: "rgba(255, 170, 70, 0.42)",
+            filter: "blur(1.3px)",
+            animation: "timeless-flame 0.45s ease-in-out infinite alternate",
+          }}
+        />
+      </div>
+    )
+  }
+
+  if (animation.type === "water") {
+    return (
+      <div className="relative h-full w-full overflow-hidden rounded-[999px]">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <span
+            key={index}
+            className="absolute left-[-20%] right-[-20%] h-[2px] rounded-full"
+            style={{
+              top: `${28 + index * 14}%`,
+              background: "rgba(255,255,255,0.10)",
+              filter: "blur(0.4px)",
+              animation: `timeless-water ${6 + index}s ease-in-out infinite`,
+              animationDelay: `${index * 0.8}s`,
+            }}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  if (animation.type === "cloth") {
+    return (
+      <div className="relative flex h-full w-full items-start justify-center">
+        <span
+          className="block origin-top"
+          style={{
+            width: "9px",
+            height: "17px",
+            background: "rgba(115, 82, 62, 0.28)",
+            borderRadius: "2px 2px 6px 6px",
+            filter: "blur(0.2px)",
+            animation: "timeless-cloth 2.8s ease-in-out infinite",
+          }}
+        />
+      </div>
+    )
+  }
+
+  return null
 }
 
 function getScreenAngle() {
@@ -90,6 +325,7 @@ export function Viewer180({
   scene,
   calibration: _calibration,
   motionEnabled = false,
+  cameraPassthroughEnabled = false,
   onExit,
 }: Viewer180Props) {
   const isImage = scene.media.type === "image"
@@ -99,6 +335,7 @@ export function Viewer180({
   const [isLoading, setIsLoading] = useState(true)
   const [isEntered, setIsEntered] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const [cameraPassthroughReady, setCameraPassthroughReady] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [isPlaying, setIsPlaying] = useState(isImage)
   const [isMuted, setIsMuted] = useState(isVideo ? scene.media.muted : false)
@@ -106,8 +343,12 @@ export function Viewer180({
   const [hotspotPositions, setHotspotPositions] = useState<
     HotspotScreenPosition[]
   >([])
+  const [animationPositions, setAnimationPositions] = useState<
+    AnimationScreenPosition[]
+  >([])
 
   const hotspots = useMemo(() => scene.hotspots ?? [], [scene.hotspots])
+  const animations = useMemo(() => scene.animations ?? [], [scene.animations])
   const activeHotspot = useMemo(
     () => hotspots.find((hotspot) => hotspot.id === activeHotspotId) ?? null,
     [hotspots, activeHotspotId]
@@ -118,6 +359,8 @@ export function Viewer180({
   )
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const cameraPassthroughVideoRef = useRef<HTMLVideoElement>(null)
+  const cameraPassthroughStreamRef = useRef<MediaStream | null>(null)
 
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const threeSceneRef = useRef<THREE.Scene | null>(null)
@@ -127,6 +370,8 @@ export function Viewer180({
   const frameRef = useRef<number | null>(null)
   const smoothedHotspotPositionsRef = useRef<Map<string, HotspotScreenPosition>>(new Map())
   const lastHotspotPositionsRef = useRef<HotspotScreenPosition[]>([])
+  const smoothedAnimationPositionsRef = useRef<Map<string, AnimationScreenPosition>>(new Map())
+  const lastAnimationPositionsRef = useRef<AnimationScreenPosition[]>([])
 
   const hiddenVideoRef = useRef<HTMLVideoElement | null>(null)
 
@@ -180,9 +425,73 @@ export function Viewer180({
   useEffect(() => {
     setActiveHotspotId(null)
     setHotspotPositions([])
+    setAnimationPositions([])
     smoothedHotspotPositionsRef.current.clear()
     lastHotspotPositionsRef.current = []
+    smoothedAnimationPositionsRef.current.clear()
+    lastAnimationPositionsRef.current = []
   }, [scene.id])
+
+
+  // Camera passthrough: render the real camera behind the WebGL canvas.
+  // The WebGL renderer is transparent, so empty areas outside the historical
+  // image show the live camera instead of a black background. This is not
+  // full AR tracking; it is a practical MVP fallback for viewer edges.
+  useEffect(() => {
+    const video = cameraPassthroughVideoRef.current
+
+    if (!cameraPassthroughEnabled || !video) {
+      setCameraPassthroughReady(false)
+      return
+    }
+
+    let cancelled = false
+
+    async function startCameraPassthrough() {
+      try {
+        const stream = await requestCameraStream({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        })
+
+        if (cancelled) {
+          stopCameraStream(stream)
+          return
+        }
+
+        cameraPassthroughStreamRef.current = stream
+        video.srcObject = stream
+        video.muted = true
+        video.playsInline = true
+        video.setAttribute("playsinline", "true")
+        video.setAttribute("webkit-playsinline", "true")
+
+        await video.play()
+
+        if (!cancelled) {
+          setCameraPassthroughReady(true)
+        }
+      } catch {
+        // Non-fatal: if the camera cannot start, the viewer still works and
+        // transparent areas fall back to black.
+        setCameraPassthroughReady(false)
+      }
+    }
+
+    startCameraPassthrough()
+
+    return () => {
+      cancelled = true
+      setCameraPassthroughReady(false)
+      stopCameraStream(cameraPassthroughStreamRef.current)
+      cameraPassthroughStreamRef.current = null
+
+      if (video) {
+        video.pause()
+        video.srcObject = null
+      }
+    }
+  }, [cameraPassthroughEnabled])
 
   useEffect(() => {
     const onChange = () => {
@@ -298,16 +607,18 @@ export function Viewer180({
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
-      alpha: false,
+      alpha: true,
     })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.setClearColor(0x000000, 0)
+    renderer.domElement.style.background = "transparent"
     container.appendChild(renderer.domElement)
     rendererRef.current = renderer
 
     const threeScene = new THREE.Scene()
-    threeScene.background = new THREE.Color(0x000000)
+    threeScene.background = null
     threeSceneRef.current = threeScene
 
     const camera = new THREE.PerspectiveCamera(
@@ -369,10 +680,7 @@ export function Viewer180({
       texture.magFilter = THREE.LinearFilter
       texture.generateMipmaps = false
 
-      const material = new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.DoubleSide,
-      })
+      const material = createEdgeFadeMaterial(texture)
 
       const { geometry, positionZ, rotationY } = createGeometry(texture)
       const mesh = new THREE.Mesh(geometry, material)
@@ -563,6 +871,74 @@ export function Viewer180({
         }
       }
 
+      if (animations.length > 0) {
+        const width = currentRenderer.domElement.clientWidth
+        const height = currentRenderer.domElement.clientHeight
+        const previousPositions = smoothedAnimationPositionsRef.current
+
+        const nextPositions = animations.map((animation) => {
+          const previous = previousPositions.get(animation.id)
+          const projected = animationToWorldPosition(animation).project(currentCamera)
+
+          const edgeDistance = Math.max(
+            Math.abs(projected.x),
+            Math.abs(projected.y)
+          )
+
+          const visible =
+            projected.z > -1 &&
+            projected.z < 1 &&
+            projected.x > -1.15 &&
+            projected.x < 1.15 &&
+            projected.y > -1.15 &&
+            projected.y < 1.15
+
+          const rawLeft = (projected.x * 0.5 + 0.5) * width
+          const rawTop = (-projected.y * 0.5 + 0.5) * height
+          const rawScale = THREE.MathUtils.clamp(1 - edgeDistance * 0.18, 0.75, 1)
+
+          const left = previous
+            ? THREE.MathUtils.lerp(previous.left, rawLeft, ANIMATION_POSITION_LERP)
+            : rawLeft
+          const top = previous
+            ? THREE.MathUtils.lerp(previous.top, rawTop, ANIMATION_POSITION_LERP)
+            : rawTop
+          const scale = previous
+            ? THREE.MathUtils.lerp(previous.scale, rawScale, ANIMATION_POSITION_LERP)
+            : rawScale
+
+          const nextPosition = {
+            id: animation.id,
+            left: Math.round(left * 2) / 2,
+            top: Math.round(top * 2) / 2,
+            visible,
+            scale: Math.round(scale * 1000) / 1000,
+          }
+
+          previousPositions.set(animation.id, nextPosition)
+          return nextPosition
+        })
+
+        const previousState = lastAnimationPositionsRef.current
+        const shouldPublish =
+          previousState.length !== nextPositions.length ||
+          nextPositions.some((nextPosition, index) => {
+            const previous = previousState[index]
+            if (!previous) return true
+            return (
+              previous.visible !== nextPosition.visible ||
+              Math.abs(previous.left - nextPosition.left) > ANIMATION_UPDATE_EPSILON ||
+              Math.abs(previous.top - nextPosition.top) > ANIMATION_UPDATE_EPSILON ||
+              Math.abs(previous.scale - nextPosition.scale) > 0.01
+            )
+          })
+
+        if (shouldPublish) {
+          lastAnimationPositionsRef.current = nextPositions
+          setAnimationPositions(nextPositions)
+        }
+      }
+
       currentRenderer.render(currentThreeScene, currentCamera)
     }
 
@@ -617,7 +993,7 @@ export function Viewer180({
       threeSceneRef.current = null
       cameraRef.current = null
     }
-  }, [scene, hotspots, isImage, isVideo, setMediaError, setMediaReady])
+  }, [scene, hotspots, animations, isImage, isVideo, setMediaError, setMediaReady])
 
   // Finger drag is always available. If gyro is active, dragging temporarily
   // overrides sensor updates and re-anchors motion from the new view.
@@ -713,6 +1089,7 @@ export function Viewer180({
       // @ts-expect-error iOS Safari
       !!document.documentElement.webkitRequestFullscreen)
 
+
   return (
     <div
       className="relative w-full h-svh overflow-hidden bg-black select-none touch-none"
@@ -722,7 +1099,139 @@ export function Viewer180({
       onPointerLeave={onPointerUp}
       onPointerCancel={onPointerUp}
     >
+      {cameraPassthroughEnabled && (
+        <video
+          ref={cameraPassthroughVideoRef}
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+            cameraPassthroughReady ? "opacity-100" : "opacity-0"
+          }`}
+          style={{
+            filter: "saturate(0.75) contrast(0.88) brightness(0.9) blur(0.6px)",
+            transform: "scale(1.01)",
+          }}
+          aria-hidden="true"
+          muted
+          playsInline
+          autoPlay
+        />
+      )}
+
       <div ref={containerRef} className="absolute inset-0" />
+
+      {isEntered && !hasError && animations.length > 0 && (
+        <div className="absolute inset-0 z-[18] pointer-events-none">
+          <style jsx global>{`
+            @keyframes timeless-dust {
+              0% {
+                transform: translate3d(0, 2px, 0);
+                opacity: 0;
+              }
+              18% {
+                opacity: 1;
+              }
+              75% {
+                opacity: 0.75;
+              }
+              100% {
+                transform: translate3d(10px, -10px, 0);
+                opacity: 0;
+              }
+            }
+
+            @keyframes timeless-smoke {
+              0% {
+                transform: translate3d(0, 8px, 0) scale(0.92);
+                opacity: 0;
+              }
+              20% {
+                opacity: 1;
+              }
+              100% {
+                transform: translate3d(10px, -24px, 0) scale(1.18);
+                opacity: 0;
+              }
+            }
+
+            @keyframes timeless-birds {
+              0% {
+                transform: translate3d(-8px, 2px, 0) scale(0.96);
+                opacity: 0;
+              }
+              15% {
+                opacity: 1;
+              }
+              85% {
+                opacity: 1;
+              }
+              100% {
+                transform: translate3d(18px, -4px, 0) scale(1.04);
+                opacity: 0;
+              }
+            }
+
+            @keyframes timeless-flame {
+              0% {
+                transform: scaleY(0.86) scaleX(1);
+                opacity: 0.5;
+              }
+              100% {
+                transform: scaleY(1.12) scaleX(0.84);
+                opacity: 0.85;
+              }
+            }
+
+            @keyframes timeless-water {
+              0% {
+                transform: translateX(-8px);
+                opacity: 0.05;
+              }
+              50% {
+                transform: translateX(8px);
+                opacity: 0.14;
+              }
+              100% {
+                transform: translateX(-8px);
+                opacity: 0.05;
+              }
+            }
+
+            @keyframes timeless-cloth {
+              0% {
+                transform: rotate(-4deg) skewY(0deg);
+              }
+              50% {
+                transform: rotate(3deg) skewY(2deg);
+              }
+              100% {
+                transform: rotate(-4deg) skewY(0deg);
+              }
+            }
+          `}</style>
+
+          {animations.map((animation) => {
+            const position = animationPositions.find((p) => p.id === animation.id)
+            if (!position?.visible) return null
+
+            return (
+              <div
+                key={animation.id}
+                className="absolute will-change-transform"
+                style={{
+                  left: position.left,
+                  top: position.top,
+                  width: animation.width ?? 120,
+                  height: animation.height ?? 70,
+                  opacity: animation.opacity ?? 0.22,
+                  transform: `translate3d(-50%, -50%, 0) scale(${position.scale})`,
+                }}
+                aria-hidden="true"
+              >
+                {renderSceneAnimation(animation)}
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {isLoading && <LoadingState />}
 

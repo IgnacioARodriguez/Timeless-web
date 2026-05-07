@@ -34,6 +34,18 @@ export interface SceneHotspot {
   }
 }
 
+export type SceneAnimationType = "dust" | "smoke" | "birds" | "flame" | "water" | "cloth"
+
+export interface SceneAnimationLayer {
+  id: string
+  type: SceneAnimationType
+  yaw: number
+  pitch: number
+  width?: number
+  height?: number
+  opacity?: number
+}
+
 export interface Scene {
   id: string
   title: string
@@ -44,4 +56,5 @@ export interface Scene {
   media: SceneMedia
   camera: SceneCamera
   hotspots?: SceneHotspot[]
+  animations?: SceneAnimationLayer[]
 }
