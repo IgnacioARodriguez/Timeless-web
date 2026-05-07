@@ -14,10 +14,10 @@
     "camera": {
       "initialYaw": 0,
       "initialPitch": 0,
-      "minYaw": -35,
-      "maxYaw": 35,
-      "minPitch": -18,
-      "maxPitch": 18
+      "minYaw": -90,
+      "maxYaw": 90,
+      "minPitch": -25,
+      "maxPitch": 25
     },
     "hotspots": [
       {
