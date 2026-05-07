@@ -2,12 +2,12 @@ export type SceneMedia =
   | {
     type: "image"
     src: string
-    projection: "180"
+    projection: "180" | "flat"
   }
   | {
     type: "video"
     src: string
-    projection: "180"
+    projection: "180" | "flat"
     loop: boolean
     muted: boolean
   }
@@ -21,6 +21,19 @@ export interface SceneCamera {
   maxPitch: number
 }
 
+export interface SceneHotspot {
+  id: string
+  label: string
+  title: string
+  description: string
+  yaw: number
+  pitch: number
+  audio?: {
+    src: string
+    label?: string
+  }
+}
+
 export interface Scene {
   id: string
   title: string
@@ -30,4 +43,5 @@ export interface Scene {
   overlay?: string
   media: SceneMedia
   camera: SceneCamera
+  hotspots?: SceneHotspot[]
 }

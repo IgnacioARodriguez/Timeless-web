@@ -7,14 +7,20 @@ import type { CalibrationOffset } from "@/types/experience"
 interface ViewerStepProps {
   scene: Scene
   calibration: CalibrationOffset
+  motionEnabled: boolean
   onExit: () => void
   onError: (message: string) => void
 }
 
-export function ViewerStep({ scene, calibration, onExit }: ViewerStepProps) {
+export function ViewerStep({ scene, calibration, motionEnabled, onExit }: ViewerStepProps) {
   return (
     <div className="w-full h-svh overflow-hidden bg-black">
-      <Viewer180 scene={scene} calibration={calibration} onExit={onExit} />
+      <Viewer180
+        scene={scene}
+        calibration={calibration}
+        motionEnabled={motionEnabled}
+        onExit={onExit}
+      />
     </div>
   )
 }

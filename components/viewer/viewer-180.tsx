@@ -1,26 +1,49 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import { clamp } from "@/lib/calibration"
 import { LoadingState } from "@/components/viewer/loading-state"
 import { ViewerErrorState } from "@/components/viewer/error-state"
 import { ViewerControls } from "@/components/viewer/viewer-controls"
-import type { Scene } from "@/types/scene"
+import type { Scene, SceneHotspot } from "@/types/scene"
 import type { CalibrationOffset } from "@/types/experience"
 
 interface Viewer180Props {
   scene: Scene
   calibration: CalibrationOffset
+  motionEnabled?: boolean
   onExit?: () => void
-}
-
-type IOSPermissionDeviceOrientationEvent = typeof DeviceOrientationEvent & {
-  requestPermission?: () => Promise<"granted" | "denied">
 }
 
 const VIEWER_FOV = 125
 const HORIZON_PITCH_OFFSET = 4
+const HOTSPOT_RADIUS = 420
+const HOTSPOT_POSITION_LERP = 0.18
+const HOTSPOT_UPDATE_EPSILON = 0.35
+const HOTSPOT_ENTER_MARGIN = 1.04
+const HOTSPOT_EXIT_MARGIN = 1.18
+const GYRO_TARGET_DEADZONE_DEG = 0.08
+
+
+interface HotspotScreenPosition {
+  id: string
+  left: number
+  top: number
+  visible: boolean
+  scale: number
+}
+
+function hotspotToWorldPosition(hotspot: SceneHotspot) {
+  return new THREE.Vector3(0, 0, -HOTSPOT_RADIUS).applyEuler(
+    new THREE.Euler(
+      THREE.MathUtils.degToRad(hotspot.pitch),
+      THREE.MathUtils.degToRad(hotspot.yaw),
+      0,
+      "YXZ"
+    )
+  )
+}
 
 function getScreenAngle() {
   const screenOrientation = window.screen.orientation
@@ -63,17 +86,36 @@ function deviceQuaternionFromOrientation(
   return quaternion
 }
 
-export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
+export function Viewer180({
+  scene,
+  calibration: _calibration,
+  motionEnabled = false,
+  onExit,
+}: Viewer180Props) {
   const isImage = scene.media.type === "image"
   const isVideo = scene.media.type === "video"
 
-  const [gyroEnabled, setGyroEnabled] = useState(false)
+  const [gyroEnabled, setGyroEnabled] = useState(motionEnabled)
   const [isLoading, setIsLoading] = useState(true)
   const [isEntered, setIsEntered] = useState(false)
   const [hasError, setHasError] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [isPlaying, setIsPlaying] = useState(isImage)
   const [isMuted, setIsMuted] = useState(isVideo ? scene.media.muted : false)
+  const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null)
+  const [hotspotPositions, setHotspotPositions] = useState<
+    HotspotScreenPosition[]
+  >([])
+
+  const hotspots = useMemo(() => scene.hotspots ?? [], [scene.hotspots])
+  const activeHotspot = useMemo(
+    () => hotspots.find((hotspot) => hotspot.id === activeHotspotId) ?? null,
+    [hotspots, activeHotspotId]
+  )
+  const activeHotspotPosition = useMemo(
+    () => hotspotPositions.find((position) => position.id === activeHotspotId),
+    [hotspotPositions, activeHotspotId]
+  )
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -83,11 +125,17 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
   const meshRef = useRef<THREE.Mesh | null>(null)
   const textureRef = useRef<THREE.Texture | null>(null)
   const frameRef = useRef<number | null>(null)
+  const smoothedHotspotPositionsRef = useRef<Map<string, HotspotScreenPosition>>(new Map())
+  const lastHotspotPositionsRef = useRef<HotspotScreenPosition[]>([])
 
   const hiddenVideoRef = useRef<HTMLVideoElement | null>(null)
 
-  const calibrationYaw = calibration?.yawOffset ?? 0
-  const calibrationPitch = calibration?.pitchOffset ?? 0
+  // The calibration step stores raw device sensor readings. Do not apply those
+  // values directly as camera degrees: a phone held upright commonly reports
+  // beta around 90°, which would make the viewer start by looking upward.
+  // The immersive viewer must start from the scene-defined visual center.
+  const calibrationYaw = 0
+  const calibrationPitch = 0
 
   // Orientación renderizada actual.
   const yawRef = useRef(scene.camera.initialYaw + calibrationYaw)
@@ -122,31 +170,19 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
     setHasError(true)
   }, [])
 
-  const enableGyro = useCallback(async () => {
-    try {
-      baselineDeviceQuaternionRef.current = null
-
-      // Ancla visual actual. Así no “salta” al activar motion.
-      motionAnchorYawRef.current = targetYawRef.current
-      motionAnchorPitchRef.current = targetPitchRef.current
-
-      const maybeIOS = DeviceOrientationEvent as IOSPermissionDeviceOrientationEvent
-
-      if (typeof maybeIOS.requestPermission === "function") {
-        const result = await maybeIOS.requestPermission()
-        setGyroEnabled(result === "granted")
-      } else {
-        setGyroEnabled(true)
-      }
-    } catch {
-      setGyroEnabled(false)
-    }
-  }, [])
-
-  const disableGyro = useCallback(() => {
-    setGyroEnabled(false)
+  useEffect(() => {
+    setGyroEnabled(motionEnabled)
     baselineDeviceQuaternionRef.current = null
-  }, [])
+    motionAnchorYawRef.current = targetYawRef.current
+    motionAnchorPitchRef.current = targetPitchRef.current
+  }, [motionEnabled])
+
+  useEffect(() => {
+    setActiveHotspotId(null)
+    setHotspotPositions([])
+    smoothedHotspotPositionsRef.current.clear()
+    lastHotspotPositionsRef.current = []
+  }, [scene.id])
 
   useEffect(() => {
     const onChange = () => {
@@ -169,7 +205,7 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
   // Gyro 3D relativo con quaternion.
   useEffect(() => {
     function handleOrientation(e: DeviceOrientationEvent) {
-      if (!gyroEnabled) return
+      if (!gyroEnabled || dragRef.current.active) return
       if (e.alpha == null || e.beta == null || e.gamma == null) return
 
       const currentDeviceQuaternion = deviceQuaternionFromOrientation(
@@ -217,8 +253,13 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
         scene.camera.maxPitch + calibrationPitch
       )
 
-      targetYawRef.current = nextYaw
-      targetPitchRef.current = nextPitch
+      if (Math.abs(nextYaw - targetYawRef.current) > GYRO_TARGET_DEADZONE_DEG) {
+        targetYawRef.current = nextYaw
+      }
+
+      if (Math.abs(nextPitch - targetPitchRef.current) > GYRO_TARGET_DEADZONE_DEG) {
+        targetPitchRef.current = nextPitch
+      }
     }
 
     window.addEventListener("deviceorientation", handleOrientation, true)
@@ -278,17 +319,44 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
     camera.rotation.order = "YXZ"
     cameraRef.current = camera
 
-    // 180° reales en horizontal.
-    const geometry = new THREE.SphereGeometry(
-      500,
-      64,
-      40,
-      -Math.PI / 2,
-      Math.PI,
-      0,
-      Math.PI
-    )
-    geometry.scale(-1, 1, 1)
+    const createGeometry = (texture: THREE.Texture) => {
+      if (scene.media.projection === "flat") {
+        const image = texture.image as
+          | HTMLImageElement
+          | HTMLCanvasElement
+          | HTMLVideoElement
+          | undefined
+
+        const width = image instanceof HTMLVideoElement ? image.videoWidth : image?.width
+        const height = image instanceof HTMLVideoElement ? image.videoHeight : image?.height
+        const aspect = width && height ? width / height : 16 / 9
+
+        // Flat mode is for normal rectilinear images, not real spherical panoramas.
+        // It avoids the wall bending caused by wrapping a non-equirectangular image
+        // onto a sphere. This is correct for the current Carretería test image.
+        const distance = 500
+        const planeHeight =
+          2 * distance * Math.tan(THREE.MathUtils.degToRad(VIEWER_FOV / 2)) * 1.04
+        const planeWidth = planeHeight * aspect
+        const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight, 1, 1)
+
+        return { geometry, positionZ: -distance, rotationY: 0 }
+      }
+
+      // Real 180° panoramas must be equirectangular/hemispherical assets.
+      const geometry = new THREE.SphereGeometry(
+        500,
+        64,
+        40,
+        -Math.PI / 2,
+        Math.PI,
+        0,
+        Math.PI
+      )
+      geometry.scale(-1, 1, 1)
+
+      return { geometry, positionZ: 0, rotationY: Math.PI / 2 }
+    }
 
     const createMesh = (texture: THREE.Texture) => {
       if (disposed) {
@@ -303,18 +371,17 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
 
       const material = new THREE.MeshBasicMaterial({
         map: texture,
+        side: THREE.DoubleSide,
       })
 
-      const sphere = new THREE.Mesh(geometry, material)
+      const { geometry, positionZ, rotationY } = createGeometry(texture)
+      const mesh = new THREE.Mesh(geometry, material)
+      mesh.position.z = positionZ
+      mesh.rotation.y = rotationY
 
-      // Corrige la orientación base del hemisferio:
-      // el centro útil del panorama debe quedar justo enfrente
-      // de la cámara al iniciar.
-      sphere.rotation.y = Math.PI / 2
-
-      meshRef.current = sphere
+      meshRef.current = mesh
       textureRef.current = texture
-      threeScene.add(sphere)
+      threeScene.add(mesh)
       setMediaReady()
     }
 
@@ -329,7 +396,6 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
         undefined,
         () => {
           if (disposed) return
-          geometry.dispose()
           setMediaError()
         }
       )
@@ -363,7 +429,6 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
 
       onVideoError = () => {
         if (disposed) return
-        geometry.dispose()
         setMediaError()
       }
 
@@ -421,6 +486,83 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
         pitchRef.current + HORIZON_PITCH_OFFSET
       )
 
+      if (hotspots.length > 0) {
+        const width = currentRenderer.domElement.clientWidth
+        const height = currentRenderer.domElement.clientHeight
+        const previousPositions = smoothedHotspotPositionsRef.current
+
+        const nextPositions = hotspots.map((hotspot) => {
+          const previous = previousPositions.get(hotspot.id)
+          const projected = hotspotToWorldPosition(hotspot).project(currentCamera)
+
+          const edgeDistance = Math.max(
+            Math.abs(projected.x),
+            Math.abs(projected.y)
+          )
+
+          // Hysteresis: once a hotspot is visible, keep it visible a little
+          // longer near the edge so it does not flicker when the gyro jitters.
+          const margin = previous?.visible
+            ? HOTSPOT_EXIT_MARGIN
+            : HOTSPOT_ENTER_MARGIN
+
+          const visible =
+            projected.z > -1 &&
+            projected.z < 1 &&
+            projected.x > -margin &&
+            projected.x < margin &&
+            projected.y > -margin &&
+            projected.y < margin
+
+          const rawLeft = (projected.x * 0.5 + 0.5) * width
+          const rawTop = (-projected.y * 0.5 + 0.5) * height
+          const rawScale = THREE.MathUtils.clamp(1 - edgeDistance * 0.25, 0.7, 1)
+
+          // Smooth the 2D overlay separately from the Three.js camera.
+          // Without this, tiny sensor noise is very visible in HTML hotspots.
+          const left = previous
+            ? THREE.MathUtils.lerp(previous.left, rawLeft, HOTSPOT_POSITION_LERP)
+            : rawLeft
+          const top = previous
+            ? THREE.MathUtils.lerp(previous.top, rawTop, HOTSPOT_POSITION_LERP)
+            : rawTop
+          const scale = previous
+            ? THREE.MathUtils.lerp(previous.scale, rawScale, HOTSPOT_POSITION_LERP)
+            : rawScale
+
+          const nextPosition = {
+            id: hotspot.id,
+            // Round to half pixels to reduce sub-pixel shimmer on mobile.
+            left: Math.round(left * 2) / 2,
+            top: Math.round(top * 2) / 2,
+            visible,
+            scale: Math.round(scale * 1000) / 1000,
+          }
+
+          previousPositions.set(hotspot.id, nextPosition)
+          return nextPosition
+        })
+
+        const previousState = lastHotspotPositionsRef.current
+        const shouldPublish =
+          previousState.length !== nextPositions.length ||
+          nextPositions.some((nextPosition, index) => {
+            const previous = previousState[index]
+            if (!previous) return true
+            return (
+              previous.visible !== nextPosition.visible ||
+              Math.abs(previous.left - nextPosition.left) > HOTSPOT_UPDATE_EPSILON ||
+              Math.abs(previous.top - nextPosition.top) > HOTSPOT_UPDATE_EPSILON ||
+              Math.abs(previous.scale - nextPosition.scale) > 0.01
+            )
+          })
+
+        if (shouldPublish) {
+          lastHotspotPositionsRef.current = nextPositions
+          setHotspotPositions(nextPositions)
+        }
+      }
+
       currentRenderer.render(currentThreeScene, currentCamera)
     }
 
@@ -457,8 +599,6 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
         meshRef.current.geometry.dispose()
         threeSceneRef.current?.remove(meshRef.current)
         meshRef.current = null
-      } else {
-        geometry.dispose()
       }
 
       if (textureRef.current) {
@@ -477,11 +617,12 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
       threeSceneRef.current = null
       cameraRef.current = null
     }
-  }, [scene, isImage, isVideo, setMediaError, setMediaReady])
+  }, [scene, hotspots, isImage, isVideo, setMediaError, setMediaReady])
 
-  // Drag fallback solo cuando gyro está desactivado.
-  function onPointerDown(e: React.PointerEvent) {
-    if (gyroEnabled) return
+  // Finger drag is always available. If gyro is active, dragging temporarily
+  // overrides sensor updates and re-anchors motion from the new view.
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.currentTarget.setPointerCapture?.(e.pointerId)
 
     dragRef.current = {
       active: true,
@@ -492,7 +633,7 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
     }
   }
 
-  function onPointerMove(e: React.PointerEvent) {
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!dragRef.current.active) return
 
     const dx = e.clientX - dragRef.current.startX
@@ -516,7 +657,14 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
   }
 
   function onPointerUp() {
+    const wasDragging = dragRef.current.active
     dragRef.current.active = false
+
+    if (wasDragging && gyroEnabled) {
+      baselineDeviceQuaternionRef.current = null
+      motionAnchorYawRef.current = targetYawRef.current
+      motionAnchorPitchRef.current = targetPitchRef.current
+    }
   }
 
   const toggleMute = useCallback(() => {
@@ -572,6 +720,7 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
       <div ref={containerRef} className="absolute inset-0" />
 
@@ -601,6 +750,105 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
         </div>
       )}
 
+      {isEntered && !hasError && hotspots.length > 0 && (
+        <div className="absolute inset-0 z-20 pointer-events-none">
+          {hotspots.map((hotspot) => {
+            const position = hotspotPositions.find((p) => p.id === hotspot.id)
+            if (!position?.visible) return null
+
+            const isActive = activeHotspotId === hotspot.id
+
+            return (
+              <button
+                key={hotspot.id}
+                type="button"
+                className="absolute pointer-events-auto rounded-full border border-white/60 bg-black/35 text-white shadow-[0_0_24px_rgba(255,255,255,0.25)] backdrop-blur-md will-change-transform active:scale-95"
+                style={{
+                  left: position.left,
+                  top: position.top,
+                  transform: `translate3d(-50%, -50%, 0) scale(${position.scale})`,
+                }}
+                aria-pressed={isActive}
+                aria-label={`Abrir información: ${hotspot.title}`}
+                onPointerDown={(event) => event.stopPropagation()}
+                onPointerMove={(event) => event.stopPropagation()}
+                onPointerUp={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setActiveHotspotId((current) =>
+                    current === hotspot.id ? null : hotspot.id
+                  )
+                }}
+              >
+                <span
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold tracking-[0.08em] ${
+                    isActive ? "bg-white text-black" : "bg-white/15 text-white"
+                  }`}
+                >
+                  {hotspot.label}
+                </span>
+                <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-white/20" />
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {isEntered && !hasError && activeHotspot && (
+        <div
+          className="absolute z-30 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-white/15 bg-black/75 p-4 text-white shadow-2xl backdrop-blur-md pointer-events-auto will-change-transform"
+          style={
+            activeHotspotPosition?.visible
+              ? {
+                  left: activeHotspotPosition.left,
+                  top: activeHotspotPosition.top,
+                  transform: "translate3d(-50%, calc(-100% - 1.25rem), 0)",
+                }
+              : { left: 16, bottom: 96 }
+          }
+          onPointerDown={(event) => event.stopPropagation()}
+          onPointerMove={(event) => event.stopPropagation()}
+          onPointerUp={(event) => event.stopPropagation()}
+        >
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-1 text-[10px] uppercase tracking-[0.22em] text-white/40">
+                Punto histórico
+              </p>
+              <h2 className="font-serif text-lg font-light leading-tight text-white">
+                {activeHotspot.title}
+              </h2>
+            </div>
+            <button
+              type="button"
+              className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-white/60 active:opacity-60"
+              aria-label="Cerrar punto histórico"
+              onClick={() => setActiveHotspotId(null)}
+            >
+              ×
+            </button>
+          </div>
+
+          <p className="mb-4 text-sm leading-relaxed text-white/70">
+            {activeHotspot.description}
+          </p>
+
+          {activeHotspot.audio?.src && (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-white/35">
+                {activeHotspot.audio.label ?? "Audio explicativo"}
+              </p>
+              <audio
+                className="w-full"
+                src={activeHotspot.audio.src}
+                controls
+                preload="none"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {showHelp && (
         <div className="absolute inset-0 z-20 bg-black/70 flex flex-col items-center justify-center px-8 text-center">
           <p className="text-xs tracking-[0.2em] uppercase text-white/40 font-sans mb-4">
@@ -608,11 +856,11 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
           </p>
           <p className="text-sm leading-relaxed text-white/70 text-pretty mb-2">
             {gyroEnabled
-              ? "Rotate your device to look around the scene."
-              : "Drag across the screen to look around the scene."}
+              ? "Girá el móvil para mirar alrededor. También podés arrastrar con el dedo para ajustar la vista."
+              : "Arrastrá con el dedo para mirar alrededor de la escena."}
           </p>
           <p className="text-sm leading-relaxed text-white/50 text-pretty mb-8">
-            The view is anchored to your calibration alignment.
+            La vista queda anclada a la calibración inicial.
           </p>
           <button
             onClick={() => setShowHelp(false)}
@@ -626,15 +874,6 @@ export function Viewer180({ scene, calibration, onExit }: Viewer180Props) {
 
       {isEntered && !hasError && (
         <>
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20">
-            <button
-              onClick={gyroEnabled ? disableGyro : enableGyro}
-              className="font-sans text-[10px] tracking-[0.2em] uppercase text-white/70 border border-white/15 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full"
-            >
-              {gyroEnabled ? "Deshabilitar movimiento" : "Habilitar movimiento"}
-            </button>
-          </div>
-
           <ViewerControls
             isMuted={isMuted}
             isPlaying={isPlaying}

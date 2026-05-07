@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import type { Scene } from "@/types/scene"
-import type { ExperienceStep, CalibrationOffset } from "@/types/experience"
+import type { ExperienceStep, CalibrationOffset, PermissionsState } from "@/types/experience"
 import { IntroStep } from "@/components/experience/intro-step"
 import { PermissionsStep } from "@/components/experience/permissions-step"
 import { CalibrationStep } from "@/components/experience/calibration-step"
@@ -18,6 +18,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
   const [step, setStep] = useState<ExperienceStep>("intro")
   const [calibration, setCalibration] = useState<CalibrationOffset | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [permissions, setPermissions] = useState<PermissionsState | null>(null)
 
   function handleError(message: string) {
     setErrorMessage(message)
@@ -32,6 +33,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
   function handleRestart() {
     setCalibration(null)
     setErrorMessage(null)
+    setPermissions(null)
     setStep("intro")
   }
 
@@ -52,6 +54,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
     if (step === "permissions" || step === "error") {
       setCalibration(null)
       setErrorMessage(null)
+      setPermissions(null)
       setStep("intro")
     }
   }
@@ -81,7 +84,10 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
 
       {step === "permissions" && (
         <PermissionsStep
-          onGranted={() => setStep("calibration")}
+          onGranted={(grantedPermissions) => {
+            setPermissions(grantedPermissions)
+            setStep("calibration")
+          }}
           onError={handleError}
         />
       )}
@@ -98,6 +104,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
         <ViewerStep
           scene={scene}
           calibration={calibration}
+          motionEnabled={permissions?.orientation === "granted"}
           onExit={handleRestart}
           onError={handleError}
         />

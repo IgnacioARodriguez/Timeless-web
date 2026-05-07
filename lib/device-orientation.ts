@@ -9,6 +9,10 @@ export interface OrientationReading {
   gamma: number // left-to-right tilt (y-axis) — maps to roll
 }
 
+type IOSPermissionDeviceOrientationEvent = typeof DeviceOrientationEvent & {
+  requestPermission?: () => Promise<"granted" | "denied">
+}
+
 export function isOrientationSupported(): boolean {
   return typeof window !== "undefined" && "DeviceOrientationEvent" in window
 }
@@ -22,20 +26,23 @@ export async function requestOrientationPermission(): Promise<
 > {
   if (typeof window === "undefined") return "unavailable"
 
-  // @ts-expect-error — requestPermission is iOS-only
-  if (typeof DeviceOrientationEvent?.requestPermission === "function") {
+  const OrientationEvent = window.DeviceOrientationEvent as
+    | IOSPermissionDeviceOrientationEvent
+    | undefined
+
+  if (!OrientationEvent) return "unavailable"
+
+  if (typeof OrientationEvent.requestPermission === "function") {
     try {
-      // @ts-expect-error
-      const result = await DeviceOrientationEvent.requestPermission()
+      const result = await OrientationEvent.requestPermission()
       return result === "granted" ? "granted" : "denied"
     } catch {
       return "denied"
     }
   }
 
-  // Android / desktop — orientation events fire without a permission prompt
-  if (isOrientationSupported()) return "granted"
-  return "unavailable"
+  // Android / desktop — orientation events fire without a permission prompt.
+  return "granted"
 }
 
 export function getCurrentOrientation(): OrientationReading | null {

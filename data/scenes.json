@@ -58,6 +58,32 @@
       "maxYaw": 90,
       "minPitch": -25,
       "maxPitch": 25
-    }
+    },
+    "hotspots": [
+      {
+        "id": "cavea-gradas",
+        "label": "1",
+        "title": "Cavea y gradas",
+        "description": "La cavea era el graderío donde se sentaba el público. En el teatro romano de Málaga se adapta a la pendiente natural del terreno, por eso la reconstrucción debe leerse como una grada integrada en la ladera, no como una estructura aislada.",
+        "yaw": 0,
+        "pitch": 10
+      },
+      {
+        "id": "orchestra",
+        "label": "2",
+        "title": "Orchestra",
+        "description": "La orchestra era el espacio semicircular situado entre las gradas y la escena. Funcionaba como zona de transición visual y ceremonial entre el público y la representación.",
+        "yaw": -26,
+        "pitch": -25
+      },
+      {
+        "id": "frons-pulpiti",
+        "label": "3",
+        "title": "Frons pulpiti",
+        "description": "El frons pulpiti era el frente decorado del escenario elevado. Desde este punto del visor ayuda a entender dónde terminaba la zona de representación y comenzaba el espacio del público.",
+        "yaw": 40,
+        "pitch": -40
+      }
+    ]
   }
 ]
