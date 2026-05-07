@@ -9,7 +9,7 @@
     "media": {
       "type": "image",
       "src": "/assets/carreteria/panorama.png",
-      "projection": "flat"
+      "projection": "180"
     },
     "camera": {
       "initialYaw": 0,

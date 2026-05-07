@@ -947,6 +947,34 @@ export function Viewer180({
 
       <div ref={containerRef} className="absolute inset-0" />
 
+      {isEntered && !hasError && (
+        <style>{`
+          @keyframes timeless-hotspot-ring {
+            0% {
+              transform: translate3d(-50%, -50%, 0) scale(0.72);
+              opacity: 0;
+            }
+            18% {
+              opacity: 0.34;
+            }
+            78% {
+              opacity: 0;
+            }
+            100% {
+              transform: translate3d(-50%, -50%, 0) scale(1.55);
+              opacity: 0;
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .timeless-hotspot-ring {
+              animation: none !important;
+              opacity: 0 !important;
+            }
+          }
+        `}</style>
+      )}
+
       {isLoading && <LoadingState />}
 
       {hasError && (
@@ -985,7 +1013,7 @@ export function Viewer180({
               <button
                 key={hotspot.id}
                 type="button"
-                className="absolute pointer-events-auto rounded-full border border-white/60 bg-black/35 text-white shadow-[0_0_24px_rgba(255,255,255,0.25)] backdrop-blur-md will-change-transform active:scale-95"
+                className="absolute pointer-events-auto will-change-transform active:scale-95"
                 style={{
                   left: position.left,
                   top: position.top,
@@ -1003,12 +1031,41 @@ export function Viewer180({
                   )
                 }}
               >
-                <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold tracking-[0.08em] ${
-                    isActive ? "bg-white text-black" : "bg-white/15 text-white"
-                  }`}
-                >
-                  {hotspot.label}
+                <span className="relative flex flex-col items-center pt-7">
+                  <span
+                    className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-medium leading-none backdrop-blur-sm shadow-[0_0_10px_rgba(255,255,255,0.08)] transition-colors ${
+                      isActive
+                        ? "max-w-[9rem] border-white/28 bg-black/34 text-white/88"
+                        : "max-w-[8rem] border-white/18 bg-black/18 text-white/60"
+                    }`}
+                  >
+                    <span className="block truncate">{hotspot.label}</span>
+                  </span>
+
+                  <span className="relative flex h-4 w-4 items-center justify-center">
+                    <span
+                      className={`absolute inset-0 rounded-full border ${
+                        isActive
+                          ? "border-white/55 bg-white/18 shadow-[0_0_12px_rgba(255,255,255,0.16)]"
+                          : "border-white/35 bg-black/16 shadow-[0_0_10px_rgba(255,255,255,0.10)]"
+                      }`}
+                    />
+                    <span
+                      className={`relative h-1.5 w-1.5 rounded-full ${
+                        isActive ? "bg-white/90" : "bg-white/75"
+                      }`}
+                    />
+                    {!isActive && (
+                      <span
+                        className="timeless-hotspot-ring pointer-events-none absolute left-1/2 top-1/2 -z-10 h-7 w-7 rounded-full border border-white/24"
+                        style={{
+                          transform: "translate(-50%, -50%)",
+                          animation: "timeless-hotspot-ring 2.8s ease-out infinite",
+                        }}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </span>
                 </span>
               </button>
             )
@@ -1019,21 +1076,21 @@ export function Viewer180({
       {isEntered && !hasError && activeHotspot && activeHotspotFocus && activeHotspotPosition?.visible && (
         <div className="absolute inset-0 z-[24] pointer-events-none">
           <div
-            className="absolute border border-white/90 bg-white/5 shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_0_22px_rgba(255,255,255,0.24)] backdrop-blur-[1px]"
+            className="absolute border border-white/45 bg-white/[0.025] shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_0_14px_rgba(255,255,255,0.12)] backdrop-blur-[1px]"
             style={{
               left: activeHotspotPosition.left + (activeHotspotFocus.offsetX ?? 0),
               top: activeHotspotPosition.top + (activeHotspotFocus.offsetY ?? 0),
               width: activeHotspotFocus.width,
               height: activeHotspotFocus.height,
               borderWidth: activeHotspotFocus.strokeWidth ?? 2,
-              borderColor: activeHotspotFocus.strokeColor ?? "rgba(255,255,255,0.92)",
+              borderColor: activeHotspotFocus.strokeColor ?? "rgba(255,255,255,0.45)",
               borderRadius: activeHotspotFocus.shape === "rect" ? "1rem" : "999px",
               transform: `translate3d(-50%, -50%, 0) scale(${activeHotspotPosition.scale})`,
             }}
             aria-hidden="true"
           >
             <div
-              className="absolute inset-[6px] border border-white/30"
+              className="absolute inset-[6px] border border-white/15"
               style={{
                 borderRadius: activeHotspotFocus.shape === "rect" ? "0.8rem" : "999px",
               }}
@@ -1044,7 +1101,7 @@ export function Viewer180({
 
       {isEntered && !hasError && activeHotspot && (
         <div
-          className="absolute z-30 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-white/15 bg-black/75 p-4 text-white shadow-2xl backdrop-blur-md pointer-events-auto will-change-transform"
+          className="absolute z-30 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-black/35 p-4 text-white shadow-[0_12px_42px_rgba(0,0,0,0.24)] backdrop-blur-lg pointer-events-auto will-change-transform"
           style={
             activeHotspotPosition?.visible
               ? {
