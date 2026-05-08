@@ -4,7 +4,6 @@ import { useState } from "react"
 import type { Scene } from "@/types/scene"
 import type { ExperienceStep, CalibrationOffset, PermissionsState } from "@/types/experience"
 import { IntroStep } from "@/components/experience/intro-step"
-import { PermissionsStep } from "@/components/experience/permissions-step"
 import { CalibrationStep } from "@/components/experience/calibration-step"
 import { ViewerStep } from "@/components/experience/viewer-step"
 import { ErrorStep } from "@/components/experience/error-step"
@@ -12,6 +11,8 @@ import { BackButton } from "@/components/navigation/back-button"
 import { LanguageSwitch } from "@/components/i18n/language-switch"
 import { useLanguage } from "@/components/i18n/language-provider"
 import { getLocalizedScene } from "@/lib/localized-scene"
+import { requestCameraStream } from "@/lib/camera"
+import { requestOrientationPermission } from "@/lib/device-orientation"
 
 interface SceneExperienceShellProps {
   scene: Scene
@@ -25,10 +26,51 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [permissions, setPermissions] = useState<PermissionsState | null>(null)
   const [autoStartAmbientAudio, setAutoStartAmbientAudio] = useState(false)
+  const [requestingPermissions, setRequestingPermissions] = useState(false)
 
   function handleError(message: string) {
+    setRequestingPermissions(false)
     setErrorMessage(message)
     setStep("error")
+  }
+
+  async function handleBeginExperience() {
+    if (requestingPermissions) return
+
+    setRequestingPermissions(true)
+    setErrorMessage(null)
+
+    let cameraState: PermissionsState["camera"] = "idle"
+    let orientationState: PermissionsState["orientation"] = "idle"
+
+    // iOS requires this call to happen directly inside the user's tap/click flow.
+    orientationState = await requestOrientationPermission()
+
+    try {
+      const stream = await requestCameraStream()
+      // The calibration step owns its own camera stream, so release this one immediately.
+      stream.getTracks().forEach((track) => track.stop())
+      cameraState = "granted"
+    } catch {
+      cameraState = "denied"
+    }
+
+    const updatedPermissions: PermissionsState = {
+      camera: cameraState,
+      orientation: orientationState,
+    }
+
+    setPermissions(updatedPermissions)
+    setRequestingPermissions(false)
+
+    if (cameraState === "denied") {
+      handleError(t("cameraRequiredError"))
+      return
+    }
+
+    // Orientation denied/unavailable is non-fatal: the viewer still supports finger drag.
+    setAutoStartAmbientAudio(true)
+    setStep("calibration")
   }
 
   function handleCalibrationComplete(offset: CalibrationOffset) {
@@ -41,6 +83,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
     setErrorMessage(null)
     setPermissions(null)
     setAutoStartAmbientAudio(false)
+    setRequestingPermissions(false)
     setStep("intro")
   }
 
@@ -52,23 +95,18 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
       return
     }
 
-    if (step === "calibration") {
-      setErrorMessage(null)
-      setStep("permissions")
-      return
-    }
-
-    if (step === "permissions" || step === "error") {
+    if (step === "calibration" || step === "error") {
       setCalibration(null)
       setErrorMessage(null)
       setPermissions(null)
       setAutoStartAmbientAudio(false)
+      setRequestingPermissions(false)
       setStep("intro")
     }
   }
 
-  const backButtonVariant = step === "permissions" || step === "error" ? "light" : "dark"
-  const switchVariant = step === "permissions" || step === "error" ? "light" : "dark"
+  const backButtonVariant = step === "error" ? "light" : "dark"
+  const switchVariant = step === "error" ? "light" : "dark"
   const showShellControls = step !== "viewer"
 
   return (
@@ -99,17 +137,10 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
       )}
 
       {step === "intro" && (
-        <IntroStep scene={localizedScene} onBegin={() => setStep("permissions")} />
-      )}
-
-      {step === "permissions" && (
-        <PermissionsStep
-          onGranted={(grantedPermissions) => {
-            setPermissions(grantedPermissions)
-            setAutoStartAmbientAudio(true)
-            setStep("calibration")
-          }}
-          onError={handleError}
+        <IntroStep
+          scene={localizedScene}
+          onBegin={handleBeginExperience}
+          isStarting={requestingPermissions}
         />
       )}
 

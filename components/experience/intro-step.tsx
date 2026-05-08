@@ -7,10 +7,11 @@ import type { Scene } from "@/types/scene"
 
 interface IntroStepProps {
   scene: Scene
-  onBegin: () => void
+  onBegin: () => void | Promise<void>
+  isStarting?: boolean
 }
 
-export function IntroStep({ scene, onBegin }: IntroStepProps) {
+export function IntroStep({ scene, onBegin, isStarting = false }: IntroStepProps) {
   const { t } = useLanguage()
 
   return (
@@ -48,10 +49,11 @@ export function IntroStep({ scene, onBegin }: IntroStepProps) {
 
           <button
             onClick={onBegin}
-            className="w-full bg-background text-foreground font-sans text-xs tracking-[0.2em] uppercase py-4 rounded-xl transition-opacity duration-200 active:opacity-70"
+            disabled={isStarting}
+            className="w-full bg-background text-foreground font-sans text-xs tracking-[0.2em] uppercase py-4 rounded-xl transition-opacity duration-200 active:opacity-70 disabled:opacity-40"
             aria-label={t("beginExperience")}
           >
-            {t("beginExperience")}
+            {isStarting ? t("requesting") : t("beginExperience")}
           </button>
 
           <p className="text-center text-[10px] tracking-[0.15em] uppercase text-background/30 font-sans mt-5">

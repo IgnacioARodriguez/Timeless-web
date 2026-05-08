@@ -1,4 +1,4 @@
-export type ExperienceStep = "intro" | "permissions" | "calibration" | "viewer" | "error"
+export type ExperienceStep = "intro" | "calibration" | "viewer" | "error"
 
 export interface CalibrationOffset {
   yaw: number
