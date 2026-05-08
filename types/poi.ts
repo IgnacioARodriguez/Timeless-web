@@ -1,5 +1,13 @@
 export type PoiStatus = "available" | "coming-soon"
 
+export interface MapPoiTranslation {
+  title?: string
+  period?: string
+  shortDescription?: string
+  locationLabel?: string
+  directionsLabel?: string
+}
+
 export interface MapPoi {
   id: string
   title: string
@@ -17,5 +25,8 @@ export interface MapPoi {
   mapPosition: {
     x: number
     y: number
+  }
+  i18n?: {
+    en?: MapPoiTranslation
   }
 }

@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 import { Geist } from "next/font/google"
 import { Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { LanguageProvider } from "@/components/i18n/language-provider"
 import "./globals.css"
 
 const geist = Geist({
@@ -44,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${geist.variable} ${playfair.variable} bg-background`}>
       <body className="font-sans antialiased">
-        {children}
+        <LanguageProvider>{children}</LanguageProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}
       </body>
     </html>

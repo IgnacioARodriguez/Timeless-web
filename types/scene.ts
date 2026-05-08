@@ -12,11 +12,24 @@ export type SceneMedia =
     muted: boolean
   }
 
+export interface SceneTranslation {
+  title?: string
+  subtitle?: string
+  description?: string
+}
+
+export interface SceneAudioTranslation {
+  label?: string
+}
+
 export interface SceneAmbientAudio {
   src: string
   label?: string
   volume?: number
   loop?: boolean
+  i18n?: {
+    en?: SceneAudioTranslation
+  }
 }
 
 export interface SceneCamera {
@@ -38,6 +51,12 @@ export interface SceneHotspotFocus {
   strokeWidth?: number
 }
 
+export interface SceneHotspotTranslation {
+  label?: string
+  title?: string
+  description?: string
+}
+
 export interface SceneHotspot {
   id: string
   label: string
@@ -46,9 +65,15 @@ export interface SceneHotspot {
   yaw: number
   pitch: number
   focus?: SceneHotspotFocus
+  i18n?: {
+    en?: SceneHotspotTranslation
+  }
   audio?: {
     src: string
     label?: string
+    i18n?: {
+      en?: SceneAudioTranslation
+    }
   }
 }
 
@@ -64,4 +89,7 @@ export interface Scene {
   camera: SceneCamera
   ambientAudio?: SceneAmbientAudio
   hotspots?: SceneHotspot[]
+  i18n?: {
+    en?: SceneTranslation
+  }
 }

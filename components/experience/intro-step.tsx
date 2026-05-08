@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { BrandLockup } from "@/components/brand/brand-lockup"
+import { useLanguage } from "@/components/i18n/language-provider"
 import type { Scene } from "@/types/scene"
 
 interface IntroStepProps {
@@ -10,6 +11,8 @@ interface IntroStepProps {
 }
 
 export function IntroStep({ scene, onBegin }: IntroStepProps) {
+  const { t } = useLanguage()
+
   return (
     <div className="relative min-h-svh flex flex-col bg-foreground text-background">
       {/* Poster background */}
@@ -46,13 +49,13 @@ export function IntroStep({ scene, onBegin }: IntroStepProps) {
           <button
             onClick={onBegin}
             className="w-full bg-background text-foreground font-sans text-xs tracking-[0.2em] uppercase py-4 rounded-xl transition-opacity duration-200 active:opacity-70"
-            aria-label="Begin this historical experience"
+            aria-label={t("beginExperience")}
           >
-            Comenzar la experiencia
+            {t("beginExperience")}
           </button>
 
           <p className="text-center text-[10px] tracking-[0.15em] uppercase text-background/30 font-sans mt-5">
-            Se requiere acceso para cámaras y detección de movimiento
+            {t("permissionsRequired")}
           </p>
         </div>
       </div>

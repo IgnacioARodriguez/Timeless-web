@@ -1,11 +1,15 @@
 "use client"
 
+import { useLanguage } from "@/components/i18n/language-provider"
+
 interface OpacitySliderProps {
   value: number
   onChange: (value: number) => void
 }
 
 export function OpacitySlider({ value, onChange }: OpacitySliderProps) {
+  const { t } = useLanguage()
+
   return (
     <div className="flex items-center gap-3 w-full">
       {/* Ghost icon */}
@@ -40,7 +44,7 @@ export function OpacitySlider({ value, onChange }: OpacitySliderProps) {
           [&::-moz-range-thumb]:rounded-full
           [&::-moz-range-thumb]:bg-background
           [&::-moz-range-thumb]:border-0"
-        aria-label="Overlay opacity"
+        aria-label={t("calibration")}
         aria-valuenow={Math.round(value * 100)}
         aria-valuemin={0}
         aria-valuemax={100}

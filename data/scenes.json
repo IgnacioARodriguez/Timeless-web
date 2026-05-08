@@ -33,6 +33,13 @@
           "height": 240,
           "offsetX": 0,
           "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Tower",
+            "title": "The main tower",
+            "description": "This tower projects outward from the wall to improve defense. From here, guards could watch the exterior more effectively and protect the surrounding wall section. It was one of the strongest points of the complex."
+          }
         }
       },
       {
@@ -48,6 +55,13 @@
           "height": 92,
           "offsetX": 0,
           "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Barbican",
+            "title": "The outer defense",
+            "description": "The barbican is the lower wall in front of the main wall. It slowed down anyone attacking from outside and made it much harder to reach the large defensive wall directly."
+          }
         }
       },
       {
@@ -63,6 +77,13 @@
           "height": 100,
           "offsetX": 0,
           "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Wall",
+            "title": "The city wall",
+            "description": "This is the main defensive wall of the city. It has been reconstructed from the archaeological evidence preserved at Carretería. Its role was to protect Málaga and clearly mark the limit of the medieval city."
+          }
         }
       },
       {
@@ -78,6 +99,13 @@
           "height": 120,
           "offsetX": 0,
           "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Defenders",
+            "title": "Soldiers on the wall",
+            "description": "The defenders stood on the upper part of the wall. From there they could watch, move along the wall and respond to an attack. In this scene they are shown as Almohad soldiers because the reconstruction represents that historical phase."
+          }
         }
       },
       {
@@ -93,6 +121,13 @@
           "height": 320,
           "offsetX": 20,
           "offsetY": 20
+        },
+        "i18n": {
+          "en": {
+            "label": "Surroundings",
+            "title": "The space outside the wall",
+            "description": "Outside the wall there was an open space used for defense and work. This setting helps explain that the wall was not isolated: it was part of a wider urban and military landscape."
+          }
         }
       }
     ],
@@ -100,7 +135,19 @@
       "src": "/assets/audio/carreteria-ambient.mp3",
       "label": "Sonido ambiente de la muralla",
       "volume": 0.32,
-      "loop": true
+      "loop": true,
+      "i18n": {
+        "en": {
+          "label": "Ambient sound of the wall"
+        }
+      }
+    },
+    "i18n": {
+      "en": {
+        "title": "Almohad Wall of Carretería — Málaga, 13th century",
+        "subtitle": "Immersive 180° historical reconstruction",
+        "description": "An immersive reconstruction of the Almohad phase of the Carretería wall. The scene interprets the main wall, projecting tower, barbican and defensive corridor with a cautious archaeological approach."
+      }
     }
   },
   {
@@ -136,6 +183,13 @@
           "height": 250,
           "offsetX": 0,
           "offsetY": 5
+        },
+        "i18n": {
+          "en": {
+            "label": "Shipyard",
+            "title": "The great medieval shipyard",
+            "description": "This building functioned as an atarazana: a large covered space where vessels were built, repaired and stored. It was not a market like today, but a port infrastructure directly linked to the sea."
+          }
         }
       },
       {
@@ -151,6 +205,13 @@
           "height": 170,
           "offsetX": 0,
           "offsetY": 16
+        },
+        "i18n": {
+          "en": {
+            "label": "Arches",
+            "title": "The large entrance arches",
+            "description": "The arches allowed materials, tools and vessels to move in and out of the building. The reconstruction shows the Atarazanas opening toward the port area, with large functional openings rather than a purely decorative façade."
+          }
         }
       },
       {
@@ -166,6 +227,13 @@
           "height": 150,
           "offsetX": 0,
           "offsetY": 12
+        },
+        "i18n": {
+          "en": {
+            "label": "Boats",
+            "title": "Boat building and repair",
+            "description": "In the foreground you can see naval activity: wood, ropes, boat parts and workers. This scene helps explain that this place was an active part of medieval Málaga’s port."
+          }
         }
       },
       {
@@ -181,6 +249,13 @@
           "height": 120,
           "offsetX": -10,
           "offsetY": 6
+        },
+        "i18n": {
+          "en": {
+            "label": "Sea",
+            "title": "The sea beside the city",
+            "description": "The Atarazanas were tied to the maritime front. In the medieval period, this area had a much more direct relationship with the water than today’s market. That is why the scene places the building in a port landscape."
+          }
         }
       },
       {
@@ -196,6 +271,13 @@
           "height": 120,
           "offsetX": 0,
           "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "City",
+            "title": "The walled city in the background",
+            "description": "Medieval Málaga appears in the background, protected by its walls and connected to the port. This detail places the Atarazanas within the city, not as an isolated building."
+          }
         }
       },
       {
@@ -211,6 +293,13 @@
           "height": 130,
           "offsetX": 0,
           "offsetY": 10
+        },
+        "i18n": {
+          "en": {
+            "label": "Work",
+            "title": "Daily life at the port",
+            "description": "The people in the scene show everyday tasks: moving materials, working wood, carrying objects or preparing boats. The goal is to convey a living port without turning it into fantasy."
+          }
         }
       }
     ],
@@ -218,7 +307,19 @@
       "src": "/assets/audio/atarazanas-ambient.mp3",
       "label": "Sonido ambiente del puerto y las atarazanas",
       "volume": 0.34,
-      "loop": true
+      "loop": true,
+      "i18n": {
+        "en": {
+          "label": "Ambient sound of the port and Atarazanas"
+        }
+      }
+    },
+    "i18n": {
+      "en": {
+        "title": "Medieval Atarazanas — Nasrid Málaga",
+        "subtitle": "Immersive 180° historical reconstruction",
+        "description": "Stand near today’s Atarazanas Market and enter a cautious reconstruction of its medieval phase linked to Málaga’s port front."
+      }
     }
   },
   {
@@ -254,6 +355,13 @@
           "height": 210,
           "offsetX": 0,
           "offsetY": 8
+        },
+        "i18n": {
+          "en": {
+            "label": "Seating",
+            "title": "The theatre seating",
+            "description": "This is where the audience sat. The seating used the natural slope of the terrain, so the theatre was not an isolated building: it was integrated into the hillside of the Roman city."
+          }
         }
       },
       {
@@ -269,6 +377,13 @@
           "height": 250,
           "offsetX": 8,
           "offsetY": 10
+        },
+        "i18n": {
+          "en": {
+            "label": "Orchestra",
+            "title": "The central space",
+            "description": "The orchestra was the semicircular area between the seating and the stage. It was an important space within the theatre, visible to all spectators."
+          }
         }
       },
       {
@@ -284,6 +399,13 @@
           "height": 95,
           "offsetX": 0,
           "offsetY": 10
+        },
+        "i18n": {
+          "en": {
+            "label": "Stage",
+            "title": "The front of the stage",
+            "description": "This area marked the boundary between the performance space and the audience. It helps explain where performers acted and how the scene was organized."
+          }
         }
       },
       {
@@ -299,6 +421,13 @@
           "height": 130,
           "offsetX": 10,
           "offsetY": 14
+        },
+        "i18n": {
+          "en": {
+            "label": "Entrances",
+            "title": "The side entrances",
+            "description": "These entrances gave access to the lower area of the theatre. They connected the exterior with the orchestra and helped organize movement inside the building."
+          }
         }
       },
       {
@@ -314,6 +443,13 @@
           "height": 95,
           "offsetX": 0,
           "offsetY": 6
+        },
+        "i18n": {
+          "en": {
+            "label": "Seats",
+            "title": "The main seats",
+            "description": "The first rows were reserved for important people in the city. Not everyone sat in the same place: seating inside the theatre also reflected social status."
+          }
         }
       },
       {
@@ -329,6 +465,13 @@
           "height": 150,
           "offsetX": 0,
           "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "City",
+            "title": "The theatre within Malaca",
+            "description": "The theatre was part of the Roman city of Malaca. Its position beside the hillside and near the urban area shows that it was an important public space, not only a place for performances."
+          }
         }
       }
     ],
@@ -336,7 +479,19 @@
       "src": "/assets/audio/teatro-romano-ambient.mp3",
       "label": "Sonido ambiente del teatro romano",
       "volume": 0.3,
-      "loop": true
+      "loop": true,
+      "i18n": {
+        "en": {
+          "label": "Ambient sound of the Roman theatre"
+        }
+      }
+    },
+    "i18n": {
+      "en": {
+        "title": "Roman Theatre — Roman Malaca",
+        "subtitle": "Immersive 180° historical reconstruction",
+        "description": "Stand in the area of the Roman Theatre and enter a cautious reconstruction of Roman Malaca beside the slope of the Alcazaba."
+      }
     }
   }
 ]
