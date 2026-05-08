@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next"
+import type { ReactNode } from "react"
 import { Geist } from "next/font/google"
 import { Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
@@ -16,10 +17,9 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: "Timeless — Historical Immersive Experiences",
+  title: "Timeless — Ver el pasado desde el lugar real",
   description:
-    "Stand before history. Align the past with the present. Enter the immersive reconstruction.",
-  generator: "v0.app",
+    "Experiencias históricas inmersivas 180° desde el móvil para comprender el patrimonio desde el lugar real.",
   icons: {
     icon: [
       { url: "/icon-light-32x32.png", media: "(prefers-color-scheme: light)" },
@@ -40,9 +40,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${playfair.variable} bg-background`}>
+    <html lang="es" className={`${geist.variable} ${playfair.variable} bg-background`}>
       <body className="font-sans antialiased">
         {children}
         {process.env.NODE_ENV === "production" && <Analytics />}
