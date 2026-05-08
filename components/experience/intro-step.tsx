@@ -30,7 +30,7 @@ export function IntroStep({ scene, onBegin }: IntroStepProps) {
       {/* Content */}
       <div className="relative z-10 flex flex-col min-h-svh px-6">
         {/* Header */}
-        <header className="pt-10 pb-6">
+        <header className="pt-20 pb-6 sm:pt-24">
           <BrandLockup variant="dark" showByline />
         </header>
 
