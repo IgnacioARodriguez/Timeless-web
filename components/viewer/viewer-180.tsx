@@ -7,6 +7,7 @@ import { LoadingState } from "@/components/viewer/loading-state"
 import { ViewerErrorState } from "@/components/viewer/error-state"
 import { ViewerControls } from "@/components/viewer/viewer-controls"
 import { requestCameraStream, stopCameraStream } from "@/lib/camera"
+import { useLanguage } from "@/components/i18n/language-provider"
 import type { Scene, SceneHotspot } from "@/types/scene"
 import type { CalibrationOffset } from "@/types/experience"
 
@@ -159,6 +160,7 @@ export function Viewer180({
   autoStartAmbientAudio = false,
   onExit,
 }: Viewer180Props) {
+  const { t } = useLanguage()
   const isImage = scene.media.type === "image"
   const isVideo = scene.media.type === "video"
 
@@ -980,9 +982,7 @@ export function Viewer180({
       {hasError && (
         <ViewerErrorState
           message={
-            isVideo
-              ? "Unable to load the experience video."
-              : "Unable to load the panoramic image."
+isVideo ? t("videoLoadError") : t("imageLoadError")
           }
           onRetry={() => {
             window.location.reload()
@@ -993,7 +993,7 @@ export function Viewer180({
       {isEntered && !hasError && (
         <div className="absolute top-0 left-0 right-0 z-10 px-5 pt-8 pointer-events-none bg-gradient-to-b from-black/60 to-transparent pb-10">
           <p className="text-[10px] tracking-[0.25em] uppercase text-white/30 font-sans mb-0.5">
-            Now viewing
+            {t("nowViewing")}
           </p>
           <p className="text-sm font-serif font-light text-white/70 leading-snug">
             {scene.title}
@@ -1020,7 +1020,7 @@ export function Viewer180({
                   transform: `translate3d(-50%, -50%, 0) scale(${position.scale})`,
                 }}
                 aria-pressed={isActive}
-                aria-label={`Abrir información: ${hotspot.title}`}
+                aria-label={`${t("openInfo")}: ${hotspot.title}`}
                 onPointerDown={(event) => event.stopPropagation()}
                 onPointerMove={(event) => event.stopPropagation()}
                 onPointerUp={(event) => event.stopPropagation()}
@@ -1118,7 +1118,7 @@ export function Viewer180({
           <div className="mb-3 flex items-start justify-between gap-4">
             <div>
               <p className="mb-1 text-[10px] uppercase tracking-[0.22em] text-white/40">
-                Punto histórico
+                {t("historicalPoint")}
               </p>
               <h2 className="font-serif text-lg font-light leading-tight text-white">
                 {activeHotspot.title}
@@ -1127,7 +1127,7 @@ export function Viewer180({
             <button
               type="button"
               className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-white/60 active:opacity-60"
-              aria-label="Cerrar punto histórico"
+              aria-label={t("closeHistoricalPoint")}
               onClick={() => setActiveHotspotId(null)}
             >
               ×
@@ -1141,7 +1141,7 @@ export function Viewer180({
           {activeHotspot.audio?.src && (
             <div className="rounded-xl border border-white/10 bg-white/5 p-3">
               <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-white/35">
-                {activeHotspot.audio.label ?? "Audio explicativo"}
+                {activeHotspot.audio.label ?? t("explanatoryAudio")}
               </p>
               <audio
                 className="w-full"
@@ -1157,22 +1157,20 @@ export function Viewer180({
       {showHelp && (
         <div className="absolute inset-0 z-20 bg-black/70 flex flex-col items-center justify-center px-8 text-center">
           <p className="text-xs tracking-[0.2em] uppercase text-white/40 font-sans mb-4">
-            Help
+            {t("help")}
           </p>
           <p className="text-sm leading-relaxed text-white/70 text-pretty mb-2">
-            {gyroEnabled
-              ? "Girá el móvil para mirar alrededor. También podés arrastrar con el dedo para ajustar la vista."
-              : "Arrastrá con el dedo para mirar alrededor de la escena."}
+            {gyroEnabled ? t("helpGyro") : t("helpDrag")}
           </p>
           <p className="text-sm leading-relaxed text-white/50 text-pretty mb-8">
-            La vista queda anclada a la calibración inicial.
+            {t("helpCalibrationAnchor")}
           </p>
           <button
             onClick={() => setShowHelp(false)}
             className="font-sans text-xs tracking-[0.2em] uppercase text-white/60 border border-white/20 px-6 py-3 rounded-xl"
-            aria-label="Close help"
+            aria-label={t("closeHelp")}
           >
-            Got it
+            {t("gotIt")}
           </button>
         </div>
       )}
@@ -1183,7 +1181,7 @@ export function Viewer180({
           src={ambientAudio.src}
           loop={ambientAudio.loop ?? true}
           preload="auto"
-          aria-label={ambientAudio.label ?? "Sonido ambiente"}
+          aria-label={ambientAudio.label ?? t("ambientSound")}
         />
       )}
 
@@ -1200,9 +1198,9 @@ export function Viewer180({
             supportsFullscreen={supportsFullscreen}
             showMute={isVideo || hasAmbientAudio}
             showReplay={isVideo}
-            muteLabel={isVideo ? "Mute" : "Silencio"}
-            unmuteLabel={isVideo ? "Unmute" : "Sonido"}
-            replayLabel="Replay"
+            muteLabel={isVideo ? t("mute") : t("soundOff")}
+            unmuteLabel={isVideo ? t("unmute") : t("soundOn")}
+            replayLabel={t("replay")}
           />
         </>
       )}
@@ -1211,7 +1209,7 @@ export function Viewer180({
         <button
           onClick={onExit}
           className="absolute top-6 right-5 z-20 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/60 border border-white/10 transition-opacity active:opacity-50"
-          aria-label="Exit experience"
+          aria-label={t("exitExperience")}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path

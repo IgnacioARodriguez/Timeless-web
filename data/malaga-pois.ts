@@ -17,6 +17,16 @@ export const malagaCenterPois: MapPoi[] = [
       label: "Muralla de Carretería",
     },
     mapPosition: { x: 18.0, y: 17.4 },
+    i18n: {
+      en: {
+        title: "Almohad Wall of Carretería",
+        period: "Almohad wall · 13th century",
+        shortDescription:
+          "Immersive reconstruction of the Almohad phase of the wall, tower, barbican and defensive corridor preserved at Calle Carretería 62–64.",
+        locationLabel: "Calle Carretería 62–64",
+        directionsLabel: "Carretería wall",
+      },
+    },
   },
   {
     id: "plaza-constitucion",
@@ -27,6 +37,14 @@ export const malagaCenterPois: MapPoi[] = [
     locationLabel: "Plaza de la Constitución",
     status: "coming-soon",
     mapPosition: { x: 26.5, y: 38.5 },
+    i18n: {
+      en: {
+        title: "Plaza de la Constitución",
+        period: "Historic centre",
+        shortDescription: "Central point of Málaga’s historic urban layout. Future scene.",
+        locationLabel: "Plaza de la Constitución",
+      },
+    },
   },
   {
     id: "atarazanas",
@@ -44,6 +62,16 @@ export const malagaCenterPois: MapPoi[] = [
       label: "Mercado de Atarazanas",
     },
     mapPosition: { x: 9.6, y: 63.3 },
+    i18n: {
+      en: {
+        title: "Atarazanas",
+        period: "Medieval port infrastructure",
+        shortDescription:
+          "Immersive reconstruction of the area around the medieval Atarazanas before its transformation into the modern market.",
+        locationLabel: "Atarazanas Market",
+        directionsLabel: "Atarazanas Market",
+      },
+    },
   },
   {
     id: "calle-larios",
@@ -54,6 +82,14 @@ export const malagaCenterPois: MapPoi[] = [
     locationLabel: "Calle Larios",
     status: "coming-soon",
     mapPosition: { x: 28.1, y: 64.5 },
+    i18n: {
+      en: {
+        title: "Calle Larios",
+        period: "Modern and historic Málaga",
+        shortDescription: "One of the most emblematic urban axes of the historic centre. Future scene.",
+        locationLabel: "Calle Larios",
+      },
+    },
   },
   {
     id: "teatro-romano",
@@ -71,6 +107,16 @@ export const malagaCenterPois: MapPoi[] = [
       label: "Teatro Romano de Málaga",
     },
     mapPosition: { x: 49.3, y: 37.3 },
+    i18n: {
+      en: {
+        title: "Roman Theatre",
+        period: "Roman Malaca",
+        shortDescription:
+          "Immersive reconstruction of the Roman Theatre area in Roman times, beside the slope of the Alcazaba.",
+        locationLabel: "Calle Alcazabilla",
+        directionsLabel: "Roman Theatre of Málaga",
+      },
+    },
   },
   {
     id: "plaza-merced",
@@ -81,5 +127,13 @@ export const malagaCenterPois: MapPoi[] = [
     locationLabel: "Plaza de la Merced",
     status: "coming-soon",
     mapPosition: { x: 47.4, y: 24.1 },
+    i18n: {
+      en: {
+        title: "Plaza de la Merced",
+        period: "Historic urban space",
+        shortDescription: "A notable historic setting in central Málaga. Future scene.",
+        locationLabel: "Plaza de la Merced",
+      },
+    },
   },
 ]

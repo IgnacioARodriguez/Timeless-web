@@ -1,4 +1,10 @@
+"use client"
+
+import { useLanguage } from "@/components/i18n/language-provider"
+
 export function LoadingState() {
+  const { t } = useLanguage()
+
   return (
     <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black">
       {/* Minimal spinner */}
@@ -7,7 +13,7 @@ export function LoadingState() {
         aria-hidden="true"
       />
       <p className="text-[10px] tracking-[0.25em] uppercase text-white/40 font-sans">
-        Preparing experience
+        {t("preparingExperience")}
       </p>
     </div>
   )

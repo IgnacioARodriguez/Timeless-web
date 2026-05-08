@@ -1,9 +1,11 @@
 "use client"
 
-import { useMemo, useState, type MouseEvent } from "react"
+import { useEffect, useMemo, useState, type MouseEvent } from "react"
 import Link from "next/link"
 import { ArrowRight, Clock, Lock, MapPin, Navigation } from "lucide-react"
 import { malagaCenterPois } from "@/data/malaga-pois"
+import { useLanguage } from "@/components/i18n/language-provider"
+import { getLocalizedPoi } from "@/lib/localized-city"
 import type { MapPoi } from "@/types/poi"
 import { cn } from "@/lib/utils"
 
@@ -19,10 +21,12 @@ function PoiMarker({
   poi,
   selected,
   onSelect,
+  selectLabel,
 }: {
   poi: MapPoi
   selected: boolean
   onSelect: (poi: MapPoi) => void
+  selectLabel: string
 }) {
   const isAvailable = poi.status === "available"
   const showLabel = isAvailable || selected
@@ -37,7 +41,7 @@ function PoiMarker({
         isAvailable ? "cursor-pointer" : "cursor-default",
       )}
       style={{ left: `${poi.mapPosition.x}%`, top: `${poi.mapPosition.y}%` }}
-      aria-label={`Seleccionar ${poi.title}`}
+      aria-label={`${selectLabel} ${poi.title}`}
     >
       {selected && isAvailable && (
         <span className="absolute h-14 w-14 rounded-full border border-accent/35 bg-accent/10 shadow-[0_0_0_8px_rgba(184,107,56,0.08)]" />
@@ -86,22 +90,26 @@ function SceneSelector({
   pois,
   selectedPoi,
   onSelect,
+  availableScenesLabel,
+  scenesLabel,
 }: {
   pois: MapPoi[]
   selectedPoi: MapPoi
   onSelect: (poi: MapPoi) => void
+  availableScenesLabel: string
+  scenesLabel: string
 }) {
   return (
     <div className="border-t border-white/65 bg-background/96 px-3 py-2.5 sm:px-4 sm:py-3">
       <div className="mx-auto max-w-3xl">
         <div className="mb-2 flex items-center justify-between gap-3">
           <p className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-accent/85 sm:text-[9px]">
-            Escenas disponibles
+            {availableScenesLabel}
           </p>
 
           {pois.length > 3 && (
             <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
-              {pois.length} escenas
+              {pois.length} {scenesLabel}
             </span>
           )}
         </div>
@@ -209,17 +217,27 @@ function openNativeDirections(event: MouseEvent<HTMLAnchorElement>, poi: MapPoi)
 }
 
 export function MalagaCenterMap() {
+  const { language, t } = useLanguage()
+  const localizedPois = useMemo(
+    () => malagaCenterPois.map((poi) => getLocalizedPoi(poi, language)),
+    [language],
+  )
   const availablePois = useMemo(
-    () => malagaCenterPois.filter((poi) => poi.status === "available"),
-    [],
+    () => localizedPois.filter((poi) => poi.status === "available"),
+    [localizedPois],
   )
 
   const initialPoi = useMemo(
-    () => availablePois[0] ?? malagaCenterPois[0],
-    [availablePois],
+    () => availablePois[0] ?? localizedPois[0],
+    [availablePois, localizedPois],
   )
 
   const [selectedPoi, setSelectedPoi] = useState<MapPoi>(initialPoi)
+
+  useEffect(() => {
+    const refreshed = localizedPois.find((poi) => poi.id === selectedPoi.id)
+    if (refreshed) setSelectedPoi(refreshed)
+  }, [localizedPois, selectedPoi.id])
 
   return (
     <section className="mx-auto mt-2 w-full max-w-5xl pb-6 sm:mt-4 sm:pb-10">
@@ -227,11 +245,11 @@ export function MalagaCenterMap() {
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
             <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-accent/90 sm:text-[10px]">
-              Mapa de experiencias
+              {t("mapLabel")}
             </p>
 
             <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-muted-foreground sm:mx-0 sm:text-sm">
-              Selecciona una escena, entra al visor 180° o abre la ruta hasta el punto exacto de activación.
+              {t("mapDescription")}
             </p>
           </div>
         </div>
@@ -241,7 +259,7 @@ export function MalagaCenterMap() {
         <div className="relative aspect-[1365/1024] w-full overflow-hidden rounded-[1.55rem] border border-white/50 bg-[#efe5d2] sm:rounded-[1.9rem]">
           <img
             src="/assets/maps/malaga-map-stylized.png"
-            alt="Mapa ilustrado del centro histórico de Málaga"
+            alt={t("mapLabel")}
             className="absolute inset-0 h-full w-full object-cover"
             draggable={false}
           />
@@ -250,18 +268,19 @@ export function MalagaCenterMap() {
 
           <div
             className="absolute bottom-3 right-3 z-30 grid h-10 w-10 place-items-center rounded-full border border-white/70 bg-background/82 text-accent shadow-md backdrop-blur-md sm:bottom-5 sm:right-5 sm:h-11 sm:w-11"
-            aria-label="Norte arriba"
-            title="Norte arriba"
+            aria-label={t("northUp")}
+            title={t("northUp")}
           >
             <Navigation className="h-5 w-5 -rotate-45" />
           </div>
 
-          {malagaCenterPois.map((poi) => (
+          {localizedPois.map((poi) => (
             <PoiMarker
               key={poi.id}
               poi={poi}
               selected={selectedPoi.id === poi.id}
               onSelect={setSelectedPoi}
+              selectLabel={t("selectPoi")}
             />
           ))}
         </div>
@@ -270,6 +289,8 @@ export function MalagaCenterMap() {
           pois={availablePois}
           selectedPoi={selectedPoi}
           onSelect={setSelectedPoi}
+          availableScenesLabel={t("availableScenes")}
+          scenesLabel={t("scenes")}
         />
 
         <div className="border-t border-white/65 bg-background/96 pb-6 pt-1.5 sm:pb-7 sm:pt-2">
@@ -278,7 +299,7 @@ export function MalagaCenterMap() {
               <div className="relative aspect-[16/7] w-full sm:aspect-[21/8]">
                 <img
                   src={selectedPoi.previewImage}
-                  alt={`Vista previa de ${selectedPoi.title}`}
+                  alt={selectedPoi.title}
                   className="h-full w-full object-cover"
                   draggable={false}
                 />
@@ -286,7 +307,7 @@ export function MalagaCenterMap() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent" />
 
                 <div className="absolute bottom-3 left-3 rounded-full border border-white/30 bg-black/40 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-white shadow-sm backdrop-blur-md sm:bottom-4 sm:left-4">
-                  Preview reconstrucción
+                  Preview
                 </div>
               </div>
             </div>
@@ -294,7 +315,7 @@ export function MalagaCenterMap() {
 
           <div className="mx-auto flex max-w-md flex-col items-center px-5 pb-1 text-center sm:px-6">
             <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-accent/85 sm:text-[10px]">
-              Escena seleccionada
+              {t("exactPoint")}
             </p>
 
             <h3 className="mt-3 max-w-sm text-center font-serif text-[2.25rem] font-light leading-none tracking-[-0.055em] text-[#241811] sm:text-[2.8rem]">
@@ -305,7 +326,7 @@ export function MalagaCenterMap() {
               <span
                 className="mt-4 inline-flex rounded-full border border-border bg-muted px-4 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground"
               >
-                Próximamente
+                {t("comingSoon")}
               </span>
             )}
 
@@ -325,7 +346,7 @@ export function MalagaCenterMap() {
                     href={`/scene/${selectedPoi.sceneId}`}
                     className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-[#17110d] px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#f8f0e3] shadow-[0_12px_28px_rgba(23,17,13,0.18)] transition-transform active:scale-[0.98]"
                   >
-                    Ver escena 180°
+                    {t("openViewer")}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
 
@@ -337,7 +358,7 @@ export function MalagaCenterMap() {
                       rel="noreferrer"
                       className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-[#d8c8b4] bg-white/58 px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#241811] shadow-sm backdrop-blur-sm transition-transform active:scale-[0.98]"
                     >
-                      Cómo llegar
+                      {t("howToArrive")}
                       <Navigation className="h-4 w-4 -rotate-45" />
                     </a>
                   )}
@@ -345,7 +366,7 @@ export function MalagaCenterMap() {
               ) : (
                 <div className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-muted/60 px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   <Clock className="h-4 w-4" />
-                  Escena no disponible
+                  {t("futureScene")}
                 </div>
               )}
             </div>

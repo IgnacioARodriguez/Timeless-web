@@ -14,6 +14,16 @@ export const timelessCities: TimelessCity[] = [
     href: "/cities/malaga",
     coverImage: "/assets/carreteria/hero-malaga.png",
     accentLabel: "Disponible ahora",
+    i18n: {
+      en: {
+        country: "Spain",
+        regionLabel: "Historic centre",
+        description:
+          "Explore walls, the Atarazanas and Roman Malaca from real activation points in the historic centre.",
+        highlights: ["Carretería", "Atarazanas", "Roman Theatre"],
+        accentLabel: "Available now",
+      },
+    },
   },
   {
     id: "roma",
@@ -26,6 +36,16 @@ export const timelessCities: TimelessCity[] = [
     scenesCount: 0,
     status: "coming-soon",
     accentLabel: "Próximamente",
+    i18n: {
+      en: {
+        country: "Italy",
+        regionLabel: "Ancient Rome",
+        description:
+          "Forum, Colosseum and monumental spaces designed as future immersive experiences.",
+        highlights: ["Roman Forum", "Colosseum", "Via Sacra"],
+        accentLabel: "Coming soon",
+      },
+    },
   },
   {
     id: "granada",
@@ -38,6 +58,16 @@ export const timelessCities: TimelessCity[] = [
     scenesCount: 0,
     status: "coming-soon",
     accentLabel: "Próximamente",
+    i18n: {
+      en: {
+        country: "Spain",
+        regionLabel: "Nasrid city",
+        description:
+          "A future collection to explore the Andalusi urban landscape and its defensive points.",
+        highlights: ["Albaicín", "Alhambra", "Medieval gates"],
+        accentLabel: "Coming soon",
+      },
+    },
   },
   {
     id: "cordoba",
@@ -50,6 +80,16 @@ export const timelessCities: TimelessCity[] = [
     scenesCount: 0,
     status: "coming-soon",
     accentLabel: "Próximamente",
+    i18n: {
+      en: {
+        country: "Spain",
+        regionLabel: "Caliphal capital",
+        description:
+          "A future city to reconstruct Roman, Visigothic and Islamic layers of the historic centre.",
+        highlights: ["Mosque-Cathedral", "Roman bridge", "Medina"],
+        accentLabel: "Coming soon",
+      },
+    },
   },
 ]
 

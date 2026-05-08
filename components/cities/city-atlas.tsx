@@ -1,16 +1,20 @@
+"use client"
+
 import Link from "next/link"
 import { ArrowRight, Lock } from "lucide-react"
 import { timelessCities } from "@/data/cities"
+import { useLanguage } from "@/components/i18n/language-provider"
+import { getLocalizedCity } from "@/lib/localized-city"
 import type { TimelessCity } from "@/types/city"
 import { cn } from "@/lib/utils"
 
-function CityCover({ city }: { city: TimelessCity }) {
+function CityCover({ city, alt }: { city: TimelessCity; alt: string }) {
   if (city.coverImage) {
     return (
       <div className="absolute inset-0">
         <img
           src={city.coverImage}
-          alt={`Vista previa de ${city.name}`}
+          alt={alt}
           className="h-full w-full object-cover"
           draggable={false}
         />
@@ -30,6 +34,8 @@ function CityCover({ city }: { city: TimelessCity }) {
 }
 
 function CityCard({ city }: { city: TimelessCity }) {
+  const { language, t } = useLanguage()
+  const localizedCity = getLocalizedCity(city, language)
   const isAvailable = city.status === "available"
 
   const cardContent = (
@@ -42,7 +48,7 @@ function CityCard({ city }: { city: TimelessCity }) {
       )}
     >
       <div className="relative h-[13.5rem] sm:h-[16.5rem] lg:h-[18rem]">
-        <CityCover city={city} />
+        <CityCover city={city} alt={localizedCity.name} />
 
         <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-5">
           <div className="mb-auto flex items-center justify-between gap-3">
@@ -54,24 +60,24 @@ function CityCard({ city }: { city: TimelessCity }) {
                   : "border-white/16 bg-white/8 text-white/62",
               )}
             >
-              {isAvailable ? "Disponible" : "Próximamente"}
+              {isAvailable ? t("available") : t("comingSoon")}
             </span>
 
             <span className="rounded-full border border-white/16 bg-white/10 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-white/72 backdrop-blur-md">
-              {city.scenesCount} {city.scenesCount === 1 ? "escena" : "escenas"}
+              {localizedCity.scenesCount} {localizedCity.scenesCount === 1 ? t("scene") : t("scenes")}
             </span>
           </div>
 
           <h2 className="text-center font-serif text-[2.75rem] font-light leading-none tracking-[-0.045em] text-white sm:text-left sm:text-[2.9rem]">
-            {city.name}
+            {localizedCity.name}
           </h2>
 
           <p className="mx-auto mt-2 line-clamp-3 max-w-sm text-center text-xs leading-relaxed text-white/78 sm:mx-0 sm:text-left sm:text-sm">
-            {city.description}
+            {localizedCity.description}
           </p>
 
           <div className="mt-3 hidden flex-wrap justify-center gap-2 sm:flex sm:justify-start">
-            {city.highlights.slice(0, 3).map((highlight) => (
+            {localizedCity.highlights.slice(0, 3).map((highlight) => (
               <span
                 key={highlight}
                 className="rounded-full border border-white/18 bg-white/10 px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/80 backdrop-blur-md"
@@ -84,12 +90,12 @@ function CityCard({ city }: { city: TimelessCity }) {
           <div className="mt-4">
             {isAvailable ? (
               <div className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[#211812] shadow-lg shadow-black/20 sm:w-auto sm:px-5">
-                Explorar {city.name}
+                {language === "en" ? "Explore" : "Explorar"} {localizedCity.name}
                 <ArrowRight className="h-4 w-4" />
               </div>
             ) : (
               <div className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/22 bg-white/8 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white/70 backdrop-blur-md sm:w-auto sm:px-5">
-                Próximamente
+                {t("comingSoon")}
                 <Lock className="h-4 w-4" />
               </div>
             )}
@@ -114,6 +120,7 @@ function CityCard({ city }: { city: TimelessCity }) {
 }
 
 export function CityAtlas() {
+  const { language, t } = useLanguage()
   const availableCount = timelessCities.filter((city) => city.status === "available").length
 
   return (
@@ -136,11 +143,11 @@ export function CityAtlas() {
         </p>
 
         <h1 className="mt-4 max-w-[22rem] text-center font-serif text-[3rem] font-light leading-[0.95] tracking-[-0.055em] text-[#241811] sm:max-w-2xl sm:text-6xl">
-          Elige una ciudad
+          {language === "en" ? "Choose a city" : "Elige una ciudad"}
         </h1>
 
         <p className="mt-5 max-w-[21rem] text-center font-sans text-base leading-relaxed text-[#6E5D4B] sm:max-w-xl sm:text-lg">
-          Cada ciudad reúne escenas históricas de 180° vinculadas a puntos reales de activación.
+          {language === "en" ? "Each city brings together 180° historical scenes linked to real activation points." : "Cada ciudad reúne escenas históricas de 180° vinculadas a puntos reales de activación."}
         </p>
       </header>
 

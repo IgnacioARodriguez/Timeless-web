@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { BrandLockup } from "@/components/brand/brand-lockup"
+import { useLanguage } from "@/components/i18n/language-provider"
 import { requestCameraStream } from "@/lib/camera"
 import { requestOrientationPermission } from "@/lib/device-orientation"
 import type { PermissionsState } from "@/types/experience"
@@ -12,6 +13,7 @@ interface PermissionsStepProps {
 }
 
 export function PermissionsStep({ onGranted, onError }: PermissionsStepProps) {
+  const { t } = useLanguage()
   const [permissions, setPermissions] = useState<PermissionsState>({
     camera: "idle",
     orientation: "idle",
@@ -47,9 +49,7 @@ export function PermissionsStep({ onGranted, onError }: PermissionsStepProps) {
     setRequesting(false)
 
     if (cameraState === "denied") {
-      onError(
-        "Camera access is required for the calibration step. Please allow camera access in your browser settings and try again."
-      )
+onError(t("cameraRequiredError"))
       return
     }
 
@@ -66,19 +66,19 @@ export function PermissionsStep({ onGranted, onError }: PermissionsStepProps) {
 
       <div className="flex-1 flex flex-col justify-center pb-20">
         <p className="text-[10px] tracking-[0.25em] uppercase text-accent font-sans mb-6">
-          Antes de empezar
+          {t("beforeStart")}
         </p>
         <h2 className="font-serif font-light text-3xl leading-snug text-foreground mb-6 text-balance">
-          Aceptá los permisos para iniciar la experiencia de cámara y movimiento
+          {t("permissionsTitle")}
         </h2>
 
         <button
           onClick={handleGrantPermissions}
           disabled={requesting}
           className="w-full bg-foreground text-background font-sans text-xs tracking-[0.2em] uppercase py-4 rounded-xl disabled:opacity-40 transition-opacity duration-200 active:opacity-70"
-          aria-label="Grant camera and orientation permissions"
+          aria-label={t("acceptPermissions")}
         >
-          {requesting ? "Solicitando..." : "Aceptar permisos e iniciar"}
+          {requesting ? t("requesting") : t("acceptPermissions")}
         </button>
       </div>
     </div>
