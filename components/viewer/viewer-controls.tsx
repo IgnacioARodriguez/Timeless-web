@@ -11,6 +11,9 @@ interface ViewerControlsProps {
   supportsFullscreen: boolean
   showMute?: boolean
   showReplay?: boolean
+  muteLabel?: string
+  unmuteLabel?: string
+  replayLabel?: string
 }
 
 export function ViewerControls({
@@ -24,6 +27,9 @@ export function ViewerControls({
   supportsFullscreen,
   showMute = true,
   showReplay = true,
+  muteLabel = "Mute",
+  unmuteLabel = "Unmute",
+  replayLabel = "Replay",
 }: ViewerControlsProps) {
   if (!showMute && !showReplay) return null
 
@@ -33,9 +39,9 @@ export function ViewerControls({
         <button
           onClick={onToggleMute}
           className="h-10 px-3 rounded-xl text-white/80 text-xs border border-white/10 bg-white/5 active:opacity-70"
-          aria-label={isMuted ? "Unmute" : "Mute"}
+          aria-label={isMuted ? unmuteLabel : muteLabel}
         >
-          {isMuted ? "Unmute" : "Mute"}
+          {isMuted ? unmuteLabel : muteLabel}
         </button>
       )}
 
@@ -45,7 +51,7 @@ export function ViewerControls({
           className="h-10 px-3 rounded-xl text-white/80 text-xs border border-white/10 bg-white/5 active:opacity-70"
           aria-label="Replay"
         >
-          Replay
+          {replayLabel}
         </button>
       )}
     </div>

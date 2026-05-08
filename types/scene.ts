@@ -12,6 +12,13 @@ export type SceneMedia =
     muted: boolean
   }
 
+export interface SceneAmbientAudio {
+  src: string
+  label?: string
+  volume?: number
+  loop?: boolean
+}
+
 export interface SceneCamera {
   initialYaw: number
   initialPitch: number
@@ -21,6 +28,16 @@ export interface SceneCamera {
   maxPitch: number
 }
 
+export interface SceneHotspotFocus {
+  shape?: "ellipse" | "rect"
+  width: number
+  height: number
+  offsetX?: number
+  offsetY?: number
+  strokeColor?: string
+  strokeWidth?: number
+}
+
 export interface SceneHotspot {
   id: string
   label: string
@@ -28,23 +45,13 @@ export interface SceneHotspot {
   description: string
   yaw: number
   pitch: number
+  focus?: SceneHotspotFocus
   audio?: {
     src: string
     label?: string
   }
 }
 
-export type SceneAnimationType = "dust" | "smoke" | "birds" | "flame" | "water" | "cloth"
-
-export interface SceneAnimationLayer {
-  id: string
-  type: SceneAnimationType
-  yaw: number
-  pitch: number
-  width?: number
-  height?: number
-  opacity?: number
-}
 
 export interface Scene {
   id: string
@@ -55,6 +62,6 @@ export interface Scene {
   overlay?: string
   media: SceneMedia
   camera: SceneCamera
+  ambientAudio?: SceneAmbientAudio
   hotspots?: SceneHotspot[]
-  animations?: SceneAnimationLayer[]
 }
