@@ -9,6 +9,21 @@ import { getLocalizedPoi } from "@/lib/localized-city"
 import type { MapPoi } from "@/types/poi"
 import { cn } from "@/lib/utils"
 
+const availablePoiOrder = ["teatro-romano", "atarazanas", "muralla-carreteria"]
+
+function sortAvailablePoisByDisplayOrder(pois: MapPoi[]) {
+  return [...pois].sort((a, b) => {
+    const aIndex = availablePoiOrder.indexOf(a.id)
+    const bIndex = availablePoiOrder.indexOf(b.id)
+
+    if (aIndex === -1 && bIndex === -1) return 0
+    if (aIndex === -1) return 1
+    if (bIndex === -1) return -1
+
+    return aIndex - bIndex
+  })
+}
+
 function getPoiMapLabel(poi: MapPoi) {
   if (poi.id.includes("carreteria") || poi.title.includes("Carretería")) return "Carretería"
   if (poi.id.includes("atarazanas") || poi.title.includes("Atarazanas")) return "Atarazanas"
@@ -223,7 +238,7 @@ export function MalagaCenterMap() {
     [language],
   )
   const availablePois = useMemo(
-    () => localizedPois.filter((poi) => poi.status === "available"),
+    () => sortAvailablePoisByDisplayOrder(localizedPois.filter((poi) => poi.status === "available")),
     [localizedPois],
   )
 

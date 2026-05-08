@@ -46,7 +46,7 @@ export function CityPageShell({ city }: CityPageShellProps) {
 
       <footer className="px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <p className="text-center font-sans text-[10px] uppercase tracking-[0.15em] text-[#7b6a58]/55">
-          Carretería · Atarazanas · {language === "en" ? "Roman Theatre" : "Teatro Romano"}
+          {language === "en" ? "Roman Theatre" : "Teatro Romano"} · Atarazanas · Carretería
         </p>
       </footer>
     </main>
