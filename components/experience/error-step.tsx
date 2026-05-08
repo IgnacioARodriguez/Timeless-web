@@ -13,7 +13,7 @@ export function ErrorStep({ message, onRetry }: ErrorStepProps) {
 
   return (
     <div className="min-h-svh bg-background flex flex-col px-6">
-      <header className="pt-10 pb-6">
+      <header className="pt-20 pb-6 sm:pt-24">
         <BrandLockup variant="light" showByline={false} />
       </header>
 

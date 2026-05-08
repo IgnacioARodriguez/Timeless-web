@@ -452,7 +452,7 @@ export function Viewer180({
       window.removeEventListener("deviceorientation", handleOrientation, true)
   }, [gyroEnabled, scene.camera, calibrationYaw, calibrationPitch])
 
-  // Si rota portrait <-> landscape, reseteá baseline para evitar saltos.
+  // Si rota portrait <-> landscape, reinicia la baseline para evitar saltos.
   useEffect(() => {
     function handleOrientationChange() {
       if (!gyroEnabled) return
@@ -991,7 +991,7 @@ isVideo ? t("videoLoadError") : t("imageLoadError")
       )}
 
       {isEntered && !hasError && (
-        <div className="absolute top-0 left-0 right-0 z-10 px-5 pt-8 pointer-events-none bg-gradient-to-b from-black/60 to-transparent pb-10">
+        <div className="absolute top-0 left-0 right-0 z-10 px-5 pr-20 pt-7 pointer-events-none bg-gradient-to-b from-black/60 to-transparent pb-10">
           <p className="text-[10px] tracking-[0.25em] uppercase text-white/30 font-sans mb-0.5">
             {t("nowViewing")}
           </p>
@@ -1208,7 +1208,7 @@ isVideo ? t("videoLoadError") : t("imageLoadError")
       {isEntered && !hasError && onExit && (
         <button
           onClick={onExit}
-          className="absolute top-6 right-5 z-20 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/60 border border-white/10 transition-opacity active:opacity-50"
+          className="absolute top-5 right-5 z-40 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/60 border border-white/10 transition-opacity active:opacity-50"
           aria-label={t("exitExperience")}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">

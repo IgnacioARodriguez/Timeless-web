@@ -69,28 +69,34 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
 
   const backButtonVariant = step === "permissions" || step === "error" ? "light" : "dark"
   const switchVariant = step === "permissions" || step === "error" ? "light" : "dark"
+  const showShellControls = step !== "viewer"
 
   return (
     <div className="relative w-full min-h-svh overflow-hidden">
-      {step === "intro" ? (
-        <BackButton
-          href="/cities/malaga"
-          label={t("backToMalagaMap")}
-          variant="dark"
-          className="absolute left-4 top-4 z-50 sm:left-6 sm:top-6"
-        />
-      ) : (
-        <BackButton
-          onClick={handleBack}
-          label={t("backPrevious")}
-          variant={backButtonVariant}
-          className="absolute left-4 top-4 z-50 sm:left-6 sm:top-6"
-        />
+      {showShellControls && (
+        <>
+          {step === "intro" ? (
+            <BackButton
+              href="/cities/malaga"
+              label={t("backToMalagaMap")}
+              variant="dark"
+              className="absolute left-4 top-4 z-50 sm:left-6 sm:top-6"
+            />
+          ) : (
+            <BackButton
+              onClick={handleBack}
+              label={t("backPrevious")}
+              variant={backButtonVariant}
+              className="absolute left-4 top-4 z-50 sm:left-6 sm:top-6"
+            />
+          )}
+
+          <LanguageSwitch
+            variant={switchVariant}
+            className="absolute right-4 top-4 z-50 sm:right-6 sm:top-6"
+          />
+        </>
       )}
-      <LanguageSwitch
-        variant={switchVariant}
-        className="absolute right-4 top-4 z-50 sm:right-6 sm:top-6"
-      />
 
       {step === "intro" && (
         <IntroStep scene={localizedScene} onBegin={() => setStep("permissions")} />
