@@ -452,7 +452,7 @@ export function Viewer180({
       window.removeEventListener("deviceorientation", handleOrientation, true)
   }, [gyroEnabled, scene.camera, calibrationYaw, calibrationPitch])
 
-  // Si rota portrait <-> landscape, reseteá baseline para evitar saltos.
+  // Si rota portrait <-> landscape, reinicia la baseline para evitar saltos.
   useEffect(() => {
     function handleOrientationChange() {
       if (!gyroEnabled) return
