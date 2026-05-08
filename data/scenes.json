@@ -14,8 +14,8 @@
     "camera": {
       "initialYaw": 0,
       "initialPitch": 0,
-      "minYaw": -90,
-      "maxYaw": 90,
+      "minYaw": -45,
+      "maxYaw": 45,
       "minPitch": -25,
       "maxPitch": 25
     },
@@ -117,8 +117,8 @@
     "camera": {
       "initialYaw": 0,
       "initialPitch": 0,
-      "minYaw": -90,
-      "maxYaw": 90,
+      "minYaw": -45,
+      "maxYaw": 45,
       "minPitch": -25,
       "maxPitch": 25
     },
@@ -235,8 +235,8 @@
     "camera": {
       "initialYaw": 0,
       "initialPitch": 0,
-      "minYaw": -90,
-      "maxYaw": 90,
+      "minYaw": -45,
+      "maxYaw": 45,
       "minPitch": -25,
       "maxPitch": 25
     },
