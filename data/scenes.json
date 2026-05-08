@@ -4,8 +4,8 @@
     "title": "Muralla almohade de Carretería — Málaga, siglo XIII",
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
     "description": "Reconstrucción inmersiva de la fase almohade de la muralla de Carretería. La escena interpreta el lienzo principal, la torre saliente, la barbacana y la liza desde un enfoque arqueológicamente prudente.",
-    "poster": "/assets/carreteria/poster.jpg",
-    "overlay": "/assets/carreteria/alignment-overlay.png",
+    "poster": "/assets/carreteria/panorama.png",
+    "overlay": "/assets/carreteria/panorama.png",
     "media": {
       "type": "image",
       "src": "/assets/carreteria/panorama.png",
@@ -328,6 +328,7 @@
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
     "description": "Sitúate en el entorno del Teatro Romano y entra en una reconstrucción prudente de la Malaca romana junto al frente de la Alcazaba.",
     "poster": "/assets/teatro-romano/panorama.png",
+    "overlay": "/assets/teatro-romano/panorama.png",
     "media": {
       "type": "image",
       "src": "/assets/teatro-romano/panorama.png",
