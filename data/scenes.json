@@ -175,14 +175,14 @@
         "label": "Atarazana",
         "title": "El gran astillero medieval",
         "description": "Este edificio funcionaba como atarazana: un gran espacio cubierto donde se construían, reparaban y guardaban embarcaciones. No era un mercado como hoy, sino una infraestructura portuaria ligada directamente al mar.",
-        "yaw": 0,
-        "pitch": -2,
+        "yaw": -15,
+        "pitch": 15,
         "focus": {
           "shape": "rect",
           "width": 520,
           "height": 250,
           "offsetX": 0,
-          "offsetY": 5
+          "offsetY": 0
         },
         "i18n": {
           "en": {
@@ -197,14 +197,14 @@
         "label": "Arcos",
         "title": "Los grandes arcos de entrada",
         "description": "Los arcos permitían entrar y mover materiales, herramientas y embarcaciones dentro del edificio. La reconstrucción muestra la atarazana abierta hacia la zona portuaria, con grandes vanos funcionales y no como una fachada decorativa.",
-        "yaw": 2,
-        "pitch": -6,
+        "yaw": 15,
+        "pitch": 8,
         "focus": {
           "shape": "rect",
-          "width": 360,
-          "height": 170,
+          "width": 100,
+          "height": 120,
           "offsetX": 0,
-          "offsetY": 16
+          "offsetY": 0
         },
         "i18n": {
           "en": {
@@ -219,14 +219,14 @@
         "label": "Barcos",
         "title": "Construcción y reparación de barcos",
         "description": "En primer plano se ve actividad naval: madera, cuerdas, piezas de embarcaciones y trabajadores. Esta escena ayuda a entender que este lugar era parte activa del puerto medieval de Málaga.",
-        "yaw": -28,
-        "pitch": -13,
+        "yaw": 45,
+        "pitch": -5,
         "focus": {
           "shape": "ellipse",
           "width": 340,
           "height": 150,
           "offsetX": 0,
-          "offsetY": 12
+          "offsetY": 0
         },
         "i18n": {
           "en": {
@@ -241,14 +241,14 @@
         "label": "Mar",
         "title": "El mar junto a la ciudad",
         "description": "La atarazana estaba vinculada al frente marítimo. En época medieval, esta zona tenía una relación mucho más directa con el agua que el mercado actual. Por eso la escena sitúa el edificio dentro de un paisaje portuario.",
-        "yaw": -52,
-        "pitch": -14,
+        "yaw": -60,
+        "pitch": -20,
         "focus": {
           "shape": "ellipse",
-          "width": 300,
-          "height": 120,
-          "offsetX": -10,
-          "offsetY": 6
+          "width": 250,
+          "height": 250,
+          "offsetX": 0,
+          "offsetY": 0
         },
         "i18n": {
           "en": {
@@ -263,8 +263,8 @@
         "label": "Ciudad",
         "title": "La ciudad amurallada al fondo",
         "description": "Al fondo aparece Málaga medieval, protegida por sus murallas y conectada con el puerto. Este detalle sirve para situar las atarazanas dentro de la ciudad, no como un edificio aislado.",
-        "yaw": 48,
-        "pitch": -1,
+        "yaw": -65,
+        "pitch": 10,
         "focus": {
           "shape": "rect",
           "width": 330,
@@ -285,14 +285,14 @@
         "label": "Trabajo",
         "title": "La vida diaria del puerto",
         "description": "Las personas de la escena muestran tareas cotidianas: mover materiales, trabajar la madera, cargar objetos o preparar embarcaciones. El objetivo es transmitir un puerto vivo, pero sin convertirlo en una escena de fantasía.",
-        "yaw": 20,
-        "pitch": -12,
+        "yaw": 10,
+        "pitch": -40,
         "focus": {
           "shape": "ellipse",
-          "width": 280,
-          "height": 130,
+          "width": 250,
+          "height": 250,
           "offsetX": 0,
-          "offsetY": 10
+          "offsetY": 0
         },
         "i18n": {
           "en": {
