@@ -3,7 +3,7 @@
     "id": "carreteria-almohade",
     "title": "Muralla almohade de Carretería — Málaga, siglo XIII",
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
-    "description": "Reconstrucción inmersiva de la fase almohade de la muralla de Carretería. La escena interpreta el lienzo principal, la torre saliente, la barbacana y la liza desde un enfoque arqueológicamente prudente.",
+    "description": "Viaja a la Málaga del siglo XIII y mira cómo pudo ser este tramo de muralla cuando todavía defendía la ciudad. Verás la torre, el gran muro, la defensa exterior y el espacio abierto que protegía el acceso.",
     "poster": "/assets/carreteria/panorama.png",
     "overlay": "/assets/carreteria/panorama.png",
     "media": {
@@ -23,8 +23,8 @@
       {
         "id": "torre-almohade",
         "label": "Torre",
-        "title": "La torre principal",
-        "description": "Esta torre sobresale del muro para mejorar la defensa. Desde aquí se podía vigilar mejor el exterior y proteger el tramo de muralla que la rodea. Era uno de los puntos más fuertes del conjunto.",
+        "title": "La torre que vigilaba el exterior",
+        "description": "Esta torre sobresalía del muro para ver mejor lo que ocurría fuera de la ciudad. Desde aquí los defensores podían controlar el entorno y proteger los lados de la muralla, uno de sus puntos más vulnerables.",
         "yaw": 0,
         "pitch": 15,
         "focus": {
@@ -37,16 +37,16 @@
         "i18n": {
           "en": {
             "label": "Tower",
-            "title": "The main tower",
-            "description": "This tower projects outward from the wall to improve defense. From here, guards could watch the exterior more effectively and protect the surrounding wall section. It was one of the strongest points of the complex."
+            "title": "The tower watching the outside",
+            "description": "This tower projected out from the wall so guards could see more of what was happening outside the city. From here, defenders could control the surroundings and protect the sides of the wall, one of its most vulnerable points."
           }
         }
       },
       {
         "id": "barbacana-antemuro",
         "label": "Barbacana",
-        "title": "La defensa exterior",
-        "description": "La barbacana es el muro más bajo que ves delante de la muralla principal. Servía para frenar a quien atacaba desde fuera y hacía mucho más difícil llegar directamente al muro grande.",
+        "title": "El primer obstáculo para atacar",
+        "description": "La barbacana era el muro bajo que obligaba a cualquier atacante a detenerse antes de llegar a la muralla principal. No era decorativa: servía para ganar tiempo, dividir el ataque y hacer mucho más difícil acercarse al gran muro.",
         "yaw": -40,
         "pitch": -7,
         "focus": {
@@ -59,16 +59,16 @@
         "i18n": {
           "en": {
             "label": "Barbican",
-            "title": "The outer defense",
-            "description": "The barbican is the lower wall in front of the main wall. It slowed down anyone attacking from outside and made it much harder to reach the large defensive wall directly."
+            "title": "The first obstacle for attackers",
+            "description": "The barbican was the lower wall that forced attackers to stop before reaching the main wall. It was not decorative: it bought time, broke up the attack and made it much harder to approach the large defensive wall."
           }
         }
       },
       {
         "id": "lienzo-principal",
         "label": "Muralla",
-        "title": "La muralla de la ciudad",
-        "description": "Este es el gran muro defensivo de la ciudad. Está reconstruido siguiendo la información arqueológica conservada en Carretería. Su función era proteger Málaga y marcar claramente el límite de la ciudad medieval.",
+        "title": "El gran límite de la ciudad",
+        "description": "Este muro marcaba dónde terminaba la Málaga medieval y dónde empezaba el exterior. No era solo una barrera militar: también era una frontera visible entre la ciudad protegida y el mundo de fuera.",
         "yaw": 45,
         "pitch": 8,
         "focus": {
@@ -81,16 +81,16 @@
         "i18n": {
           "en": {
             "label": "Wall",
-            "title": "The city wall",
-            "description": "This is the main defensive wall of the city. It has been reconstructed from the archaeological evidence preserved at Carretería. Its role was to protect Málaga and clearly mark the limit of the medieval city."
+            "title": "The great boundary of the city",
+            "description": "This wall marked where medieval Málaga ended and the outside began. It was not only a military barrier: it was also a visible boundary between the protected city and the world beyond it."
           }
         }
       },
       {
         "id": "defensores-almohades",
         "label": "Defensores",
-        "title": "Los soldados sobre la muralla",
-        "description": "Sobre la parte alta de la muralla se situaban los defensores. Desde allí podían vigilar, moverse a lo largo del muro y responder ante un ataque. En esta escena se representan como soldados almohades, porque la reconstrucción corresponde a esa fase histórica.",
+        "title": "Guardias sobre la muralla",
+        "description": "En la parte alta se movían los defensores. Desde allí podían vigilar, dar la alarma y responder si alguien se acercaba. La altura de la muralla les daba una ventaja decisiva sobre quienes estaban abajo.",
         "yaw": -35,
         "pitch": 30,
         "focus": {
@@ -103,16 +103,16 @@
         "i18n": {
           "en": {
             "label": "Defenders",
-            "title": "Soldiers on the wall",
-            "description": "The defenders stood on the upper part of the wall. From there they could watch, move along the wall and respond to an attack. In this scene they are shown as Almohad soldiers because the reconstruction represents that historical phase."
+            "title": "Guards on the wall",
+            "description": "Defenders moved along the upper part of the wall. From there they could watch, raise the alarm and respond if anyone approached. The height of the wall gave them a decisive advantage over those below."
           }
         }
       },
       {
         "id": "entorno-extramuros",
         "label": "Entorno",
-        "title": "El espacio fuera de la muralla",
-        "description": "Fuera de la muralla había un espacio abierto de uso defensivo y de trabajo. Este entorno ayuda a entender que la muralla no estaba aislada: formaba parte de un paisaje urbano y militar mucho más amplio.",
+        "title": "El espacio abierto fuera de la ciudad",
+        "description": "Fuera de la muralla no había una calle moderna, sino un espacio abierto que ayudaba a defender la ciudad. Mantener despejada esta zona permitía ver mejor cualquier movimiento y dificultaba un ataque sorpresa.",
         "yaw": 20,
         "pitch": -45,
         "focus": {
@@ -125,20 +125,20 @@
         "i18n": {
           "en": {
             "label": "Surroundings",
-            "title": "The space outside the wall",
-            "description": "Outside the wall there was an open space used for defense and work. This setting helps explain that the wall was not isolated: it was part of a wider urban and military landscape."
+            "title": "The open space outside the city",
+            "description": "Outside the wall there was no modern street, but an open area that helped defend the city. Keeping this space clear made movement easier to spot and made a surprise attack harder."
           }
         }
       }
     ],
     "ambientAudio": {
       "src": "/assets/audio/carreteria-ambient.mp3",
-      "label": "Sonido ambiente de la muralla",
+      "label": "Ambiente sonoro de la muralla",
       "volume": 0.32,
       "loop": true,
       "i18n": {
         "en": {
-          "label": "Ambient sound of the wall"
+          "label": "Wall ambient sound"
         }
       }
     },
@@ -146,7 +146,7 @@
       "en": {
         "title": "Almohad Wall of Carretería — Málaga, 13th century",
         "subtitle": "Immersive 180° historical reconstruction",
-        "description": "An immersive reconstruction of the Almohad phase of the Carretería wall. The scene interprets the main wall, projecting tower, barbican and defensive corridor with a cautious archaeological approach."
+        "description": "Travel back to 13th-century Málaga and see how this section of wall may have looked when it still defended the city. You will see the tower, the main wall, the outer defense and the open space that protected the approach."
       }
     }
   },
@@ -154,7 +154,7 @@
     "id": "atarazanas-nazari",
     "title": "Atarazanas medievales — Málaga nazarí",
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
-    "description": "Sitúate junto al actual Mercado de Atarazanas y entra en una reconstrucción prudente de su fase medieval vinculada al frente portuario de Málaga.",
+    "description": "Imagina esta zona antes del mercado actual: junto al mar, con barcos, trabajadores y un gran edificio portuario donde se reparaban y guardaban embarcaciones.",
     "poster": "/assets/atarazanas/panorama.png",
     "media": {
       "type": "image",
@@ -172,9 +172,9 @@
     "hotspots": [
       {
         "id": "atarazanas-edificio",
-        "label": "Atarazana",
-        "title": "El gran astillero medieval",
-        "description": "Este edificio funcionaba como atarazana: un gran espacio cubierto donde se construían, reparaban y guardaban embarcaciones. No era un mercado como hoy, sino una infraestructura portuaria ligada directamente al mar.",
+        "label": "Astillero",
+        "title": "La antigua atarazana",
+        "description": "Antes de ser mercado, este lugar estuvo ligado al puerto. Aquí se construían, reparaban y guardaban embarcaciones. Era una infraestructura clave para una Málaga conectada al mar.",
         "yaw": -15,
         "pitch": 15,
         "focus": {
@@ -187,16 +187,16 @@
         "i18n": {
           "en": {
             "label": "Shipyard",
-            "title": "The great medieval shipyard",
-            "description": "This building functioned as an atarazana: a large covered space where vessels were built, repaired and stored. It was not a market like today, but a port infrastructure directly linked to the sea."
+            "title": "The old Atarazana",
+            "description": "Before it became a market, this place was linked to the port. Vessels were built, repaired and stored here. It was a key infrastructure for a Málaga connected to the sea."
           }
         }
       },
       {
         "id": "atarazanas-arcos",
         "label": "Arcos",
-        "title": "Los grandes arcos de entrada",
-        "description": "Los arcos permitían entrar y mover materiales, herramientas y embarcaciones dentro del edificio. La reconstrucción muestra la atarazana abierta hacia la zona portuaria, con grandes vanos funcionales y no como una fachada decorativa.",
+        "title": "Arcos pensados para trabajar",
+        "description": "Estos grandes arcos no estaban pensados solo para impresionar. Permitían mover materiales, herramientas y piezas de barcos entre el exterior y el interior del edificio.",
         "yaw": 15,
         "pitch": 8,
         "focus": {
@@ -209,16 +209,16 @@
         "i18n": {
           "en": {
             "label": "Arches",
-            "title": "The large entrance arches",
-            "description": "The arches allowed materials, tools and vessels to move in and out of the building. The reconstruction shows the Atarazanas opening toward the port area, with large functional openings rather than a purely decorative façade."
+            "title": "Arches built for work",
+            "description": "These large arches were not only meant to impress. They allowed materials, tools and boat parts to move between the outside and the inside of the building."
           }
         }
       },
       {
         "id": "atarazanas-barcos",
         "label": "Barcos",
-        "title": "Construcción y reparación de barcos",
-        "description": "En primer plano se ve actividad naval: madera, cuerdas, piezas de embarcaciones y trabajadores. Esta escena ayuda a entender que este lugar era parte activa del puerto medieval de Málaga.",
+        "title": "Barcos en construcción",
+        "description": "La escena muestra madera, cuerdas y piezas navales para recordar que este era un lugar de trabajo. No era una postal tranquila: era una zona activa del puerto medieval.",
         "yaw": 45,
         "pitch": -5,
         "focus": {
@@ -231,16 +231,16 @@
         "i18n": {
           "en": {
             "label": "Boats",
-            "title": "Boat building and repair",
-            "description": "In the foreground you can see naval activity: wood, ropes, boat parts and workers. This scene helps explain that this place was an active part of medieval Málaga’s port."
+            "title": "Boats under construction",
+            "description": "The scene shows wood, ropes and naval parts to remind us that this was a working place. It was not a quiet postcard: it was an active area of the medieval port."
           }
         }
       },
       {
         "id": "atarazanas-mar",
         "label": "Mar",
-        "title": "El mar junto a la ciudad",
-        "description": "La atarazana estaba vinculada al frente marítimo. En época medieval, esta zona tenía una relación mucho más directa con el agua que el mercado actual. Por eso la escena sitúa el edificio dentro de un paisaje portuario.",
+        "title": "Cuando el mar estaba mucho más cerca",
+        "description": "Hoy cuesta imaginarlo, pero esta zona tenía una relación mucho más directa con el agua. La atarazana funcionaba porque estaba conectada al frente marítimo de la ciudad.",
         "yaw": -60,
         "pitch": -20,
         "focus": {
@@ -253,16 +253,16 @@
         "i18n": {
           "en": {
             "label": "Sea",
-            "title": "The sea beside the city",
-            "description": "The Atarazanas were tied to the maritime front. In the medieval period, this area had a much more direct relationship with the water than today’s market. That is why the scene places the building in a port landscape."
+            "title": "When the sea was much closer",
+            "description": "Today it is hard to imagine, but this area had a much more direct relationship with the water. The Atarazanas worked because they were connected to the city’s maritime front."
           }
         }
       },
       {
         "id": "atarazanas-ciudad-muralla",
         "label": "Ciudad",
-        "title": "La ciudad amurallada al fondo",
-        "description": "Al fondo aparece Málaga medieval, protegida por sus murallas y conectada con el puerto. Este detalle sirve para situar las atarazanas dentro de la ciudad, no como un edificio aislado.",
+        "title": "Málaga entre murallas y puerto",
+        "description": "Al fondo aparece la ciudad medieval protegida por sus murallas. La escena muestra una idea clave: Málaga no vivía de espaldas al mar, sino conectada a él.",
         "yaw": -65,
         "pitch": 10,
         "focus": {
@@ -275,16 +275,16 @@
         "i18n": {
           "en": {
             "label": "City",
-            "title": "The walled city in the background",
-            "description": "Medieval Málaga appears in the background, protected by its walls and connected to the port. This detail places the Atarazanas within the city, not as an isolated building."
+            "title": "Málaga between walls and port",
+            "description": "In the background you can see the medieval city protected by its walls. The scene shows a key idea: Málaga did not turn away from the sea, it was connected to it."
           }
         }
       },
       {
         "id": "atarazanas-trabajadores",
         "label": "Trabajo",
-        "title": "La vida diaria del puerto",
-        "description": "Las personas de la escena muestran tareas cotidianas: mover materiales, trabajar la madera, cargar objetos o preparar embarcaciones. El objetivo es transmitir un puerto vivo, pero sin convertirlo en una escena de fantasía.",
+        "title": "El trabajo diario del puerto",
+        "description": "Personas cargando, preparando madera y moviendo materiales ayudan a imaginar el ritmo del lugar. Las atarazanas eran arquitectura, pero también eran ruido, esfuerzo y actividad diaria.",
         "yaw": 10,
         "pitch": -40,
         "focus": {
@@ -297,20 +297,20 @@
         "i18n": {
           "en": {
             "label": "Work",
-            "title": "Daily life at the port",
-            "description": "The people in the scene show everyday tasks: moving materials, working wood, carrying objects or preparing boats. The goal is to convey a living port without turning it into fantasy."
+            "title": "Daily work at the port",
+            "description": "People carrying loads, preparing wood and moving materials help imagine the rhythm of the place. The Atarazanas were architecture, but also noise, effort and daily activity."
           }
         }
       }
     ],
     "ambientAudio": {
       "src": "/assets/audio/atarazanas-ambient.mp3",
-      "label": "Sonido ambiente del puerto y las atarazanas",
+      "label": "Ambiente sonoro del puerto y las atarazanas",
       "volume": 0.34,
       "loop": true,
       "i18n": {
         "en": {
-          "label": "Ambient sound of the port and Atarazanas"
+          "label": "Port and Atarazanas ambient sound"
         }
       }
     },
@@ -318,7 +318,7 @@
       "en": {
         "title": "Medieval Atarazanas — Nasrid Málaga",
         "subtitle": "Immersive 180° historical reconstruction",
-        "description": "Stand near today’s Atarazanas Market and enter a cautious reconstruction of its medieval phase linked to Málaga’s port front."
+        "description": "Imagine this area before today’s market: beside the sea, with boats, workers and a large port building where vessels were repaired and stored."
       }
     }
   },
@@ -326,7 +326,7 @@
     "id": "teatro-romano-malaca",
     "title": "Teatro Romano — Malaca romana",
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
-    "description": "Sitúate en el entorno del Teatro Romano y entra en una reconstrucción prudente de la Malaca romana junto al frente de la Alcazaba.",
+    "description": "Entra en la Malaca romana y mira el teatro como un espacio vivo: gradas, accesos, escenario y una ciudad organizada alrededor de sus lugares públicos.",
     "poster": "/assets/teatro-romano/panorama.png",
     "overlay": "/assets/teatro-romano/panorama.png",
     "media": {
@@ -346,8 +346,8 @@
       {
         "id": "cavea-gradas",
         "label": "Gradas",
-        "title": "Las gradas del teatro",
-        "description": "Aquí se sentaba el público. Las gradas aprovechaban la pendiente natural del terreno, por eso el teatro no era un edificio aislado: estaba integrado en la ladera de la ciudad romana.",
+        "title": "Dónde se sentaba el público",
+        "description": "Las gradas aprovechaban la pendiente natural del terreno. Por eso el teatro parece nacer de la ladera: los romanos usaban el paisaje para construir mejor y ver mejor el espectáculo.",
         "yaw": 0,
         "pitch": 7,
         "focus": {
@@ -360,16 +360,16 @@
         "i18n": {
           "en": {
             "label": "Seating",
-            "title": "The theatre seating",
-            "description": "This is where the audience sat. The seating used the natural slope of the terrain, so the theatre was not an isolated building: it was integrated into the hillside of the Roman city."
+            "title": "Where the audience sat",
+            "description": "The seating used the natural slope of the terrain. That is why the theatre seems to grow out of the hillside: the Romans used the landscape to build better and improve visibility."
           }
         }
       },
       {
         "id": "orchestra",
-        "label": "Orchestra",
-        "title": "El espacio central",
-        "description": "La orchestra era la zona semicircular situada entre las gradas y el escenario. Era un espacio importante dentro del teatro, visible para todos los espectadores.",
+        "label": "Centro",
+        "title": "El centro del teatro",
+        "description": "Esta zona semicircular estaba entre las gradas y el escenario. Era uno de los puntos más visibles del teatro y ayudaba a separar el espacio del público del espacio de la representación.",
         "yaw": 0,
         "pitch": -25,
         "focus": {
@@ -381,17 +381,17 @@
         },
         "i18n": {
           "en": {
-            "label": "Orchestra",
-            "title": "The central space",
-            "description": "The orchestra was the semicircular area between the seating and the stage. It was an important space within the theatre, visible to all spectators."
+            "label": "Centre",
+            "title": "The centre of the theatre",
+            "description": "This semicircular area stood between the seating and the stage. It was one of the most visible parts of the theatre and helped separate the audience from the performance space."
           }
         }
       },
       {
         "id": "frons-pulpiti",
         "label": "Escenario",
-        "title": "El frente del escenario",
-        "description": "Esta parte marcaba el límite entre la zona de representación y el espacio del público. Ayuda a entender dónde actuaban los intérpretes y cómo se organizaba la escena.",
+        "title": "El lugar de la representación",
+        "description": "Aquí se concentraba la acción. El escenario organizaba la mirada de todo el público y convertía el teatro en una experiencia compartida, visible desde las distintas zonas de las gradas.",
         "yaw": 26,
         "pitch": -55,
         "focus": {
@@ -404,16 +404,16 @@
         "i18n": {
           "en": {
             "label": "Stage",
-            "title": "The front of the stage",
-            "description": "This area marked the boundary between the performance space and the audience. It helps explain where performers acted and how the scene was organized."
+            "title": "The performance space",
+            "description": "This is where the action took place. The stage directed the audience’s attention and turned the theatre into a shared experience, visible from the different seating areas."
           }
         }
       },
       {
         "id": "aditus-laterales",
         "label": "Accesos",
-        "title": "Las entradas laterales",
-        "description": "Por estos accesos se entraba al área baja del teatro. Conectaban la parte exterior con la orchestra y permitían organizar el movimiento de personas dentro del edificio.",
+        "title": "Entradas para moverse sin caos",
+        "description": "Estos accesos laterales permitían entrar y salir de la parte baja del teatro. En un edificio con mucho público, controlar los movimientos era tan importante como construir las gradas.",
         "yaw": -56,
         "pitch": -2,
         "focus": {
@@ -426,16 +426,16 @@
         "i18n": {
           "en": {
             "label": "Entrances",
-            "title": "The side entrances",
-            "description": "These entrances gave access to the lower area of the theatre. They connected the exterior with the orchestra and helped organize movement inside the building."
+            "title": "Entrances that kept movement organized",
+            "description": "These side entrances allowed people to enter and leave the lower part of the theatre. In a building with a large audience, controlling movement was as important as building the seating."
           }
         }
       },
       {
         "id": "proedria-asientos",
         "label": "Asientos",
-        "title": "Los asientos principales",
-        "description": "Las primeras filas estaban reservadas para personas destacadas de la ciudad. No todo el público se sentaba igual: el lugar dentro del teatro también reflejaba la posición social.",
+        "title": "Los mejores asientos no eran para todos",
+        "description": "Las primeras filas estaban reservadas para personas importantes de la ciudad. En el teatro romano, el lugar donde te sentabas también decía quién eras.",
         "yaw": 45,
         "pitch": 0,
         "focus": {
@@ -448,16 +448,16 @@
         "i18n": {
           "en": {
             "label": "Seats",
-            "title": "The main seats",
-            "description": "The first rows were reserved for important people in the city. Not everyone sat in the same place: seating inside the theatre also reflected social status."
+            "title": "The best seats were not for everyone",
+            "description": "The first rows were reserved for important people in the city. In a Roman theatre, where you sat also said who you were."
           }
         }
       },
       {
         "id": "ladera-ciudad-romana",
         "label": "Ciudad",
-        "title": "El teatro dentro de Malaca",
-        "description": "El teatro formaba parte de la ciudad romana de Malaca. Su ubicación junto a la ladera y cerca del área urbana muestra que era un espacio público importante, no solo un lugar de espectáculo.",
+        "title": "Un teatro dentro de la ciudad",
+        "description": "El teatro no era solo un lugar para ver espectáculos. Era un espacio público importante de Malaca, conectado con la vida urbana, la política, la imagen de la ciudad y sus jerarquías sociales.",
         "yaw": -35,
         "pitch": 35,
         "focus": {
@@ -470,20 +470,20 @@
         "i18n": {
           "en": {
             "label": "City",
-            "title": "The theatre within Malaca",
-            "description": "The theatre was part of the Roman city of Malaca. Its position beside the hillside and near the urban area shows that it was an important public space, not only a place for performances."
+            "title": "A theatre inside the city",
+            "description": "The theatre was not only a place for performances. It was an important public space in Malaca, connected with urban life, politics, the city’s image and its social hierarchy."
           }
         }
       }
     ],
     "ambientAudio": {
       "src": "/assets/audio/teatro-romano-ambient.mp3",
-      "label": "Sonido ambiente del teatro romano",
+      "label": "Ambiente sonoro del teatro romano",
       "volume": 0.3,
       "loop": true,
       "i18n": {
         "en": {
-          "label": "Ambient sound of the Roman theatre"
+          "label": "Roman theatre ambient sound"
         }
       }
     },
@@ -491,7 +491,7 @@
       "en": {
         "title": "Roman Theatre — Roman Malaca",
         "subtitle": "Immersive 180° historical reconstruction",
-        "description": "Stand in the area of the Roman Theatre and enter a cautious reconstruction of Roman Malaca beside the slope of the Alcazaba."
+        "description": "Step into Roman Malaca and see the theatre as a living space: seating, entrances, stage and a city organized around its public places."
       }
     }
   }
