@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, type MouseEvent } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { ArrowRight, Clock, Lock, MapPin, Navigation } from "lucide-react"
 import { malagaCenterPois } from "@/data/malaga-pois"
@@ -207,10 +207,19 @@ function getAppleMapsDirectionsUrl(poi: MapPoi) {
   if (!hasValidDirections(poi) || !poi.directions) return "#"
 
   const { latitude, longitude } = poi.directions
-  return `https://maps.apple.com/?saddr=Current%20Location&daddr=${latitude},${longitude}&dirflg=w`
+  return `maps://?saddr=Current%20Location&daddr=${latitude},${longitude}&dirflg=w`
 }
 
-function shouldPreferAppleMaps() {
+function getGoogleMapsIntentUrl(poi: MapPoi) {
+  if (!hasValidDirections(poi) || !poi.directions) return "#"
+
+  const { latitude, longitude } = poi.directions
+  const fallbackUrl = encodeURIComponent(getGoogleMapsDirectionsUrl(poi))
+
+  return `intent://maps.google.com/maps?daddr=${latitude},${longitude}&directionsmode=walking#Intent;scheme=https;package=com.google.android.apps.maps;S.browser_fallback_url=${fallbackUrl};end`
+}
+
+function isIOSDevice() {
   if (typeof navigator === "undefined") return false
 
   const userAgent = navigator.userAgent || ""
@@ -221,14 +230,26 @@ function shouldPreferAppleMaps() {
   return isIOS || isTouchMac
 }
 
-function openNativeDirections(event: MouseEvent<HTMLAnchorElement>, poi: MapPoi) {
-  if (!shouldPreferAppleMaps()) return
+function isAndroidDevice() {
+  if (typeof navigator === "undefined") return false
 
-  const appleMapsUrl = getAppleMapsDirectionsUrl(poi)
-  if (!appleMapsUrl) return
+  return /Android/i.test(navigator.userAgent || "")
+}
 
-  event.preventDefault()
-  window.open(appleMapsUrl, "_blank", "noopener,noreferrer")
+function getPreferredDirectionsUrl(poi: MapPoi) {
+  if (isIOSDevice()) return getAppleMapsDirectionsUrl(poi)
+  if (isAndroidDevice()) return getGoogleMapsIntentUrl(poi)
+
+  return getGoogleMapsDirectionsUrl(poi)
+}
+
+function openDirections(poi: MapPoi) {
+  const directionsUrl = getPreferredDirectionsUrl(poi)
+  if (!directionsUrl || directionsUrl === "#") return
+
+  // Keep this as a button action, not an anchor/window.open flow.
+  // Anchor target="_blank" and window.open commonly open Maps but leave a blank browser tab on mobile.
+  window.location.href = directionsUrl
 }
 
 export function MalagaCenterMap() {
@@ -366,16 +387,14 @@ export function MalagaCenterMap() {
                   </Link>
 
                   {hasValidDirections(selectedPoi) && (
-                    <a
-                      href={getGoogleMapsDirectionsUrl(selectedPoi)}
-                      onClick={(event) => openNativeDirections(event, selectedPoi)}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => openDirections(selectedPoi)}
                       className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-[#d8c8b4] bg-white/58 px-5 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#241811] shadow-sm backdrop-blur-sm transition-transform active:scale-[0.98]"
                     >
                       {t("howToArrive")}
                       <Navigation className="h-4 w-4 -rotate-45" />
-                    </a>
+                    </button>
                   )}
                 </>
               ) : (
