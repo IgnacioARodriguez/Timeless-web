@@ -110,6 +110,12 @@ export default function HomePage() {
               >
                 {t("heroPrimary")}
               </a>
+              <Link
+                href="/cities/malaga"
+                className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-[#9a6a2c]/35 bg-white/35 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[#6f4a1f] transition-colors active:bg-white/55 sm:w-auto"
+              >
+                {t("viewPilotMap")}
+              </Link>
               <a
                 href="#piloto-malaga"
                 className="inline-flex items-center justify-center rounded-full border border-[#241b12]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[#241b12] transition-colors active:bg-black/5"
