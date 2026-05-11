@@ -17,17 +17,100 @@ const playfair = Playfair_Display({
   weight: ["400", "500"],
 })
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https:/timelessapp.vercel.app"
+
 export const metadata: Metadata = {
-  title: "Timeless — Ver el pasado desde el lugar real",
+  metadataBase: new URL(siteUrl),
+
+  applicationName: "Timeless",
+  title: {
+    default: "Timeless — Ver el pasado desde el lugar real",
+    template: "%s | Timeless",
+  },
   description:
     "Experiencias históricas inmersivas 180° desde el móvil para comprender el patrimonio desde el lugar real.",
+
+  keywords: [
+    "Timeless",
+    "Málaga",
+    "turismo cultural",
+    "patrimonio histórico",
+    "realidad aumentada",
+    "reconstrucción histórica",
+    "experiencias inmersivas",
+    "historia de Málaga",
+  ],
+
+  authors: [{ name: "Timeless" }],
+  creator: "Timeless",
+  publisher: "Timeless",
+
   icons: {
     icon: [
-      { url: "/icon-light-32x32.png", media: "(prefers-color-scheme: light)" },
-      { url: "/icon-dark-32x32.png", media: "(prefers-color-scheme: dark)" },
-      { url: "/icon.svg", type: "image/svg+xml" },
+      {
+        url: "/favicon.ico",
+        sizes: "any",
+      },
+      {
+        url: "/icon.svg",
+        type: "image/svg+xml",
+      },
+      {
+        url: "/icon-light-32x32.png",
+        sizes: "32x32",
+        type: "image/png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/icon-dark-32x32.png",
+        sizes: "32x32",
+        type: "image/png",
+        media: "(prefers-color-scheme: dark)",
+      },
+      {
+        url: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
     ],
-    apple: "/apple-icon.png",
+    apple: [
+      {
+        url: "/apple-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
+
+  openGraph: {
+    title: "Timeless — Ver el pasado desde el lugar real",
+    description:
+      "Experiencias históricas inmersivas 180° desde el móvil para comprender el patrimonio desde el lugar real.",
+    url: "/",
+    siteName: "Timeless",
+    type: "website",
+    locale: "es_ES",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Timeless — experiencia histórica inmersiva",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Timeless — Ver el pasado desde el lugar real",
+    description:
+      "Experiencias históricas inmersivas 180° desde el móvil para comprender el patrimonio desde el lugar real.",
+    images: ["/og-image.png"],
+  },
+
+  alternates: {
+    canonical: "/",
   },
 }
 
@@ -43,7 +126,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="es" className={`${geist.variable} ${playfair.variable} bg-background`}>
+    <html
+      lang="es"
+      className={`${geist.variable} ${playfair.variable} bg-background`}
+    >
       <body className="font-sans antialiased">
         <LanguageProvider>{children}</LanguageProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}
