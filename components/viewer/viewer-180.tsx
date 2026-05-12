@@ -20,7 +20,7 @@ interface Viewer180Props {
   onExit?: () => void
 }
 
-const VIEWER_FOV = 125
+const VIEWER_FOV = 85
 const HORIZON_PITCH_OFFSET = 4
 const HOTSPOT_RADIUS = 420
 const HOTSPOT_POSITION_LERP = 0.18
