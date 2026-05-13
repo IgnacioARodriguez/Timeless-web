@@ -176,7 +176,7 @@
         "title": "La antigua atarazana",
         "description": "Antes de ser mercado, este lugar estuvo ligado al puerto. Aquí se construían, reparaban y guardaban embarcaciones. Era una infraestructura clave para una Málaga conectada al mar.",
         "yaw": -15,
-        "pitch": 15,
+        "pitch": 0,
         "focus": {
           "shape": "rect",
           "width": 520,
@@ -197,8 +197,8 @@
         "label": "Arcos",
         "title": "Arcos pensados para trabajar",
         "description": "Estos grandes arcos no estaban pensados solo para impresionar. Permitían mover materiales, herramientas y piezas de barcos entre el exterior y el interior del edificio.",
-        "yaw": 15,
-        "pitch": 8,
+        "yaw": 22,
+        "pitch": -12,
         "focus": {
           "shape": "rect",
           "width": 100,
@@ -219,8 +219,8 @@
         "label": "Barcos",
         "title": "Barcos en construcción",
         "description": "La escena muestra madera, cuerdas y piezas navales para recordar que este era un lugar de trabajo. No era una postal tranquila: era una zona activa del puerto medieval.",
-        "yaw": 45,
-        "pitch": -5,
+        "yaw": -50,
+        "pitch": -17,
         "focus": {
           "shape": "ellipse",
           "width": 340,
@@ -242,7 +242,7 @@
         "title": "Cuando el mar estaba mucho más cerca",
         "description": "Hoy cuesta imaginarlo, pero esta zona tenía una relación mucho más directa con el agua. La atarazana funcionaba porque estaba conectada al frente marítimo de la ciudad.",
         "yaw": -60,
-        "pitch": -20,
+        "pitch": -40,
         "focus": {
           "shape": "ellipse",
           "width": 250,
@@ -263,8 +263,8 @@
         "label": "Ciudad",
         "title": "Málaga entre murallas y puerto",
         "description": "Al fondo aparece la ciudad medieval protegida por sus murallas. La escena muestra una idea clave: Málaga no vivía de espaldas al mar, sino conectada a él.",
-        "yaw": -65,
-        "pitch": 10,
+        "yaw": -75,
+        "pitch": -9,
         "focus": {
           "shape": "rect",
           "width": 330,
@@ -285,8 +285,8 @@
         "label": "Trabajo",
         "title": "El trabajo diario del puerto",
         "description": "Personas cargando, preparando madera y moviendo materiales ayudan a imaginar el ritmo del lugar. Las atarazanas eran arquitectura, pero también eran ruido, esfuerzo y actividad diaria.",
-        "yaw": 10,
-        "pitch": -40,
+        "yaw": -3,
+        "pitch": -20,
         "focus": {
           "shape": "ellipse",
           "width": 250,
