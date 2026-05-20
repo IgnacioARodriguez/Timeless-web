@@ -330,9 +330,11 @@
     "poster": "/assets/teatro-romano/panorama.png",
     "overlay": "/assets/teatro-romano/panorama.png",
     "media": {
-      "type": "image",
-      "src": "/assets/teatro-romano/panorama.png",
-      "projection": "180"
+      "type": "video",
+      "src": "/assets/teatro-romano/master.mp4",
+      "projection": "180",
+      "loop": true,
+      "muted": false
     },
     "camera": {
       "initialYaw": 0,
