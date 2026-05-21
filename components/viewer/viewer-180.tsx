@@ -20,6 +20,17 @@ interface Viewer180Props {
   onExit?: () => void
 }
 
+type SceneVideoMedia = Extract<Scene["media"], { type: "video" }>
+
+function pickBestVideoSource(video: HTMLVideoElement, media: SceneVideoMedia) {
+  const playableSource = media.sources?.find((source) => {
+    if (!source.type) return true
+    return video.canPlayType(source.type) !== ""
+  })
+
+  return playableSource?.src ?? media.src
+}
+
 const VIEWER_FOV = 100
 const HORIZON_PITCH_OFFSET = 0
 const HOTSPOT_RADIUS = 420
@@ -474,9 +485,14 @@ export function Viewer180({
 
     let disposed = false
     let localVideo: HTMLVideoElement | null = null
-    let onVideoCanPlay: (() => void) | null = null
+    let onInitialVideoReady: (() => void) | null = null
+    let onVideoCanPlayFallback: (() => void) | null = null
     let onVideoError: (() => void) | null = null
     let onVideoEnded: (() => void) | null = null
+    let onVideoWaiting: (() => void) | null = null
+    let onVideoPlaying: (() => void) | null = null
+    let onVideoStalled: (() => void) | null = null
+    let initialVideoFrameReady = false
 
     setIsLoading(true)
     setHasError(false)
@@ -584,31 +600,58 @@ export function Viewer180({
         }
       )
     } else if (isVideo) {
+      const media = scene.media as SceneVideoMedia
       const video = document.createElement("video")
       hiddenVideoRef.current = video
       localVideo = video
 
-      video.src = scene.media.src
+      video.src = pickBestVideoSource(video, media)
       video.crossOrigin = "anonymous"
-      video.loop = scene.media.loop
-      video.muted = scene.media.muted
+      video.loop = media.loop
+      video.muted = media.muted
       video.playsInline = true
       video.preload = "auto"
+      video.controls = false
       video.setAttribute("playsinline", "true")
       video.setAttribute("webkit-playsinline", "true")
+      video.setAttribute("controlslist", "nodownload noplaybackrate noremoteplayback")
+      video.setAttribute("disableremoteplayback", "true")
 
-      onVideoCanPlay = () => {
+      if (media.poster) {
+        video.poster = media.poster
+      }
+
+      if ("disablePictureInPicture" in video) {
+        video.disablePictureInPicture = true
+      }
+
+      onInitialVideoReady = () => {
+        if (disposed || initialVideoFrameReady) return
+        initialVideoFrameReady = true
+
         const videoTexture = new THREE.VideoTexture(video)
         createMesh(videoTexture)
 
         video
           .play()
           .then(() => {
-            if (!disposed) setIsPlaying(true)
+            if (!disposed) {
+              setIsLoading(false)
+              setIsPlaying(true)
+            }
           })
           .catch(() => {
-            if (!disposed) setIsPlaying(false)
+            if (!disposed) {
+              setIsLoading(false)
+              setIsPlaying(false)
+            }
           })
+      }
+
+      // loadeddata gives us the first decoded frame. canplay is kept as a
+      // fallback because some mobile browsers are inconsistent with media events.
+      onVideoCanPlayFallback = () => {
+        onInitialVideoReady?.()
       }
 
       onVideoError = () => {
@@ -617,17 +660,39 @@ export function Viewer180({
       }
 
       onVideoEnded = () => {
-        if (!scene.media.loop && !disposed) {
+        if (!media.loop && !disposed) {
           setIsPlaying(false)
         }
       }
 
-      video.addEventListener("canplay", onVideoCanPlay, { once: true })
+      onVideoWaiting = () => {
+        if (!disposed && initialVideoFrameReady) {
+          setIsLoading(true)
+        }
+      }
+
+      onVideoStalled = () => {
+        if (!disposed && initialVideoFrameReady) {
+          setIsLoading(true)
+        }
+      }
+
+      onVideoPlaying = () => {
+        if (!disposed) {
+          setIsLoading(false)
+          setIsPlaying(true)
+        }
+      }
+
+      video.addEventListener("loadeddata", onInitialVideoReady, { once: true })
+      video.addEventListener("canplay", onVideoCanPlayFallback, { once: true })
       video.addEventListener("error", onVideoError, { once: true })
       video.addEventListener("ended", onVideoEnded)
+      video.addEventListener("waiting", onVideoWaiting)
+      video.addEventListener("stalled", onVideoStalled)
+      video.addEventListener("playing", onVideoPlaying)
       video.load()
     }
-
     const handleResize = () => {
       const el = containerRef.current
       const currentRenderer = rendererRef.current
@@ -762,9 +827,13 @@ export function Viewer180({
       }
 
       if (localVideo) {
-        if (onVideoCanPlay) localVideo.removeEventListener("canplay", onVideoCanPlay)
+        if (onInitialVideoReady) localVideo.removeEventListener("loadeddata", onInitialVideoReady)
+        if (onVideoCanPlayFallback) localVideo.removeEventListener("canplay", onVideoCanPlayFallback)
         if (onVideoError) localVideo.removeEventListener("error", onVideoError)
         if (onVideoEnded) localVideo.removeEventListener("ended", onVideoEnded)
+        if (onVideoWaiting) localVideo.removeEventListener("waiting", onVideoWaiting)
+        if (onVideoStalled) localVideo.removeEventListener("stalled", onVideoStalled)
+        if (onVideoPlaying) localVideo.removeEventListener("playing", onVideoPlaying)
 
         localVideo.pause()
         localVideo.removeAttribute("src")
@@ -792,6 +861,7 @@ export function Viewer180({
 
       if (rendererRef.current) {
         rendererRef.current.dispose()
+        rendererRef.current.forceContextLoss()
         if (rendererRef.current.domElement.parentNode === container) {
           container.removeChild(rendererRef.current.domElement)
         }

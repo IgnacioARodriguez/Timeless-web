@@ -1,3 +1,9 @@
+export interface SceneMediaSource {
+  src: string
+  /** MIME type with optional codecs, e.g. video/mp4; codecs="hvc1" */
+  type?: string
+}
+
 export type SceneMedia =
   | {
     type: "image"
@@ -7,6 +13,9 @@ export type SceneMedia =
   | {
     type: "video"
     src: string
+    /** Optional codec-specific alternatives. The viewer picks the first playable source. */
+    sources?: SceneMediaSource[]
+    poster?: string
     projection: "180" | "flat"
     loop: boolean
     muted: boolean

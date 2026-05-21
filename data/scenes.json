@@ -332,7 +332,9 @@
     "media": {
       "type": "image",
       "src": "/assets/teatro-romano/panorama.png",
-      "projection": "180"
+      "projection": "180",
+      "loop": true,
+      "muted": false
     },
     "camera": {
       "initialYaw": 0,
