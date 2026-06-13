@@ -17,7 +17,7 @@ export function ViewerStep({
   onExit,
 }: ViewerStepProps) {
   return (
-    <div className="w-full h-svh overflow-hidden bg-black">
+    <div className="absolute inset-0 overflow-hidden bg-black">
       <Viewer180
         scene={scene}
         motionEnabled={motionEnabled}

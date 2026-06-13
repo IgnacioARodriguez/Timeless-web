@@ -928,7 +928,7 @@ export function Viewer180({
 
   return (
     <div
-      className="relative w-full h-svh overflow-hidden bg-black select-none touch-none"
+      className="absolute inset-0 overflow-hidden bg-black select-none touch-none"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

@@ -25,6 +25,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   applicationName: "Timeless",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Timeless",
+    startupImage: [],
+  },
+  formatDetection: {
+    telephone: false,
+  },
   title: {
     default: "Timeless — Ver el pasado desde el lugar real",
     template: "%s | Timeless",
@@ -120,6 +130,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
   themeColor: "#1a160e",
 }
 
@@ -129,7 +140,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${geist.variable} ${playfair.variable} bg-background`}
+      className={`${geist.variable} ${playfair.variable}`}
       suppressHydrationWarning
     >
       <body className="font-sans antialiased">
