@@ -16,6 +16,7 @@ import { useLanguage } from "@/components/i18n/language-provider"
 import { malagaCenterPois } from "@/data/malaga-pois"
 import { getLocalizedPoi } from "@/lib/localized-city"
 import { cn } from "@/lib/utils"
+import { requestAppFullscreen } from "@/lib/app-fullscreen"
 import type { MapPoi } from "@/types/poi"
 
 const MALAGA_CENTER: [number, number] = [-4.4214, 36.7212]
@@ -618,6 +619,9 @@ export function MalagaCenterMap({
               {selectedPoi.status === "available" && selectedPoi.sceneId ? (
                 <Link
                   href={`/scene/${selectedPoi.sceneId}`}
+                  onClick={() => {
+                    void requestAppFullscreen()
+                  }}
                   className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#f7ead6] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[#241b12] sm:mt-5 sm:py-3.5"
                 >
                   {t("respawnHere")}

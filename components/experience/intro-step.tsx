@@ -15,7 +15,7 @@ export function IntroStep({ scene, onBegin, isStarting = false }: IntroStepProps
   const { t } = useLanguage()
 
   return (
-    <div className="relative min-h-svh flex flex-col bg-foreground text-background">
+    <div className="absolute inset-0 flex flex-col overflow-y-auto bg-foreground text-background">
       {/* Poster background */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -29,7 +29,7 @@ export function IntroStep({ scene, onBegin, isStarting = false }: IntroStepProps
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col min-h-svh px-6">
+      <div className="relative z-10 flex min-h-full flex-col px-6">
         {/* Header */}
         <header className="pt-20 pb-6 sm:pt-24">
           <BrandLockup variant="dark" showByline />

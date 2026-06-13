@@ -8,6 +8,7 @@ import { BackButton } from "@/components/navigation/back-button"
 import { LanguageSwitch } from "@/components/i18n/language-switch"
 import { useLanguage } from "@/components/i18n/language-provider"
 import { getLocalizedScene } from "@/lib/localized-scene"
+import { requestAppFullscreen } from "@/lib/app-fullscreen"
 import { requestOrientationPermission } from "@/lib/device-orientation"
 
 interface SceneExperienceShellProps {
@@ -27,8 +28,13 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
 
     setRequestingPermissions(true)
 
-    // iOS requires this call to happen directly inside the user's tap/click flow.
-    const orientationState = await requestOrientationPermission()
+    // Start both permission-gated APIs synchronously from the same user gesture.
+    const fullscreenRequest = requestAppFullscreen()
+    const orientationRequest = requestOrientationPermission()
+    const [orientationState] = await Promise.all([
+      orientationRequest,
+      fullscreenRequest,
+    ])
 
     setMotionEnabled(orientationState === "granted")
     setRequestingPermissions(false)
@@ -46,7 +52,7 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
   const showShellControls = step !== "viewer"
 
   return (
-    <div className="relative w-full min-h-svh overflow-hidden">
+    <div className="timeless-app-viewport bg-black">
       {showShellControls && (
         <>
           <BackButton

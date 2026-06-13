@@ -120,8 +120,46 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  html,
   body {
-    @apply bg-background text-foreground;
+    width: 100vw;
+    min-width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    background: #1a160e;
+    @apply text-foreground;
+  }
+
+  @supports (width: 100dvw) {
+    html,
+    body {
+      width: 100dvw;
+      min-width: 100dvw;
+      height: 100dvh;
+      min-height: 100dvh;
+    }
+  }
+}
+
+.timeless-app-viewport {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  min-width: 100vw;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+@supports (width: 100dvw) {
+  .timeless-app-viewport {
+    width: 100dvw;
+    height: 100dvh;
+    min-width: 100dvw;
+    min-height: 100dvh;
   }
 }
 
