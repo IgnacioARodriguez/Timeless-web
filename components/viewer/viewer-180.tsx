@@ -2,25 +2,24 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as THREE from "three"
-import { clamp } from "@/lib/calibration"
 import { LoadingState } from "@/components/viewer/loading-state"
 import { ViewerErrorState } from "@/components/viewer/error-state"
 import { ViewerControls } from "@/components/viewer/viewer-controls"
-import { requestCameraStream, stopCameraStream } from "@/lib/camera"
 import { useLanguage } from "@/components/i18n/language-provider"
 import type { Scene, SceneHotspot } from "@/types/scene"
-import type { CalibrationOffset } from "@/types/experience"
 
 interface Viewer180Props {
   scene: Scene
-  calibration: CalibrationOffset
   motionEnabled?: boolean
-  cameraPassthroughEnabled?: boolean
   autoStartAmbientAudio?: boolean
   onExit?: () => void
 }
 
 type SceneVideoMedia = Extract<Scene["media"], { type: "video" }>
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
+}
 
 function pickBestVideoSource(video: HTMLVideoElement, media: SceneVideoMedia) {
   const playableSource = media.sources?.find((source) => {
@@ -31,9 +30,12 @@ function pickBestVideoSource(video: HTMLVideoElement, media: SceneVideoMedia) {
   return playableSource?.src ?? media.src
 }
 
-const VIEWER_FOV = 100
+const VIEWER_FOV = 55
 const HORIZON_PITCH_OFFSET = 0
 const HOTSPOT_RADIUS = 420
+const CYLINDER_RADIUS = 500
+const CYLINDER_ARC = Math.PI
+const DEFAULT_CYLINDRICAL_ASPECT = 3
 const HOTSPOT_POSITION_LERP = 0.18
 const HOTSPOT_UPDATE_EPSILON = 0.35
 const HOTSPOT_ENTER_MARGIN = 1.04
@@ -53,7 +55,21 @@ interface HotspotScreenPosition {
 }
 
 
-function hotspotToWorldPosition(hotspot: SceneHotspot) {
+function hotspotToWorldPosition(
+  hotspot: SceneHotspot,
+  projection: Scene["media"]["projection"]
+) {
+  if (projection === "cylindrical" || projection === "180") {
+    const yaw = THREE.MathUtils.degToRad(hotspot.yaw)
+    const pitch = THREE.MathUtils.degToRad(hotspot.pitch)
+
+    return new THREE.Vector3(
+      -Math.sin(yaw) * HOTSPOT_RADIUS,
+      Math.tan(pitch) * HOTSPOT_RADIUS,
+      -Math.cos(yaw) * HOTSPOT_RADIUS
+    )
+  }
+
   return new THREE.Vector3(0, 0, -HOTSPOT_RADIUS).applyEuler(
     new THREE.Euler(
       THREE.MathUtils.degToRad(hotspot.pitch),
@@ -165,9 +181,7 @@ function deviceQuaternionFromOrientation(
 
 export function Viewer180({
   scene,
-  calibration: _calibration,
   motionEnabled = false,
-  cameraPassthroughEnabled = false,
   autoStartAmbientAudio = false,
   onExit,
 }: Viewer180Props) {
@@ -179,7 +193,6 @@ export function Viewer180({
   const [isLoading, setIsLoading] = useState(true)
   const [isEntered, setIsEntered] = useState(false)
   const [hasError, setHasError] = useState(false)
-  const [cameraPassthroughReady, setCameraPassthroughReady] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [isPlaying, setIsPlaying] = useState(isImage)
   const [isMuted, setIsMuted] = useState(isVideo ? scene.media.muted : false)
@@ -200,8 +213,6 @@ export function Viewer180({
   const activeHotspotFocus = activeHotspot?.focus ?? null
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const cameraPassthroughVideoRef = useRef<HTMLVideoElement>(null)
-  const cameraPassthroughStreamRef = useRef<MediaStream | null>(null)
 
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const threeSceneRef = useRef<THREE.Scene | null>(null)
@@ -238,7 +249,6 @@ export function Viewer180({
   // Base del gyro en espacio 3D real.
   const baselineDeviceQuaternionRef = useRef<THREE.Quaternion | null>(null)
   const motionAnchorYawRef = useRef(yawRef.current)
-  const motionAnchorPitchRef = useRef(pitchRef.current)
 
   // Drag fallback.
   const dragRef = useRef({
@@ -264,7 +274,6 @@ export function Viewer180({
     setGyroEnabled(motionEnabled)
     baselineDeviceQuaternionRef.current = null
     motionAnchorYawRef.current = targetYawRef.current
-    motionAnchorPitchRef.current = targetPitchRef.current
   }, [motionEnabled])
 
   useEffect(() => {
@@ -320,66 +329,6 @@ export function Viewer180({
   }, [ambientAudio, autoStartAmbientAudio, hasAmbientAudio, hasError, isAmbientAudioPlaying, isEntered])
 
 
-  // Camera passthrough: render the real camera behind the WebGL canvas.
-  // The WebGL renderer is transparent, so empty areas outside the historical
-  // image show the live camera instead of a black background. This is not
-  // full AR tracking; it is a practical MVP fallback for viewer edges.
-  useEffect(() => {
-    const video = cameraPassthroughVideoRef.current
-
-    if (!cameraPassthroughEnabled || !video) {
-      setCameraPassthroughReady(false)
-      return
-    }
-
-    let cancelled = false
-
-    async function startCameraPassthrough() {
-      try {
-        const stream = await requestCameraStream({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
-        })
-
-        if (cancelled) {
-          stopCameraStream(stream)
-          return
-        }
-
-        cameraPassthroughStreamRef.current = stream
-        video.srcObject = stream
-        video.muted = true
-        video.playsInline = true
-        video.setAttribute("playsinline", "true")
-        video.setAttribute("webkit-playsinline", "true")
-
-        await video.play()
-
-        if (!cancelled) {
-          setCameraPassthroughReady(true)
-        }
-      } catch {
-        // Non-fatal: if the camera cannot start, the viewer still works and
-        // transparent areas fall back to black.
-        setCameraPassthroughReady(false)
-      }
-    }
-
-    startCameraPassthrough()
-
-    return () => {
-      cancelled = true
-      setCameraPassthroughReady(false)
-      stopCameraStream(cameraPassthroughStreamRef.current)
-      cameraPassthroughStreamRef.current = null
-
-      if (video) {
-        video.pause()
-        video.srcObject = null
-      }
-    }
-  }, [cameraPassthroughEnabled])
-
   useEffect(() => {
     const onChange = () => {
       console.log("fullscreenElement:", document.fullscreenElement)
@@ -398,7 +347,7 @@ export function Viewer180({
     }
   }, [])
 
-  // Gyro 3D relativo con quaternion.
+  // Gyro relativo limitado al eje horizontal. El pitch solo cambia con drag.
   useEffect(() => {
     function handleOrientation(e: DeviceOrientationEvent) {
       if (!gyroEnabled || dragRef.current.active) return
@@ -421,47 +370,26 @@ export function Viewer180({
         .invert()
         .multiply(currentDeviceQuaternion)
 
-      const anchorQuaternion = new THREE.Quaternion().setFromEuler(
-        new THREE.Euler(
-          THREE.MathUtils.degToRad(motionAnchorPitchRef.current),
-          THREE.MathUtils.degToRad(motionAnchorYawRef.current),
-          0,
-          "YXZ"
-        )
-      )
-
-      const targetQuaternion = anchorQuaternion.clone().multiply(deltaQuaternion)
-
-      const targetEuler = new THREE.Euler().setFromQuaternion(
-        targetQuaternion,
+      const deltaEuler = new THREE.Euler().setFromQuaternion(
+        deltaQuaternion,
         "YXZ"
       )
 
       const nextYaw = clamp(
-        THREE.MathUtils.radToDeg(targetEuler.y),
+        motionAnchorYawRef.current + THREE.MathUtils.radToDeg(deltaEuler.y),
         scene.camera.minYaw + calibrationYaw,
         scene.camera.maxYaw + calibrationYaw
       )
 
-      const nextPitch = clamp(
-        THREE.MathUtils.radToDeg(targetEuler.x),
-        scene.camera.minPitch + calibrationPitch,
-        scene.camera.maxPitch + calibrationPitch
-      )
-
       if (Math.abs(nextYaw - targetYawRef.current) > GYRO_TARGET_DEADZONE_DEG) {
         targetYawRef.current = nextYaw
-      }
-
-      if (Math.abs(nextPitch - targetPitchRef.current) > GYRO_TARGET_DEADZONE_DEG) {
-        targetPitchRef.current = nextPitch
       }
     }
 
     window.addEventListener("deviceorientation", handleOrientation, true)
     return () =>
       window.removeEventListener("deviceorientation", handleOrientation, true)
-  }, [gyroEnabled, scene.camera, calibrationYaw, calibrationPitch])
+  }, [gyroEnabled, scene.camera, calibrationYaw])
 
   // Si rota portrait <-> landscape, reinicia la baseline para evitar saltos.
   useEffect(() => {
@@ -470,7 +398,6 @@ export function Viewer180({
 
       baselineDeviceQuaternionRef.current = null
       motionAnchorYawRef.current = targetYawRef.current
-      motionAnchorPitchRef.current = targetPitchRef.current
     }
 
     window.addEventListener("orientationchange", handleOrientationChange)
@@ -523,20 +450,21 @@ export function Viewer180({
     cameraRef.current = camera
 
     const createGeometry = (texture: THREE.Texture) => {
+      const image = texture.image as
+        | HTMLImageElement
+        | HTMLCanvasElement
+        | HTMLVideoElement
+        | undefined
+
+      const width =
+        image instanceof HTMLVideoElement ? image.videoWidth : image?.width
+      const height =
+        image instanceof HTMLVideoElement ? image.videoHeight : image?.height
+      const aspect =
+        width && height ? width / height : DEFAULT_CYLINDRICAL_ASPECT
+
       if (scene.media.projection === "flat") {
-        const image = texture.image as
-          | HTMLImageElement
-          | HTMLCanvasElement
-          | HTMLVideoElement
-          | undefined
-
-        const width = image instanceof HTMLVideoElement ? image.videoWidth : image?.width
-        const height = image instanceof HTMLVideoElement ? image.videoHeight : image?.height
-        const aspect = width && height ? width / height : 16 / 9
-
-        // Flat mode is for normal rectilinear images, not real spherical panoramas.
-        // It avoids the wall bending caused by wrapping a non-equirectangular image
-        // onto a sphere. This is correct for the current Carretería test image.
+        // Flat mode remains available for normal rectilinear media.
         const distance = 500
         const planeHeight =
           2 * distance * Math.tan(THREE.MathUtils.degToRad(VIEWER_FOV / 2)) * 1.04
@@ -546,19 +474,24 @@ export function Viewer180({
         return { geometry, positionZ: -distance, rotationY: 0 }
       }
 
-      // Real 180° panoramas must be equirectangular/hemispherical assets.
-      const geometry = new THREE.SphereGeometry(
-        500,
-        64,
-        40,
-        -Math.PI / 2,
-        Math.PI,
-        0,
-        Math.PI
+      // The texture spans a 180° cylindrical arc. Deriving the cylinder height
+      // from the source aspect ratio preserves every pixel without stretching.
+      const cylinderHeight =
+        (CYLINDER_RADIUS * CYLINDER_ARC) /
+        Math.max(aspect, Number.EPSILON)
+      const geometry = new THREE.CylinderGeometry(
+        CYLINDER_RADIUS,
+        CYLINDER_RADIUS,
+        cylinderHeight,
+        96,
+        1,
+        true,
+        Math.PI / 2,
+        CYLINDER_ARC
       )
       geometry.scale(-1, 1, 1)
 
-      return { geometry, positionZ: 0, rotationY: Math.PI / 2 }
+      return { geometry, positionZ: 0, rotationY: 0 }
     }
 
     const createMesh = (texture: THREE.Texture) => {
@@ -742,7 +675,10 @@ export function Viewer180({
 
         const nextPositions = hotspots.map((hotspot) => {
           const previous = previousPositions.get(hotspot.id)
-          const projected = hotspotToWorldPosition(hotspot).project(currentCamera)
+          const projected = hotspotToWorldPosition(
+            hotspot,
+            scene.media.projection
+          ).project(currentCamera)
 
           const edgeDistance = Math.max(
             Math.abs(projected.x),
@@ -921,7 +857,6 @@ export function Viewer180({
     if (wasDragging && gyroEnabled) {
       baselineDeviceQuaternionRef.current = null
       motionAnchorYawRef.current = targetYawRef.current
-      motionAnchorPitchRef.current = targetPitchRef.current
     }
   }
 
@@ -1000,23 +935,6 @@ export function Viewer180({
       onPointerLeave={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {cameraPassthroughEnabled && (
-        <video
-          ref={cameraPassthroughVideoRef}
-          className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            cameraPassthroughReady ? "opacity-100" : "opacity-0"
-          }`}
-          style={{
-            filter: "saturate(0.75) contrast(0.88) brightness(0.9) blur(0.6px)",
-            transform: "scale(1.01)",
-          }}
-          aria-hidden="true"
-          muted
-          playsInline
-          autoPlay
-        />
-      )}
-
       <div ref={containerRef} className="absolute inset-0" />
 
       {isEntered && !hasError && (

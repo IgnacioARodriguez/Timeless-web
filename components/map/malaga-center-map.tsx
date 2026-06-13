@@ -241,13 +241,16 @@ export function MalagaCenterMap({
     () => malagaCenterPois.map((poi) => getLocalizedPoi(poi, language)),
     [language],
   )
+  const availablePois = useMemo(
+    () => localizedPois.filter((poi) => poi.status === "available"),
+    [localizedPois],
+  )
   const [selectedPoiId, setSelectedPoiId] = useState<string | null>(
     embedded
-      ? (localizedPois.find((poi) => poi.status === "available")?.id ?? null)
+      ? (availablePois[0]?.id ?? null)
       : null,
   )
   const [query, setQuery] = useState("")
-  const [showAvailableOnly, setShowAvailableOnly] = useState(false)
   const [mapReady, setMapReady] = useState(false)
   const [mapError, setMapError] = useState(false)
   const [geolocationIssue, setGeolocationIssue] = useState<
@@ -255,9 +258,8 @@ export function MalagaCenterMap({
   >(null)
 
   const selectedPoi =
-    localizedPois.find((poi) => poi.id === selectedPoiId) ?? null
-  const filteredPois = localizedPois.filter((poi) => {
-    if (showAvailableOnly && poi.status !== "available") return false
+    availablePois.find((poi) => poi.id === selectedPoiId) ?? null
+  const filteredPois = availablePois.filter((poi) => {
     const normalizedQuery = query.trim().toLocaleLowerCase(language)
     if (!normalizedQuery) return true
 
@@ -328,7 +330,7 @@ export function MalagaCenterMap({
           attribution?.classList.remove("maplibregl-compact-show")
         }
 
-        localizedPois.forEach((poi) => {
+        availablePois.forEach((poi) => {
           const markerButton = document.createElement("button")
           markerButton.type = "button"
           markerButton.className = "timeless-map-marker"
@@ -394,7 +396,7 @@ export function MalagaCenterMap({
       mapRef.current?.remove()
       mapRef.current = null
     }
-  }, [embedded, fullscreen, language, localizedPois, t])
+  }, [availablePois, embedded, fullscreen, language, t])
 
   useEffect(() => {
     markersRef.current.forEach((marker, poiId) => {
@@ -447,6 +449,7 @@ export function MalagaCenterMap({
     <section
       className={cn(
         "relative w-full overflow-hidden border border-black/10 bg-[#ded2bf] shadow-[0_28px_90px_rgba(43,31,20,0.18)]",
+        selectedPoi && "timeless-map--poi-open",
         fullscreen
           ? "h-dvh border-0 shadow-none"
           : embedded
@@ -507,34 +510,7 @@ export function MalagaCenterMap({
             )}
           </div>
 
-          <div className="flex items-center gap-2 border-t border-black/8 px-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setShowAvailableOnly(false)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em]",
-                !showAvailableOnly
-                  ? "bg-[#241b12] text-[#f7ead6]"
-                  : "bg-black/5 text-[#6d5841]",
-              )}
-            >
-              {t("allPlaces")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowAvailableOnly(true)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em]",
-                showAvailableOnly
-                  ? "bg-[#9a6a2c] text-white"
-                  : "bg-black/5 text-[#6d5841]",
-              )}
-            >
-              {t("respawnAvailable")}
-            </button>
-          </div>
-
-          {(query || showAvailableOnly) && (
+          {query && (
             <div className="mt-2 max-h-56 overflow-y-auto border-t border-black/8 pt-2">
               {filteredPois.length > 0 ? (
                 filteredPois.map((poi) => (
@@ -580,7 +556,10 @@ export function MalagaCenterMap({
         <button
           type="button"
           onClick={resetView}
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/70 bg-[#f8efe1]/92 text-[#6f4a1f] shadow-[0_12px_36px_rgba(42,29,18,0.18)] backdrop-blur-xl"
+          className={cn(
+            "grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/70 bg-[#f8efe1]/92 text-[#6f4a1f] shadow-[0_12px_36px_rgba(42,29,18,0.18)] backdrop-blur-xl transition-all duration-300",
+            selectedPoi && "pointer-events-none translate-y-2 opacity-0",
+          )}
           aria-label={t("centerMap")}
           title={t("centerMap")}
         >
@@ -598,20 +577,12 @@ export function MalagaCenterMap({
         </div>
       )}
 
-      <div className="absolute bottom-3 left-3 z-10 rounded-full border border-white/60 bg-[#241b12]/84 px-3 py-1.5 text-[8px] font-bold uppercase tracking-[0.16em] text-[#f7ead6] shadow-sm backdrop-blur-md sm:bottom-4 sm:left-4 sm:text-[9px]">
-        {localizedPois.filter((poi) => poi.status === "available").length}{" "}
-        {t("activeRespawns")}
-      </div>
-
       {selectedPoi && (
         <article
-          className={cn(
-            "absolute z-20 overflow-hidden rounded-[1.6rem] border border-white/15 bg-[#241b12]/96 text-[#f7ead6] shadow-[0_24px_70px_rgba(25,16,10,0.38)] backdrop-blur-xl",
-            fullscreen
-              ? "bottom-4 left-3 w-[min(20rem,calc(100vw-5.5rem))] max-h-[24rem] sm:left-auto sm:right-4 sm:w-[22rem]"
-              : "inset-x-3 bottom-14 max-h-[46%] overflow-y-auto sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-h-[calc(100dvh-7rem)] sm:w-[22rem]",
-          )}
+          className="timeless-poi-sheet absolute inset-x-0 bottom-0 z-30 max-h-[52dvh] overflow-y-auto rounded-t-[1.75rem] border-x-0 border-b-0 border-t border-white/15 bg-[#241b12]/97 text-[#f7ead6] shadow-[0_-24px_70px_rgba(25,16,10,0.38)] backdrop-blur-xl"
         >
+          <div className="absolute left-1/2 top-2 z-20 h-1 w-10 -translate-x-1/2 rounded-full bg-white/30" />
+
           <button
             type="button"
             onClick={() => setSelectedPoiId(null)}
@@ -621,57 +592,44 @@ export function MalagaCenterMap({
             <X className="h-4 w-4" />
           </button>
 
-          {selectedPoi.previewImage && (
-            <div
-              className={cn(
-                "relative overflow-hidden",
-                fullscreen
-                  ? "aspect-[16/7]"
-                  : "aspect-[16/7] sm:aspect-[16/9]",
-              )}
-            >
-              <img
-                src={selectedPoi.previewImage}
-                alt={selectedPoi.title}
-                className="h-full w-full object-cover"
-                draggable={false}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#241b12] via-transparent to-black/15" />
-            </div>
-          )}
-
-          <div className={cn(fullscreen ? "p-4 sm:p-5" : "p-5 sm:p-6")}>
-            <h3
-              className={cn(
-                "font-serif font-light leading-none tracking-[-0.045em]",
-                fullscreen ? "text-2xl sm:text-3xl" : "text-3xl",
-              )}
-            >
-              {selectedPoi.title}
-            </h3>
-
-            {selectedPoi.status === "available" && selectedPoi.sceneId ? (
-              <Link
-                href={`/scene/${selectedPoi.sceneId}`}
-                className={cn(
-                  "inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#f7ead6] px-5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#241b12]",
-                  fullscreen ? "mt-3 py-3" : "mt-5 py-3.5",
-                )}
-              >
-                {t("respawnHere")}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            ) : (
-              <div
-                className={cn(
-                  "flex w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/5 px-5 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45",
-                  fullscreen ? "mt-3 py-3" : "mt-5 py-3.5",
-                )}
-              >
-                <Clock className="h-4 w-4" />
-                {t("sceneInDevelopment")}
+          <div
+            className={cn(
+              selectedPoi.previewImage &&
+                "sm:grid sm:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]",
+            )}
+          >
+            {selectedPoi.previewImage && (
+              <div className="relative aspect-[16/7] overflow-hidden sm:aspect-auto sm:min-h-[13rem]">
+                <img
+                  src={selectedPoi.previewImage}
+                  alt={selectedPoi.title}
+                  className="h-full w-full object-cover"
+                  draggable={false}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#241b12] via-transparent to-black/15 sm:bg-gradient-to-r sm:from-transparent sm:to-[#241b12]/35" />
               </div>
             )}
+
+            <div className="flex flex-col justify-center p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-7">
+              <h3 className="pr-10 font-serif text-2xl font-light leading-none tracking-[-0.045em] sm:text-3xl">
+                {selectedPoi.title}
+              </h3>
+
+              {selectedPoi.status === "available" && selectedPoi.sceneId ? (
+                <Link
+                  href={`/scene/${selectedPoi.sceneId}`}
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#f7ead6] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[#241b12] sm:mt-5 sm:py-3.5"
+                >
+                  {t("respawnHere")}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              ) : (
+                <div className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45 sm:mt-5 sm:py-3.5">
+                  <Clock className="h-4 w-4" />
+                  {t("sceneInDevelopment")}
+                </div>
+              )}
+            </div>
           </div>
         </article>
       )}

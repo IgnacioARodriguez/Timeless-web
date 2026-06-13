@@ -8,7 +8,7 @@ export type SceneMedia =
   | {
     type: "image"
     src: string
-    projection: "180" | "flat"
+    projection: "cylindrical" | "180" | "flat"
   }
   | {
     type: "video"
@@ -16,7 +16,7 @@ export type SceneMedia =
     /** Optional codec-specific alternatives. The viewer picks the first playable source. */
     sources?: SceneMediaSource[]
     poster?: string
-    projection: "180" | "flat"
+    projection: "cylindrical" | "180" | "flat"
     loop: boolean
     muted: boolean
   }
@@ -93,7 +93,6 @@ export interface Scene {
   subtitle: string
   description: string
   poster: string
-  overlay?: string
   media: SceneMedia
   camera: SceneCamera
   ambientAudio?: SceneAmbientAudio

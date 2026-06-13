@@ -7,11 +7,11 @@ export const timelessCities: TimelessCity[] = [
     country: "España",
     regionLabel: "Centro histórico",
     description:
-      "Explora murallas, Atarazanas y Malaca romana desde puntos reales de activación en el centro histórico.",
-    highlights: ["Carretería", "Atarazanas", "Teatro Romano"],
-    scenesCount: 3,
+      "Explora murallas, Atarazanas, Calle Larios y Malaca romana desde puntos reales de activación en el centro histórico.",
+    highlights: ["Carretería", "Atarazanas", "Calle Larios", "Teatro Romano"],
+    scenesCount: 4,
     status: "available",
-    href: "/cities/malaga",
+    href: "/",
     coverImage: "/assets/carreteria/panorama.png",
     accentLabel: "Disponible ahora",
     i18n: {
@@ -19,8 +19,8 @@ export const timelessCities: TimelessCity[] = [
         country: "Spain",
         regionLabel: "Historic centre",
         description:
-          "Explore walls, the Atarazanas and Roman Malaca from real activation points in the historic centre.",
-        highlights: ["Carretería", "Atarazanas", "Roman Theatre"],
+          "Explore walls, the Atarazanas, Calle Larios and Roman Malaca from real activation points in the historic centre.",
+        highlights: ["Carretería", "Atarazanas", "Calle Larios", "Roman Theatre"],
         accentLabel: "Available now",
       },
     },

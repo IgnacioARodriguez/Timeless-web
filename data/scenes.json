@@ -5,11 +5,10 @@
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
     "description": "Viaja a la Málaga del siglo XIII y mira cómo pudo ser este tramo de muralla cuando todavía defendía la ciudad. Verás la torre, el gran muro, la defensa exterior y el espacio abierto que protegía el acceso.",
     "poster": "/assets/carreteria/panorama.png",
-    "overlay": "/assets/carreteria/panorama.png",
     "media": {
       "type": "video",
       "src": "/assets/carreteria/master.mp4",
-      "projection": "180",
+      "projection": "cylindrical",
       "loop":true,
       "muted":false
     },
@@ -159,9 +158,11 @@
     "description": "Imagina esta zona antes del mercado actual: junto al mar, con barcos, trabajadores y un gran edificio portuario donde se reparaban y guardaban embarcaciones.",
     "poster": "/assets/atarazanas/panorama.png",
     "media": {
-      "type": "image",
-      "src": "/assets/atarazanas/panorama.png",
-      "projection": "180"
+      "type": "video",
+      "src": "/assets/atarazanas/master.mp4",
+      "projection": "cylindrical",
+      "loop": true,
+      "muted": false
     },
     "camera": {
       "initialYaw": 0,
@@ -305,17 +306,6 @@
         }
       }
     ],
-    "ambientAudio": {
-      "src": "/assets/audio/atarazanas-ambient.mp3",
-      "label": "Ambiente sonoro del puerto y las atarazanas",
-      "volume": 0.34,
-      "loop": true,
-      "i18n": {
-        "en": {
-          "label": "Port and Atarazanas ambient sound"
-        }
-      }
-    },
     "i18n": {
       "en": {
         "title": "Medieval Atarazanas — Nasrid Málaga",
@@ -330,11 +320,10 @@
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
     "description": "Entra en la Malaca romana y mira el teatro como un espacio vivo: gradas, accesos, escenario y una ciudad organizada alrededor de sus lugares públicos.",
     "poster": "/assets/teatro-romano/panorama.png",
-    "overlay": "/assets/teatro-romano/panorama.png",
     "media": {
       "type": "video",
       "src": "/assets/teatro-romano/master.mp4",
-      "projection": "180",
+      "projection": "cylindrical",
       "loop": true,
       "muted": true
     },
@@ -496,6 +485,148 @@
         "title": "Roman Theatre — Roman Malaca",
         "subtitle": "Immersive 180° historical reconstruction",
         "description": "Step into Roman Malaca and see the theatre as a living space: seating, entrances, stage and a city organized around its public places."
+      }
+    }
+  },
+  {
+    "id": "calle-larios-1891",
+    "title": "Calle Larios — Málaga, 1891",
+    "subtitle": "Reconstrucción histórica inmersiva de 180º",
+    "description": "Viaja a la Málaga de finales del siglo XIX y observa Calle Larios como una nueva avenida burguesa: una operación urbana moderna pensada para abrir el centro histórico, ordenar el comercio y proyectar una imagen renovada de la ciudad.",
+    "poster": "/assets/calle-larios/panorama.png",
+    "media": {
+      "type": "video",
+      "src": "/assets/calle-larios/master.mp4",
+      "poster": "/assets/calle-larios/panorama.png",
+      "projection": "cylindrical",
+      "loop": true,
+      "muted": false
+    },
+    "camera": {
+      "initialYaw": 0,
+      "initialPitch": 0,
+      "minYaw": -65,
+      "maxYaw": 65,
+      "minPitch": -25,
+      "maxPitch": 25
+    },
+    "hotspots": [
+      {
+        "id": "larios-eje-urbano",
+        "label": "Eje urbano",
+        "title": "Una calle pensada para transformar el centro",
+        "description": "Calle Larios no fue una calle más: abrió un eje amplio y regular dentro de una ciudad de calles mucho más estrechas. Su trazado ayudaba a ordenar el paso, mejorar la circulación y conectar mejor el centro con la vida comercial moderna.",
+        "yaw": 0,
+        "pitch": -4,
+        "focus": {
+          "shape": "rect",
+          "width": 520,
+          "height": 170,
+          "offsetX": 0,
+          "offsetY": 20
+        },
+        "i18n": {
+          "en": {
+            "label": "Urban axis",
+            "title": "A street designed to transform the centre",
+            "description": "Calle Larios was not just another street: it opened a broad, regular axis within a city of much narrower streets. Its layout helped organize movement, improve circulation and connect the centre with modern commercial life."
+          }
+        }
+      },
+      {
+        "id": "larios-fachadas",
+        "label": "Fachadas",
+        "title": "Arquitectura burguesa de finales del XIX",
+        "description": "Los edificios daban a la calle una imagen unitaria y elegante. La escena debe leerse como una Málaga moderna y burguesa, no como una calle medieval ni como una avenida contemporánea llena de marcas actuales.",
+        "yaw": -34,
+        "pitch": 12,
+        "focus": {
+          "shape": "rect",
+          "width": 220,
+          "height": 300,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Façades",
+            "title": "Late 19th-century bourgeois architecture",
+            "description": "The buildings gave the street a unified and elegant image. The scene should read as modern bourgeois Málaga, not as a medieval street or as a contemporary avenue full of current brands."
+          }
+        }
+      },
+      {
+        "id": "larios-comercio",
+        "label": "Comercio",
+        "title": "El nuevo escaparate de la ciudad",
+        "description": "Desde sus primeros años, Larios se convirtió en una calle asociada al paseo, las compras y la vida social. Para Timeless, el interés está en mostrar ese cambio: una Málaga que empieza a presentarse como ciudad moderna.",
+        "yaw": 28,
+        "pitch": -8,
+        "focus": {
+          "shape": "rect",
+          "width": 260,
+          "height": 150,
+          "offsetX": 0,
+          "offsetY": 25
+        },
+        "i18n": {
+          "en": {
+            "label": "Commerce",
+            "title": "The city's new showcase",
+            "description": "From its early years, Larios became associated with strolling, shopping and social life. For Timeless, the key is to show that shift: a Málaga beginning to present itself as a modern city."
+          }
+        }
+      },
+      {
+        "id": "larios-vida-calle",
+        "label": "Vida urbana",
+        "title": "Paseo, carruajes y vida cotidiana",
+        "description": "La calle debe sentirse viva, pero sin exceso teatral: peatones, comercios, carruajes o actividad urbana ligera ayudan a entenderla como espacio de representación social y movimiento diario.",
+        "yaw": 12,
+        "pitch": -26,
+        "focus": {
+          "shape": "ellipse",
+          "width": 360,
+          "height": 150,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Urban life",
+            "title": "Strolling, carriages and everyday life",
+            "description": "The street should feel alive, but not theatrical: pedestrians, shops, carriages or light urban activity help explain it as a space for social display and daily movement."
+          }
+        }
+      },
+      {
+        "id": "larios-contexto-historico",
+        "label": "Contexto",
+        "title": "Una ciudad que quería modernizarse",
+        "description": "La escena representa un momento de cambio urbano. No se trata de reconstruir una ruina perdida, sino de mostrar cómo Málaga empezó a abrir una avenida moderna dentro de su centro histórico.",
+        "yaw": 52,
+        "pitch": 4,
+        "focus": {
+          "shape": "rect",
+          "width": 210,
+          "height": 210,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Context",
+            "title": "A city seeking modernization",
+            "description": "The scene represents a moment of urban change. It is not about reconstructing a lost ruin, but about showing how Málaga began opening a modern avenue within its historic centre."
+          }
+        }
+      }
+    ],
+    "i18n": {
+      "en": {
+        "title": "Calle Larios — Málaga, 1891",
+        "subtitle": "Immersive 180° historical reconstruction",
+        "description": "Travel to late 19th-century Málaga and see Calle Larios as a new bourgeois avenue: a modern urban operation designed to open up the historic centre, organize commerce and project a renewed image of the city."
       }
     }
   }
