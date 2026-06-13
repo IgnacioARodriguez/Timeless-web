@@ -40,7 +40,7 @@ export function CityPageShell({ city }: CityPageShellProps) {
         </h1>
       </section>
 
-      <div className="px-4 sm:px-6">
+      <div className="px-3 pb-4 sm:px-6">
         <MalagaCenterMap />
       </div>
 

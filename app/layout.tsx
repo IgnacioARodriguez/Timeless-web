@@ -4,6 +4,7 @@ import { Geist } from "next/font/google"
 import { Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { LanguageProvider } from "@/components/i18n/language-provider"
+import "maplibre-gl/dist/maplibre-gl.css"
 import "./globals.css"
 
 const geist = Geist({
@@ -129,6 +130,7 @@ export default function RootLayout({
     <html
       lang="es"
       className={`${geist.variable} ${playfair.variable} bg-background`}
+      suppressHydrationWarning
     >
       <body className="font-sans antialiased">
         <LanguageProvider>{children}</LanguageProvider>

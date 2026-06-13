@@ -22,6 +22,10 @@ export interface MapPoi {
     longitude: number
     label: string
   }
+  coordinates: {
+    latitude: number
+    longitude: number
+  }
   mapPosition: {
     x: number
     y: number
