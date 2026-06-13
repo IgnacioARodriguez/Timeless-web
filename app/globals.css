@@ -283,6 +283,41 @@
   fill: rgb(54 37 24 / 0.14);
 }
 
+@keyframes timeless-poi-sheet-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 100%, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.timeless-poi-sheet {
+  animation: timeless-poi-sheet-enter 420ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+.timeless-map--poi-open .maplibregl-ctrl-bottom-right {
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(0, 0.75rem, 0);
+}
+
+.maplibregl-ctrl-bottom-right {
+  transition:
+    opacity 240ms ease,
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeless-poi-sheet {
+    animation: none;
+  }
+}
+
 .timeless-map-marker__icon .poi-top {
   fill: #f1d7a8;
 }

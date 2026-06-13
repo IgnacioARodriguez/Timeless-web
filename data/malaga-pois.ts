@@ -79,19 +79,28 @@ export const malagaCenterPois: MapPoi[] = [
   {
     id: "calle-larios",
     title: "Calle Larios",
-    period: "Málaga moderna e histórica",
+    period: "Málaga burguesa · 1891",
     shortDescription:
-      "Uno de los ejes urbanos más emblemáticos del centro histórico. Escena futura.",
-    locationLabel: "Calle Larios",
-    status: "coming-soon",
-    coordinates: { latitude: 36.71912, longitude: -4.42102 },
+      "Reconstrucción inmersiva de Calle Larios en su etapa inicial como gran avenida moderna, comercial y burguesa del centro de Málaga.",
+    locationLabel: "Calle Marqués de Larios",
+    status: "available",
+    sceneId: "calle-larios-1891",
+    previewImage: "/assets/calle-larios/poi-calle-larios.png",
+    directions: {
+      latitude: 36.718271,
+      longitude: -4.421444,
+      label: "Calle Larios",
+    },
+    coordinates: { latitude: 36.718271, longitude: -4.421444 },
     mapPosition: { x: 28.1, y: 64.5 },
     i18n: {
       en: {
         title: "Calle Larios",
-        period: "Modern and historic Málaga",
-        shortDescription: "One of the most emblematic urban axes of the historic centre. Future scene.",
-        locationLabel: "Calle Larios",
+        period: "Bourgeois Málaga · 1891",
+        shortDescription:
+          "Immersive reconstruction of Calle Larios in its early stage as Málaga centre's modern, commercial and bourgeois avenue.",
+        locationLabel: "Calle Marqués de Larios",
+        directionsLabel: "Calle Larios",
       },
     },
   },

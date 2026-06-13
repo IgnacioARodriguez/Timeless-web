@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
 
-export default function CityPage() {
+export default function CitiesPage() {
   redirect("/")
 }
