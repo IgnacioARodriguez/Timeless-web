@@ -39,6 +39,28 @@ export const copy = {
       "La demo muestra el flujo real del prototipo: entrada desde móvil, permisos de cámara y movimiento, alineación y visualización inmersiva de la escena histórica.",
     pilotLabel: "Caso piloto Málaga",
     pilotTitle: "Tres escenas para demostrar valor cultural real.",
+    mapProductDescription:
+      "Navega por la ciudad, descubre lugares históricos y respawnea directamente en las escenas disponibles.",
+    loadingMap: "Cargando la ciudad",
+    mapLoadError: "No se ha podido cargar el mapa",
+    mapLoadErrorDescription:
+      "Comprueba la conexión e inténtalo de nuevo para explorar los puntos Timeless.",
+    searchPlaces: "Buscar lugares históricos",
+    clearSearch: "Limpiar búsqueda",
+    allPlaces: "Todos",
+    respawnAvailable: "Con escena",
+    noPlacesFound: "No hay lugares que coincidan con la búsqueda.",
+    centerMap: "Centrar mapa",
+    geolocationNeedsHttps:
+      "La ubicación requiere HTTPS. Abre la app con una conexión segura para mostrar tu posición.",
+    geolocationDenied:
+      "El permiso de ubicación está bloqueado. Actívalo en los ajustes del navegador y vuelve a pulsar el botón.",
+    geolocationUnavailable:
+      "No se ha podido obtener tu ubicación. Comprueba que el GPS esté activo e inténtalo de nuevo.",
+    activeRespawns: "respawns activos",
+    respawnReady: "Escena disponible",
+    respawnHere: "Respawnear aquí",
+    sceneInDevelopment: "Escena en desarrollo",
     seeScene: "Ver escena",
     diffLabel: "Diferencial",
     diffTitle:
@@ -174,6 +196,28 @@ export const copy = {
       "The demo shows the real prototype flow: mobile entry, camera and motion permissions, alignment and immersive visualization of the historical scene.",
     pilotLabel: "Málaga pilot case",
     pilotTitle: "Three scenes to demonstrate real cultural value.",
+    mapProductDescription:
+      "Navigate the city, discover historic places and respawn directly into available scenes.",
+    loadingMap: "Loading the city",
+    mapLoadError: "The map could not be loaded",
+    mapLoadErrorDescription:
+      "Check your connection and try again to explore Timeless locations.",
+    searchPlaces: "Search historic places",
+    clearSearch: "Clear search",
+    allPlaces: "All",
+    respawnAvailable: "With scene",
+    noPlacesFound: "No places match your search.",
+    centerMap: "Center map",
+    geolocationNeedsHttps:
+      "Location requires HTTPS. Open the app over a secure connection to show your position.",
+    geolocationDenied:
+      "Location permission is blocked. Enable it in your browser settings and press the button again.",
+    geolocationUnavailable:
+      "Your location could not be determined. Check that GPS is enabled and try again.",
+    activeRespawns: "active respawns",
+    respawnReady: "Scene available",
+    respawnHere: "Respawn here",
+    sceneInDevelopment: "Scene in development",
     seeScene: "View scene",
     diffLabel: "Differentiator",
     diffTitle:

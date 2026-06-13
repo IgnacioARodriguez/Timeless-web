@@ -16,6 +16,7 @@ export const malagaCenterPois: MapPoi[] = [
       longitude: -4.423008,
       label: "Muralla de Carretería",
     },
+    coordinates: { latitude: 36.723456, longitude: -4.423008 },
     mapPosition: { x: 18.0, y: 17.4 },
     i18n: {
       en: {
@@ -36,6 +37,7 @@ export const malagaCenterPois: MapPoi[] = [
       "Punto central del trazado urbano histórico de Málaga. Escena futura.",
     locationLabel: "Plaza de la Constitución",
     status: "coming-soon",
+    coordinates: { latitude: 36.72025, longitude: -4.42162 },
     mapPosition: { x: 26.5, y: 38.5 },
     i18n: {
       en: {
@@ -61,6 +63,7 @@ export const malagaCenterPois: MapPoi[] = [
       longitude: -4.424228,
       label: "Mercado de Atarazanas",
     },
+    coordinates: { latitude: 36.718676, longitude: -4.424228 },
     mapPosition: { x: 9.6, y: 63.3 },
     i18n: {
       en: {
@@ -81,6 +84,7 @@ export const malagaCenterPois: MapPoi[] = [
       "Uno de los ejes urbanos más emblemáticos del centro histórico. Escena futura.",
     locationLabel: "Calle Larios",
     status: "coming-soon",
+    coordinates: { latitude: 36.71912, longitude: -4.42102 },
     mapPosition: { x: 28.1, y: 64.5 },
     i18n: {
       en: {
@@ -106,6 +110,10 @@ export const malagaCenterPois: MapPoi[] = [
       longitude: -4.4172272713502485,
       label: "Teatro Romano de Málaga",
     },
+    coordinates: {
+      latitude: 36.72125299697328,
+      longitude: -4.4172272713502485,
+    },
     mapPosition: { x: 49.3, y: 37.3 },
     i18n: {
       en: {
@@ -126,6 +134,7 @@ export const malagaCenterPois: MapPoi[] = [
       "Entorno histórico destacado del centro de Málaga. Escena futura.",
     locationLabel: "Plaza de la Merced",
     status: "coming-soon",
+    coordinates: { latitude: 36.72324, longitude: -4.41573 },
     mapPosition: { x: 47.4, y: 24.1 },
     i18n: {
       en: {
