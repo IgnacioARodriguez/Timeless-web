@@ -41,11 +41,11 @@ const HOTSPOT_UPDATE_EPSILON = 0.35
 const HOTSPOT_ENTER_MARGIN = 1.04
 const HOTSPOT_EXIT_MARGIN = 1.18
 const GYRO_TARGET_DEADZONE_DEG = 0.08
-const TEXTURE_EDGE_FADE_START = 0.92
-const TEXTURE_EDGE_FADE_END = 1.05
-const TEXTURE_EDGE_FADE_SHAPE_X = 0.92
-const TEXTURE_EDGE_FADE_SHAPE_Y = 1.02
-const TEXTURE_EDGE_FADE_POWER = 4.0
+const TEXTURE_EDGE_FADE_START = 0.88
+const TEXTURE_EDGE_FADE_END = 1.10
+const TEXTURE_EDGE_FADE_SHAPE_X = 0.88
+const TEXTURE_EDGE_FADE_SHAPE_Y = 1.00
+const TEXTURE_EDGE_FADE_POWER = 3.0
 interface HotspotScreenPosition {
   id: string
   left: number
@@ -80,12 +80,18 @@ function hotspotToWorldPosition(
   )
 }
 
-function createEdgeFadeMaterial(texture: THREE.Texture) {
+function createEdgeFadeMaterial(texture: THREE.Texture, videoAspect: number = 16 / 9) {
   const material = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.DoubleSide,
     transparent: true,
   })
+
+  // Adapt fade parameters based on video aspect ratio
+  // Wider videos (higher aspect) need gentler horizontal fade
+  const aspectRatio = Math.max(1, Math.min(videoAspect, 3))
+  const fadeShapeX = 0.85 + (1 - Math.min(aspectRatio / 3, 1)) * 0.1
+  const fadePower = 2.5 + Math.min(aspectRatio, 2) * 0.3
 
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
@@ -119,13 +125,13 @@ function createEdgeFadeMaterial(texture: THREE.Texture) {
 
         vec2 centeredUv = abs((vFadeUv - 0.5) * 2.0);
 
-        float dx = pow(centeredUv.x / ${TEXTURE_EDGE_FADE_SHAPE_X.toFixed(2)}, ${TEXTURE_EDGE_FADE_POWER.toFixed(1)});
-        float dy = pow(centeredUv.y / ${TEXTURE_EDGE_FADE_SHAPE_Y.toFixed(2)}, ${TEXTURE_EDGE_FADE_POWER.toFixed(1)});
-        float edgeDistance = pow(dx + dy, 1.0 / ${TEXTURE_EDGE_FADE_POWER.toFixed(1)});
+        float dx = pow(centeredUv.x / ${fadeShapeX.toFixed(2)}, ${fadePower.toFixed(1)});
+        float dy = pow(centeredUv.y / 1.00, ${fadePower.toFixed(1)});
+        float edgeDistance = pow(dx + dy, 1.0 / ${fadePower.toFixed(1)});
 
         float edgeFade = 1.0 - smoothstep(
-          ${TEXTURE_EDGE_FADE_START.toFixed(2)},
-          ${TEXTURE_EDGE_FADE_END.toFixed(2)},
+          0.80,
+          1.15,
           edgeDistance
         );
 
@@ -483,7 +489,7 @@ export function Viewer180({
         CYLINDER_RADIUS,
         CYLINDER_RADIUS,
         cylinderHeight,
-        96,
+        128,
         1,
         true,
         Math.PI / 2,
@@ -505,7 +511,20 @@ export function Viewer180({
       texture.magFilter = THREE.LinearFilter
       texture.generateMipmaps = false
 
-      const material = createEdgeFadeMaterial(texture)
+      // Calculate aspect ratio for dynamic edge fade adjustment
+      const image = texture.image as
+        | HTMLImageElement
+        | HTMLCanvasElement
+        | HTMLVideoElement
+        | undefined
+      const width =
+        image instanceof HTMLVideoElement ? image.videoWidth : image?.width
+      const height =
+        image instanceof HTMLVideoElement ? image.videoHeight : image?.height
+      const aspectRatio =
+        width && height ? width / height : DEFAULT_CYLINDRICAL_ASPECT
+
+      const material = createEdgeFadeMaterial(texture, aspectRatio)
 
       const { geometry, positionZ, rotationY } = createGeometry(texture)
       const mesh = new THREE.Mesh(geometry, material)
