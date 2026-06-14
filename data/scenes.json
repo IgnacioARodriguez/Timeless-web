@@ -10,7 +10,13 @@
       "src": "/assets/carreteria/master.mp4",
       "projection": "cylindrical",
       "loop":true,
-      "muted":false
+      "muted":false,
+      "preroll": {
+        "src": "/assets/carreteria/intro.mp4",
+        "poster": "/assets/carreteria/panorama.png",
+        "muted": false,
+        "loop": false
+      }
     },
     "camera": {
       "initialYaw": 0,

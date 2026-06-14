@@ -470,10 +470,40 @@
   }
 }
 
+@keyframes timeless-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes timeless-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.timeless-fade-out {
+  animation: timeless-fade-out 800ms ease-out forwards;
+}
+
+.timeless-fade-in {
+  animation: timeless-fade-in 600ms ease-in forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .timeless-map-marker__tap-pulse {
     animation: none;
     opacity: 0.55;
     transform: translate(-50%, -50%) scale(0.9);
+  }
+  .timeless-fade-out,
+  .timeless-fade-in {
+    animation: none;
   }
 }

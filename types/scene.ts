@@ -19,6 +19,13 @@ export type SceneMedia =
     projection: "cylindrical" | "180" | "flat"
     loop: boolean
     muted: boolean
+    preroll?: {
+      src: string
+      sources?: SceneMediaSource[]
+      poster?: string
+      muted?: boolean
+      loop?: boolean
+    }
   }
 
 export interface SceneTranslation {

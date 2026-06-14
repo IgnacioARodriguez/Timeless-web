@@ -3,6 +3,7 @@
 import { useState } from "react"
 import type { Scene } from "@/types/scene"
 import { IntroStep } from "@/components/experience/intro-step"
+import { OrientationStep } from "@/components/experience/orientation-step"
 import { ViewerStep } from "@/components/experience/viewer-step"
 import { BackButton } from "@/components/navigation/back-button"
 import { LanguageSwitch } from "@/components/i18n/language-switch"
@@ -18,7 +19,7 @@ interface SceneExperienceShellProps {
 export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
   const { language, t } = useLanguage()
   const localizedScene = getLocalizedScene(scene, language)
-  const [step, setStep] = useState<"intro" | "viewer">("intro")
+  const [step, setStep] = useState<"orientation" | "intro" | "viewer">("orientation")
   const [motionEnabled, setMotionEnabled] = useState(false)
   const [autoStartAmbientAudio, setAutoStartAmbientAudio] = useState(false)
   const [requestingPermissions, setRequestingPermissions] = useState(false)
@@ -40,6 +41,10 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
     setRequestingPermissions(false)
     setAutoStartAmbientAudio(true)
     setStep("viewer")
+  }
+
+  function handleContinueOrientation() {
+    setStep("intro")
   }
 
   function handleRestart() {
@@ -67,6 +72,13 @@ export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
             className="absolute right-4 top-4 z-50 sm:right-6 sm:top-6"
           />
         </>
+      )}
+
+      {step === "orientation" && (
+        <OrientationStep
+          scene={localizedScene}
+          onContinue={handleContinueOrientation}
+        />
       )}
 
       {step === "intro" && (
