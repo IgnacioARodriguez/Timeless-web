@@ -470,6 +470,196 @@
   }
 }
 
+.timeless-map-marker {
+  --marker-color: #7a5330;
+  --marker-soft: rgb(122 83 48 / 0.14);
+  width: 2.9rem;
+  height: 3.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--marker-color);
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeless-map-marker[data-kind="wall"] {
+  --marker-color: #8a493a;
+  --marker-soft: rgb(138 73 58 / 0.16);
+}
+
+.timeless-map-marker[data-kind="market"] {
+  --marker-color: #2f766f;
+  --marker-soft: rgb(47 118 111 / 0.16);
+}
+
+.timeless-map-marker[data-kind="theatre"] {
+  --marker-color: #7d5d18;
+  --marker-soft: rgb(125 93 24 / 0.16);
+}
+
+.timeless-map-marker[data-kind="street"] {
+  --marker-color: #355f92;
+  --marker-soft: rgb(53 95 146 / 0.16);
+}
+
+.timeless-map-marker[data-kind="civic"] {
+  --marker-color: #57477d;
+  --marker-soft: rgb(87 71 125 / 0.16);
+}
+
+.timeless-map-marker[data-visible="false"] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.4rem) scale(0.78);
+}
+
+.timeless-map-marker__halo {
+  position: absolute;
+  left: 50%;
+  bottom: 0.15rem;
+  width: 2.35rem;
+  height: 0.72rem;
+  border-radius: 999px;
+  background: rgb(27 22 18 / 0.2);
+  filter: blur(5px);
+  transform: translateX(-50%);
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease;
+}
+
+.timeless-map-marker__pin {
+  position: absolute;
+  left: 50%;
+  top: 0.1rem;
+  display: grid;
+  width: 2.05rem;
+  height: 2.05rem;
+  place-items: center;
+  border: 2px solid rgb(255 255 255 / 0.92);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgb(255 255 255 / 0.42), transparent 28%),
+    var(--marker-color);
+  box-shadow:
+    0 8px 18px rgb(27 22 18 / 0.24),
+    0 0 0 0.42rem var(--marker-soft);
+  transform: translateX(-50%);
+  transition:
+    box-shadow 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeless-map-marker__dot {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: white;
+  box-shadow: 0 0 0 0.24rem rgb(255 255 255 / 0.2);
+}
+
+.timeless-map-marker__stem {
+  position: absolute;
+  left: 50%;
+  bottom: 0.46rem;
+  width: 0.18rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--marker-color), rgb(37 32 28 / 0.7));
+  box-shadow: 0 5px 12px rgb(27 22 18 / 0.2);
+  transform: translateX(-50%);
+}
+
+.timeless-map-marker[data-status="coming-soon"] .timeless-map-marker__pin {
+  background:
+    radial-gradient(circle at 34% 28%, rgb(255 255 255 / 0.28), transparent 28%),
+    #74706a;
+  box-shadow:
+    0 8px 18px rgb(27 22 18 / 0.18),
+    0 0 0 0.38rem rgb(70 65 58 / 0.1);
+  filter: saturate(0.75);
+}
+
+.timeless-map-marker[data-status="coming-soon"] .timeless-map-marker__stem {
+  background: linear-gradient(180deg, #74706a, rgb(37 32 28 / 0.54));
+}
+
+.timeless-map-marker[data-status="coming-soon"] .timeless-map-marker__dot {
+  opacity: 0.55;
+}
+
+.timeless-map-marker:hover .timeless-map-marker__pin,
+.timeless-map-marker:focus-visible .timeless-map-marker__pin {
+  transform: translate(-50%, -0.16rem) scale(1.08);
+  box-shadow:
+    0 12px 24px rgb(27 22 18 / 0.27),
+    0 0 0 0.55rem var(--marker-soft);
+}
+
+.timeless-map-marker[data-selected="true"] {
+  z-index: 3;
+}
+
+.timeless-map-marker[data-selected="true"] .timeless-map-marker__pin {
+  transform: translate(-50%, -0.24rem) scale(1.18);
+  box-shadow:
+    0 14px 28px rgb(27 22 18 / 0.3),
+    0 0 0 0.68rem var(--marker-soft),
+    0 0 0 0.86rem rgb(255 255 255 / 0.5);
+}
+
+.timeless-map-marker[data-selected="true"] .timeless-map-marker__halo {
+  opacity: 0.36;
+  transform: translateX(-50%) scaleX(1.25);
+}
+
+.timeless-map-marker__label {
+  top: calc(100% + 0.16rem);
+  border-color: rgb(37 32 28 / 0.12);
+  background: rgb(251 247 239 / 0.96);
+  color: #25201c;
+  box-shadow: 0 9px 24px rgb(27 22 18 / 0.14);
+}
+
+.timeless-result-dot {
+  --marker-color: #7a5330;
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  flex: 0 0 auto;
+  border: 2px solid rgb(255 255 255 / 0.85);
+  border-radius: 999px;
+  background: var(--marker-color);
+  box-shadow: 0 0 0 0.18rem rgb(37 32 28 / 0.07);
+}
+
+.timeless-result-dot[data-kind="wall"] {
+  --marker-color: #8a493a;
+}
+
+.timeless-result-dot[data-kind="market"] {
+  --marker-color: #2f766f;
+}
+
+.timeless-result-dot[data-kind="theatre"] {
+  --marker-color: #7d5d18;
+}
+
+.timeless-result-dot[data-kind="street"] {
+  --marker-color: #355f92;
+}
+
+.timeless-result-dot[data-kind="civic"] {
+  --marker-color: #57477d;
+}
+
+.timeless-result-dot[data-status="coming-soon"] {
+  --marker-color: #74706a;
+  opacity: 0.75;
+}
+
 @keyframes timeless-fade-out {
   from {
     opacity: 1;
