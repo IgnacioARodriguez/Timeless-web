@@ -4,14 +4,21 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import {
   ArrowRight,
+  CalendarDays,
   Clock,
+  ExternalLink,
   LocateFixed,
   MapPin,
+  Navigation,
   Search,
   Sparkles,
   X,
 } from "lucide-react"
-import type { Map as MapLibreMap, Marker } from "maplibre-gl"
+import type {
+  GeolocateControl,
+  Map as MapLibreMap,
+  Marker,
+} from "maplibre-gl"
 import { useLanguage } from "@/components/i18n/language-provider"
 import { malagaCenterPois } from "@/data/malaga-pois"
 import { getLocalizedPoi } from "@/lib/localized-city"
@@ -26,80 +33,75 @@ interface MalagaCenterMapProps {
   fullscreen?: boolean
 }
 
+type PoiFilter = "all" | "available" | "future"
+type PoiKind = "wall" | "market" | "theatre" | "street" | "civic"
+
+interface UserLocation {
+  latitude: number
+  longitude: number
+}
+
 function getPoiCoordinates(poi: MapPoi): [number, number] {
   return [poi.coordinates.longitude, poi.coordinates.latitude]
 }
 
-function getPoiMarkerIcon(poiId: string) {
-  const iconClass = "timeless-map-marker__icon"
+function getPoiKind(poi: MapPoi): PoiKind {
+  if (poi.id.includes("muralla")) return "wall"
+  if (poi.id.includes("atarazanas")) return "market"
+  if (poi.id.includes("teatro")) return "theatre"
+  if (poi.id.includes("larios")) return "street"
+  return "civic"
+}
 
-  if (poiId === "muralla-carreteria") {
-    return `
-      <img
-        class="${iconClass} timeless-map-marker__icon--carreteria"
-        src="/assets/carreteria/poi-muralla.png"
-        alt=""
-        draggable="false"
-      />
-    `
+function getPoiCategoryLabel(poi: MapPoi, language: "es" | "en") {
+  const kind = getPoiKind(poi)
+
+  const labels: Record<PoiKind, { es: string; en: string }> = {
+    wall: { es: "Defensa", en: "Defence" },
+    market: { es: "Mercado", en: "Market" },
+    theatre: { es: "Teatro", en: "Theatre" },
+    street: { es: "Eje urbano", en: "Urban axis" },
+    civic: { es: "Plaza", en: "Square" },
   }
 
-  if (poiId === "atarazanas") {
-    return `
-      <img
-        class="${iconClass} timeless-map-marker__icon--landmark timeless-map-marker__icon--atarazanas"
-        src="/assets/atarazanas/poi-atarazanas.png"
-        alt=""
-        draggable="false"
-      />
-    `
+  return labels[kind][language]
+}
+
+function getDirectionsHref(poi: MapPoi) {
+  const point = poi.directions ?? {
+    latitude: poi.coordinates.latitude,
+    longitude: poi.coordinates.longitude,
   }
 
-  if (poiId === "teatro-romano") {
-    return `
-      <img
-        class="${iconClass} timeless-map-marker__icon--landmark"
-        src="/assets/teatro-romano/poi-teatro.png"
-        alt=""
-        draggable="false"
-      />
-    `
+  return `https://www.google.com/maps/dir/?api=1&destination=${point.latitude},${point.longitude}`
+}
+
+function getDistanceInMeters(from: UserLocation, poi: MapPoi) {
+  const earthRadius = 6371000
+  const toRadians = (value: number) => (value * Math.PI) / 180
+  const latitudeA = toRadians(from.latitude)
+  const latitudeB = toRadians(poi.coordinates.latitude)
+  const deltaLatitude = toRadians(poi.coordinates.latitude - from.latitude)
+  const deltaLongitude = toRadians(poi.coordinates.longitude - from.longitude)
+  const haversine =
+    Math.sin(deltaLatitude / 2) ** 2 +
+    Math.cos(latitudeA) *
+      Math.cos(latitudeB) *
+      Math.sin(deltaLongitude / 2) ** 2
+
+  return earthRadius * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+}
+
+function formatDistance(distance: number, language: "es" | "en") {
+  const locale = language === "es" ? "es-ES" : "en-US"
+
+  if (distance < 1000) {
+    return `${Math.max(20, Math.round(distance / 10) * 10).toLocaleString(locale)} m`
   }
 
-  if (poiId === "calle-larios") {
-    return `
-      <img
-        class="${iconClass} timeless-map-marker__icon--landmark timeless-map-marker__icon--larios"
-        src="/assets/calle-larios/poi-calle-larios.png"
-        alt=""
-        draggable="false"
-      />
-    `
-  }
-
-  if (poiId === "plaza-merced") {
-    return `
-      <svg class="${iconClass}" viewBox="0 0 64 64" aria-hidden="true">
-        <path class="poi-shadow" d="m12 45 20-12 20 12-20 12Z"/>
-        <path class="poi-side" d="m16 43 16-9 16 9v8l-16 9-16-9Z"/>
-        <path class="poi-top" d="m16 43 16-9 16 9-16 9Z"/>
-        <path class="poi-front" d="m28 17 4-9 4 9v26l-4 3-4-3Z"/>
-        <path class="poi-light" d="m28 17 4-9v38l-4-3Z"/>
-        <path class="poi-accent" d="m24 39 8-5 8 5-8 5Z"/>
-      </svg>
-    `
-  }
-
-  return `
-    <svg class="${iconClass}" viewBox="0 0 64 64" aria-hidden="true">
-      <path class="poi-shadow" d="m10 40 22-13 22 13-22 13Z"/>
-      <path class="poi-side" d="m13 35 19-11 19 11v14L32 60 13 49Z"/>
-      <path class="poi-top" d="m13 35 19-11 19 11-19 11Z"/>
-      <path class="poi-accent" d="m23 35 9-5 9 5-9 5Z"/>
-      <path class="poi-light" d="M28 19h8v17l-4 3-4-3Z"/>
-      <circle class="poi-cutout" cx="32" cy="16" r="5"/>
-    </svg>
-  `
+  return `${(distance / 1000).toLocaleString(locale, {
+    maximumFractionDigits: 1,
+  })} km`
 }
 
 function applyTimelessMapStyle(map: MapLibreMap) {
@@ -110,35 +112,35 @@ function applyTimelessMapStyle(map: MapLibreMap) {
     const id = layer.id.toLowerCase()
 
     if (layer.type === "background") {
-      map.setPaintProperty(layer.id, "background-color", "#efe1cc")
+      map.setPaintProperty(layer.id, "background-color", "#f2eee6")
       return
     }
 
     if (layer.type === "fill") {
       if (id.includes("water")) {
-        map.setPaintProperty(layer.id, "fill-color", "#8fa9a8")
-        map.setPaintProperty(layer.id, "fill-opacity", 0.88)
+        map.setPaintProperty(layer.id, "fill-color", "#79a7ad")
+        map.setPaintProperty(layer.id, "fill-opacity", 0.9)
       } else if (id.includes("park") || id.includes("wood")) {
-        map.setPaintProperty(layer.id, "fill-color", "#c5c29e")
-        map.setPaintProperty(layer.id, "fill-opacity", 0.72)
+        map.setPaintProperty(layer.id, "fill-color", "#bbcfad")
+        map.setPaintProperty(layer.id, "fill-opacity", 0.78)
       } else if (id.includes("residential") || id.includes("landuse")) {
-        map.setPaintProperty(layer.id, "fill-color", "#e5d2b8")
+        map.setPaintProperty(layer.id, "fill-color", "#e9dfd1")
         map.setPaintProperty(layer.id, "fill-opacity", 0.72)
       } else if (id === "building") {
-        map.setPaintProperty(layer.id, "fill-color", "#d3b991")
-        map.setPaintProperty(layer.id, "fill-outline-color", "#b99569")
-        map.setPaintProperty(layer.id, "fill-opacity", 0.28)
+        map.setPaintProperty(layer.id, "fill-color", "#c8b69f")
+        map.setPaintProperty(layer.id, "fill-outline-color", "#a3907b")
+        map.setPaintProperty(layer.id, "fill-opacity", 0.34)
       } else if (id.includes("pier")) {
-        map.setPaintProperty(layer.id, "fill-color", "#ead8bf")
+        map.setPaintProperty(layer.id, "fill-color", "#e5d7c7")
       }
       return
     }
 
     if (layer.type === "line") {
       if (id.includes("waterway")) {
-        map.setPaintProperty(layer.id, "line-color", "#789796")
+        map.setPaintProperty(layer.id, "line-color", "#5e9299")
       } else if (id.includes("casing")) {
-        map.setPaintProperty(layer.id, "line-color", "#c09a69")
+        map.setPaintProperty(layer.id, "line-color", "#c8baa7")
       } else if (
         id.includes("highway") ||
         id.includes("road") ||
@@ -148,13 +150,13 @@ function applyTimelessMapStyle(map: MapLibreMap) {
           layer.id,
           "line-color",
           id.includes("major") || id.includes("motorway")
-            ? "#f8eddb"
-            : "#e8d4b8",
+            ? "#fffaf2"
+            : "#f5eadb",
         )
       } else if (id.includes("railway")) {
-        map.setPaintProperty(layer.id, "line-color", "#9b8064")
+        map.setPaintProperty(layer.id, "line-color", "#8d8277")
       } else if (id.includes("boundary")) {
-        map.setPaintProperty(layer.id, "line-color", "#a98054")
+        map.setPaintProperty(layer.id, "line-color", "#897565")
       }
       return
     }
@@ -174,10 +176,10 @@ function applyTimelessMapStyle(map: MapLibreMap) {
       map.setPaintProperty(
         layer.id,
         "text-color",
-        isWaterLabel ? "#496f70" : isMajorPlace ? "#35261b" : "#6b5743",
+        isWaterLabel ? "#356d73" : isMajorPlace ? "#25201c" : "#675d52",
       )
-      map.setPaintProperty(layer.id, "text-halo-color", "#f6ead8")
-      map.setPaintProperty(layer.id, "text-halo-width", 1.25)
+      map.setPaintProperty(layer.id, "text-halo-color", "#f5efe7")
+      map.setPaintProperty(layer.id, "text-halo-width", 1.35)
       map.setPaintProperty(layer.id, "text-halo-blur", 0.35)
     }
   })
@@ -198,9 +200,9 @@ function applyTimelessMapStyle(map: MapLibreMap) {
             ["linear"],
             ["zoom"],
             14,
-            "#d8c19e",
+            "#cdbda9",
             17,
-            "#c9a777",
+            "#b4a08a",
           ],
           "fill-extrusion-height": [
             "interpolate",
@@ -221,7 +223,7 @@ function applyTimelessMapStyle(map: MapLibreMap) {
             ["get", "render_min_height"],
             0,
           ],
-          "fill-extrusion-opacity": 0.78,
+          "fill-extrusion-opacity": 0.66,
           "fill-extrusion-vertical-gradient": true,
         },
       },
@@ -237,7 +239,10 @@ export function MalagaCenterMap({
   const { language, t } = useLanguage()
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
+  const geolocateControlRef = useRef<GeolocateControl | null>(null)
   const markersRef = useRef<Map<string, Marker>>(new Map())
+  const selectedPoiIdRef = useRef<string | null>(null)
+  const filteredPoiIdsRef = useRef<Set<string>>(new Set())
   const localizedPois = useMemo(
     () => malagaCenterPois.map((poi) => getLocalizedPoi(poi, language)),
     [language],
@@ -251,23 +256,51 @@ export function MalagaCenterMap({
       ? (availablePois[0]?.id ?? null)
       : null,
   )
+  const [activeFilter, setActiveFilter] = useState<PoiFilter>("all")
   const [query, setQuery] = useState("")
   const [mapReady, setMapReady] = useState(false)
   const [mapError, setMapError] = useState(false)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [geolocationIssue, setGeolocationIssue] = useState<
     "insecure" | "denied" | "unavailable" | null
   >(null)
 
   const selectedPoi =
-    availablePois.find((poi) => poi.id === selectedPoiId) ?? null
-  const filteredPois = availablePois.filter((poi) => {
+    localizedPois.find((poi) => poi.id === selectedPoiId) ?? null
+  const filteredPois = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase(language)
-    if (!normalizedQuery) return true
 
-    return [poi.title, poi.period, poi.locationLabel].some((value) =>
-      value.toLocaleLowerCase(language).includes(normalizedQuery),
-    )
-  })
+    return localizedPois.filter((poi) => {
+      const matchesFilter =
+        activeFilter === "all" ||
+        (activeFilter === "available" && poi.status === "available") ||
+        (activeFilter === "future" && poi.status === "coming-soon")
+
+      if (!matchesFilter) return false
+      if (!normalizedQuery) return true
+
+      return [poi.title, poi.period, poi.locationLabel].some((value) =>
+        value.toLocaleLowerCase(language).includes(normalizedQuery),
+      )
+    })
+  }, [activeFilter, language, localizedPois, query])
+  const filteredPoiIds = useMemo(
+    () => new Set(filteredPois.map((poi) => poi.id)),
+    [filteredPois],
+  )
+  const availableCount = localizedPois.filter(
+    (poi) => poi.status === "available",
+  ).length
+  const futureCount = localizedPois.length - availableCount
+  const selectedDistance =
+    selectedPoi && userLocation
+      ? formatDistance(getDistanceInMeters(userLocation, selectedPoi), language)
+      : null
+  const selectedCategory = selectedPoi
+    ? getPoiCategoryLabel(selectedPoi, language)
+    : null
+  selectedPoiIdRef.current = selectedPoiId
+  filteredPoiIdsRef.current = filteredPoiIds
 
   useEffect(() => {
     let cancelled = false
@@ -311,9 +344,16 @@ export function MalagaCenterMap({
           showUserLocation: true,
           showAccuracyCircle: true,
         })
+        geolocateControlRef.current = geolocateControl
 
         map.addControl(geolocateControl, "bottom-right")
-        geolocateControl.on("geolocate", () => setGeolocationIssue(null))
+        geolocateControl.on("geolocate", (event) => {
+          setGeolocationIssue(null)
+          setUserLocation({
+            latitude: event.coords.latitude,
+            longitude: event.coords.longitude,
+          })
+        })
         geolocateControl.on("error", (event) => {
           const error = "error" in event ? event.error : null
           setGeolocationIssue(error?.code === 1 ? "denied" : "unavailable")
@@ -331,19 +371,25 @@ export function MalagaCenterMap({
           attribution?.classList.remove("maplibregl-compact-show")
         }
 
-        availablePois.forEach((poi) => {
+        localizedPois.forEach((poi) => {
           const markerButton = document.createElement("button")
           markerButton.type = "button"
           markerButton.className = "timeless-map-marker"
+          markerButton.dataset.kind = getPoiKind(poi)
           markerButton.dataset.status = poi.status
-          markerButton.dataset.selected = String(poi.id === selectedPoiId)
+          markerButton.dataset.selected = String(
+            poi.id === selectedPoiIdRef.current,
+          )
+          markerButton.dataset.visible = String(
+            filteredPoiIdsRef.current.has(poi.id),
+          )
           markerButton.setAttribute("aria-label", `${t("selectPoi")} ${poi.title}`)
           markerButton.innerHTML = `
-            <span class="timeless-map-marker__shadow"></span>
-            <span class="timeless-map-marker__tap-pulse"></span>
-            <span class="timeless-map-marker__badge">
-              ${getPoiMarkerIcon(poi.id)}
+            <span class="timeless-map-marker__halo"></span>
+            <span class="timeless-map-marker__pin">
+              <span class="timeless-map-marker__dot"></span>
             </span>
+            <span class="timeless-map-marker__stem"></span>
             <span class="timeless-map-marker__label">${poi.title}</span>
           `
           markerButton.addEventListener("click", () => {
@@ -396,14 +442,17 @@ export function MalagaCenterMap({
       markersRef.current.clear()
       mapRef.current?.remove()
       mapRef.current = null
+      geolocateControlRef.current = null
     }
-  }, [availablePois, embedded, fullscreen, language, t])
+  }, [embedded, fullscreen, language, localizedPois, t])
 
   useEffect(() => {
     markersRef.current.forEach((marker, poiId) => {
-      marker.getElement().dataset.selected = String(poiId === selectedPoiId)
+      const element = marker.getElement()
+      element.dataset.selected = String(poiId === selectedPoiId)
+      element.dataset.visible = String(filteredPoiIds.has(poiId))
     })
-  }, [selectedPoiId])
+  }, [filteredPoiIds, selectedPoiId])
 
   useEffect(() => {
     const container = mapContainerRef.current
@@ -436,8 +485,19 @@ export function MalagaCenterMap({
     })
   }
 
+  function retryGeolocation() {
+    if (!window.isSecureContext) {
+      setGeolocationIssue("insecure")
+      return
+    }
+
+    geolocateControlRef.current?.trigger()
+  }
+
   function resetView() {
     setSelectedPoiId(null)
+    setActiveFilter("all")
+    setQuery("")
     mapRef.current?.flyTo({
       center: MALAGA_CENTER,
       zoom: fullscreen ? 14.8 : embedded ? 14.25 : 14.65,
@@ -445,6 +505,16 @@ export function MalagaCenterMap({
       duration: 850,
     })
   }
+
+  const filterOptions: Array<{
+    id: PoiFilter
+    label: string
+    count: number
+  }> = [
+    { id: "all", label: t("allPlaces"), count: localizedPois.length },
+    { id: "available", label: t("respawnAvailable"), count: availableCount },
+    { id: "future", label: t("futureScene"), count: futureCount },
+  ]
 
   return (
     <section
@@ -488,151 +558,287 @@ export function MalagaCenterMap({
         </div>
       )}
 
-      <div className="absolute left-3 right-3 top-3 z-20 flex items-start gap-2 sm:left-4 sm:right-auto sm:top-4 sm:w-[24rem]">
-        <div className="min-w-0 flex-1 rounded-[1.4rem] border border-white/70 bg-[#f8efe1]/92 p-2 shadow-[0_12px_36px_rgba(42,29,18,0.18)] backdrop-blur-xl">
-          <div className="flex items-center gap-2 px-2">
-            <Search className="h-4 w-4 shrink-0 text-[#9a6a2c]" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t("searchPlaces")}
-              className="h-10 min-w-0 flex-1 bg-transparent text-sm text-[#241b12] outline-none placeholder:text-[#7b6a58]/70"
-              suppressHydrationWarning
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="grid h-8 w-8 place-items-center rounded-full text-[#6d5841] hover:bg-black/5"
-                aria-label={t("clearSearch")}
-              >
-                <X className="h-4 w-4" />
-              </button>
+      <div className="absolute left-3 right-3 top-3 z-20 sm:left-4 sm:right-auto sm:top-4 sm:w-[25rem]">
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1 overflow-hidden rounded-2xl border border-white/75 bg-[#fbf7ef]/95 shadow-[0_16px_42px_rgba(38,31,24,0.16)] backdrop-blur-xl">
+            <div className="flex items-center gap-2 border-b border-[#2c2118]/10 px-3 py-2">
+              <Search className="h-4 w-4 shrink-0 text-[#7a5330]" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t("searchPlaces")}
+                className="h-9 min-w-0 flex-1 bg-transparent text-sm font-medium text-[#25201c] outline-none placeholder:text-[#6d6257]/70"
+                suppressHydrationWarning
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[#66594c] transition-colors hover:bg-[#2c2118]/7"
+                  aria-label={t("clearSearch")}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-1.5 overflow-x-auto px-2.5 py-2">
+              {filterOptions.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setActiveFilter(option.id)}
+                  className={cn(
+                    "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.08em] transition-colors",
+                    activeFilter === option.id
+                      ? "bg-[#25201c] text-[#fbf7ef]"
+                      : "bg-[#ece2d4] text-[#66594c] hover:bg-[#dfd0bf]",
+                  )}
+                >
+                  {option.id === "all" ? (
+                    <MapPin className="h-3.5 w-3.5" />
+                  ) : option.id === "available" ? (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  ) : (
+                    <Clock className="h-3.5 w-3.5" />
+                  )}
+                  {option.label}
+                  <span className="text-[10px] opacity-70">{option.count}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="hidden grid-cols-3 border-t border-[#2c2118]/8 bg-white/35 text-center sm:grid">
+              <div className="px-2 py-2">
+                <span className="block text-sm font-bold text-[#25201c]">
+                  {localizedPois.length}
+                </span>
+                <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#74685d]">
+                  {t("allPlaces")}
+                </span>
+              </div>
+              <div className="border-x border-[#2c2118]/8 px-2 py-2">
+                <span className="block text-sm font-bold text-[#25201c]">
+                  {availableCount}
+                </span>
+                <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#74685d]">
+                  {t("availableScenes")}
+                </span>
+              </div>
+              <div className="px-2 py-2">
+                <span className="block text-sm font-bold text-[#25201c]">
+                  {futureCount}
+                </span>
+                <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#74685d]">
+                  {t("comingSoon")}
+                </span>
+              </div>
+            </div>
+
+            {(query || activeFilter !== "all") && (
+              <div className="max-h-60 overflow-y-auto border-t border-[#2c2118]/10 bg-[#fbf7ef]/80 p-2">
+                {filteredPois.length > 0 ? (
+                  filteredPois.map((poi) => {
+                    const distance = userLocation
+                      ? formatDistance(getDistanceInMeters(userLocation, poi), language)
+                      : null
+
+                    return (
+                      <button
+                        key={poi.id}
+                        type="button"
+                        onClick={() => selectPoi(poi)}
+                        className={cn(
+                          "flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-white/85",
+                          selectedPoiId === poi.id && "bg-white shadow-sm",
+                        )}
+                      >
+                        <span
+                          className="timeless-result-dot mt-0.5"
+                          data-kind={getPoiKind(poi)}
+                          data-status={poi.status}
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span className="truncate text-xs font-bold text-[#25201c]">
+                              {poi.title}
+                            </span>
+                            <span className="shrink-0 rounded-full bg-[#25201c]/7 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[#6a5c50]">
+                              {getPoiCategoryLabel(poi, language)}
+                            </span>
+                          </span>
+                          <span className="mt-0.5 block truncate text-[10px] text-[#75685b]">
+                            {distance ? `${distance} · ${poi.period}` : poi.period}
+                          </span>
+                        </span>
+                      </button>
+                    )
+                  })
+                ) : (
+                  <p className="px-3 py-5 text-center text-xs text-[#74685d]">
+                    {t("noPlacesFound")}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
-          {query && (
-            <div className="mt-2 max-h-56 overflow-y-auto border-t border-black/8 pt-2">
-              {filteredPois.length > 0 ? (
-                filteredPois.map((poi) => (
-                  <button
-                    key={poi.id}
-                    type="button"
-                    onClick={() => selectPoi(poi)}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left hover:bg-white/70"
-                  >
-                    <span
-                      className={cn(
-                        "grid h-8 w-8 shrink-0 place-items-center rounded-full",
-                        poi.status === "available"
-                          ? "bg-[#9a6a2c] text-white"
-                          : "bg-black/7 text-[#6d5841]",
-                      )}
-                    >
-                      {poi.status === "available" ? (
-                        <Sparkles className="h-3.5 w-3.5" />
-                      ) : (
-                        <MapPin className="h-3.5 w-3.5" />
-                      )}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-xs font-bold text-[#241b12]">
-                        {poi.title}
-                      </span>
-                      <span className="mt-0.5 block truncate text-[10px] text-[#7b6a58]">
-                        {poi.period}
-                      </span>
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <p className="px-3 py-4 text-center text-xs text-[#7b6a58]">
-                  {t("noPlacesFound")}
-                </p>
-              )}
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={resetView}
+            className={cn(
+              "grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/75 bg-[#fbf7ef]/95 text-[#4f4439] shadow-[0_16px_42px_rgba(38,31,24,0.16)] backdrop-blur-xl transition-all duration-300 hover:bg-white",
+              selectedPoi && "sm:translate-x-1 sm:opacity-80",
+            )}
+            aria-label={t("centerMap")}
+            title={t("centerMap")}
+          >
+            <LocateFixed className="h-5 w-5" />
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={resetView}
-          className={cn(
-            "grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/70 bg-[#f8efe1]/92 text-[#6f4a1f] shadow-[0_12px_36px_rgba(42,29,18,0.18)] backdrop-blur-xl transition-all duration-300",
-            selectedPoi && "pointer-events-none translate-y-2 opacity-0",
-          )}
-          aria-label={t("centerMap")}
-          title={t("centerMap")}
-        >
-          <LocateFixed className="h-5 w-5" />
-        </button>
       </div>
 
       {geolocationIssue && (
-        <div className="absolute left-3 right-3 top-[9.5rem] z-20 rounded-2xl border border-[#9a6a2c]/20 bg-[#f8efe1]/94 px-4 py-3 text-xs leading-5 text-[#5f4b37] shadow-[0_10px_30px_rgba(42,29,18,0.14)] backdrop-blur-xl sm:left-4 sm:right-auto sm:top-[9.5rem] sm:w-[20rem]">
-          {geolocationIssue === "insecure"
-            ? t("geolocationNeedsHttps")
-            : geolocationIssue === "denied"
-              ? t("geolocationDenied")
-              : t("geolocationUnavailable")}
+        <div className="absolute left-3 right-3 top-[13.75rem] z-20 rounded-2xl border border-[#8a6239]/20 bg-[#fbf7ef]/96 p-3 text-xs leading-5 text-[#5d5145] shadow-[0_12px_34px_rgba(38,31,24,0.14)] backdrop-blur-xl sm:left-4 sm:right-auto sm:top-[15.4rem] sm:w-[22rem]">
+          <p>
+            {geolocationIssue === "insecure"
+              ? t("geolocationNeedsHttps")
+              : geolocationIssue === "denied"
+                ? t("geolocationDenied")
+                : t("geolocationUnavailable")}
+          </p>
+          {geolocationIssue !== "insecure" && (
+            <button
+              type="button"
+              onClick={retryGeolocation}
+              className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#25201c] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#fbf7ef]"
+            >
+              <Navigation className="h-3.5 w-3.5" />
+              {t("retry")}
+            </button>
+          )}
         </div>
       )}
 
       {selectedPoi && (
-        <article
-          className="timeless-poi-sheet absolute inset-x-0 bottom-0 z-30 max-h-[52dvh] overflow-y-auto rounded-t-[1.75rem] border-x-0 border-b-0 border-t border-white/15 bg-[#241b12]/97 text-[#f7ead6] shadow-[0_-24px_70px_rgba(25,16,10,0.38)] backdrop-blur-xl"
-        >
-          <div className="absolute left-1/2 top-2 z-20 h-1 w-10 -translate-x-1/2 rounded-full bg-white/30" />
+        <article className="timeless-poi-sheet absolute inset-x-3 bottom-3 z-30 max-h-[64dvh] overflow-y-auto rounded-2xl border border-white/14 bg-[#1f1a16]/97 text-[#fbf3e8] shadow-[0_22px_70px_rgba(18,14,10,0.36)] backdrop-blur-xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-20 sm:w-[25rem] sm:max-h-none">
+          <div className="absolute left-1/2 top-2 z-20 h-1 w-10 -translate-x-1/2 rounded-full bg-white/25 sm:hidden" />
 
           <button
             type="button"
             onClick={() => setSelectedPoiId(null)}
-            className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-black/25 text-white backdrop-blur-md"
+            className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border border-white/14 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-black/45"
             aria-label={t("closeHistoricalPoint")}
           >
             <X className="h-4 w-4" />
           </button>
 
-          <div
-            className={cn(
-              selectedPoi.previewImage &&
-                "sm:grid sm:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]",
-            )}
-          >
-            {selectedPoi.previewImage && (
-              <div className="relative aspect-[16/7] overflow-hidden sm:aspect-auto sm:min-h-[13rem]">
-                <img
-                  src={selectedPoi.previewImage}
-                  alt={selectedPoi.title}
-                  className="h-full w-full object-cover"
-                  draggable={false}
+          {selectedPoi.previewImage && (
+            <div className="relative aspect-[16/9] overflow-hidden rounded-t-2xl">
+              <img
+                src={selectedPoi.previewImage}
+                alt={selectedPoi.title}
+                className="h-full w-full object-cover"
+                draggable={false}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1f1a16] via-transparent to-black/15" />
+            </div>
+          )}
+
+          <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
+            <div className="flex flex-wrap items-center gap-2 pr-10">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/8 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/74">
+                <span
+                  className="timeless-result-dot"
+                  data-kind={getPoiKind(selectedPoi)}
+                  data-status={selectedPoi.status}
+                  aria-hidden="true"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#241b12] via-transparent to-black/15 sm:bg-gradient-to-r sm:from-transparent sm:to-[#241b12]/35" />
+                {selectedCategory}
+              </span>
+              <span className="rounded-full border border-white/12 bg-white/8 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/74">
+                {selectedPoi.status === "available"
+                  ? t("available")
+                  : t("comingSoon")}
+              </span>
+            </div>
+
+            <h3 className="mt-3 pr-10 font-serif text-2xl font-light leading-none tracking-[-0.04em] sm:text-3xl">
+              {selectedPoi.title}
+            </h3>
+
+            <p className="mt-3 text-sm leading-6 text-[#fbf3e8]/72">
+              {selectedPoi.shortDescription}
+            </p>
+
+            <div className="mt-4 grid gap-3 border-y border-white/10 py-4 text-sm">
+              <div className="flex gap-3">
+                <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#d5a866]" />
+                <span className="min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-white/42">
+                    {t("historicalPoint")}
+                  </span>
+                  <span className="mt-0.5 block text-[#fbf3e8]/82">
+                    {selectedPoi.period}
+                  </span>
+                </span>
               </div>
-            )}
+              <div className="flex gap-3">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#d5a866]" />
+                <span className="min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-white/42">
+                    {t("exactPoint")}
+                  </span>
+                  <span className="mt-0.5 block text-[#fbf3e8]/82">
+                    {selectedPoi.locationLabel}
+                  </span>
+                </span>
+              </div>
+              {selectedDistance && (
+                <div className="flex gap-3">
+                  <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-[#d5a866]" />
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-white/42">
+                      {t("distanceFromYou")}
+                    </span>
+                    <span className="mt-0.5 block text-[#fbf3e8]/82">
+                      {selectedDistance}
+                    </span>
+                  </span>
+                </div>
+              )}
+            </div>
 
-            <div className="flex flex-col justify-center p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-7">
-              <h3 className="pr-10 font-serif text-2xl font-light leading-none tracking-[-0.045em] sm:text-3xl">
-                {selectedPoi.title}
-              </h3>
-
+            <div className="mt-4 grid gap-2">
               {selectedPoi.status === "available" && selectedPoi.sceneId ? (
                 <Link
                   href={`/scene/${selectedPoi.sceneId}`}
                   onClick={() => {
                     void requestAppFullscreen()
                   }}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#f7ead6] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[#241b12] sm:mt-5 sm:py-3.5"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#fbf3e8] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[#1f1a16] transition-opacity active:opacity-80"
                 >
-                  {t("respawnHere")}
+                  {t("openViewer")}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               ) : (
-                <div className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45 sm:mt-5 sm:py-3.5">
+                <div className="flex w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/7 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/48">
                   <Clock className="h-4 w-4" />
                   {t("sceneInDevelopment")}
                 </div>
               )}
+
+              <a
+                href={getDirectionsHref(selectedPoi)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/7 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[#fbf3e8] transition-colors hover:bg-white/12"
+              >
+                <Navigation className="h-4 w-4" />
+                {t("howToArrive")}
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
             </div>
           </div>
         </article>

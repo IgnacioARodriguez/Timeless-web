@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import * as THREE from "three"
 import { LoadingState } from "@/components/viewer/loading-state"
 import { ViewerErrorState } from "@/components/viewer/error-state"
@@ -93,7 +94,7 @@ function createEdgeFadeMaterial(texture: THREE.Texture, videoAspect: number = 16
   const fadeShapeX = 0.85 + (1 - Math.min(aspectRatio / 3, 1)) * 0.1
   const fadePower = 2.5 + Math.min(aspectRatio, 2) * 0.3
 
-  material.onBeforeCompile = (shader) => {
+  material.onBeforeCompile = (shader: any) => {
     shader.vertexShader = shader.vertexShader
       .replace(
         "#include <common>",
@@ -194,6 +195,7 @@ export function Viewer180({
   const { t } = useLanguage()
   const isImage = scene.media.type === "image"
   const isVideo = scene.media.type === "video"
+  const videoMedia = isVideo ? (scene.media as SceneVideoMedia) : null
 
   const [gyroEnabled, setGyroEnabled] = useState(motionEnabled)
   const [isLoading, setIsLoading] = useState(true)
@@ -201,8 +203,11 @@ export function Viewer180({
   const [hasError, setHasError] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [isPlaying, setIsPlaying] = useState(isImage)
-  const [isMuted, setIsMuted] = useState(isVideo ? scene.media.muted : false)
+  const [isMuted, setIsMuted] = useState(videoMedia?.muted ?? false)
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null)
+  const [visitedHotspotIds, setVisitedHotspotIds] = useState<Set<string>>(
+    () => new Set()
+  )
   const [hotspotPositions, setHotspotPositions] = useState<
     HotspotScreenPosition[]
   >([])
@@ -210,6 +215,10 @@ export function Viewer180({
   const hotspots = useMemo(() => scene.hotspots ?? [], [scene.hotspots])
   const activeHotspot = useMemo(
     () => hotspots.find((hotspot) => hotspot.id === activeHotspotId) ?? null,
+    [hotspots, activeHotspotId]
+  )
+  const activeHotspotIndex = useMemo(
+    () => hotspots.findIndex((hotspot) => hotspot.id === activeHotspotId),
     [hotspots, activeHotspotId]
   )
   const activeHotspotPosition = useMemo(
@@ -284,6 +293,7 @@ export function Viewer180({
 
   useEffect(() => {
     setActiveHotspotId(null)
+    setVisitedHotspotIds(new Set())
     setHotspotPositions([])
     smoothedHotspotPositionsRef.current.clear()
     lastHotspotPositionsRef.current = []
@@ -296,6 +306,41 @@ export function Viewer180({
     }
     setIsAmbientAudioPlaying(false)
   }, [scene.id])
+
+  const openHotspot = useCallback((hotspotId: string) => {
+    setActiveHotspotId(hotspotId)
+    setVisitedHotspotIds((current) => {
+      if (current.has(hotspotId)) return current
+      const next = new Set(current)
+      next.add(hotspotId)
+      return next
+    })
+  }, [])
+
+  const toggleHotspot = useCallback(
+    (hotspotId: string) => {
+      if (activeHotspotId === hotspotId) {
+        setActiveHotspotId(null)
+        return
+      }
+
+      openHotspot(hotspotId)
+    },
+    [activeHotspotId, openHotspot]
+  )
+
+  const openRelativeHotspot = useCallback(
+    (direction: -1 | 1) => {
+      if (hotspots.length === 0) return
+
+      const currentIndex = activeHotspotIndex >= 0 ? activeHotspotIndex : 0
+      const nextIndex =
+        (currentIndex + direction + hotspots.length) % hotspots.length
+
+      openHotspot(hotspots[nextIndex].id)
+    },
+    [activeHotspotIndex, hotspots, openHotspot]
+  )
 
   useEffect(() => {
     const audio = ambientAudioRef.current
@@ -334,24 +379,6 @@ export function Viewer180({
       })
   }, [ambientAudio, autoStartAmbientAudio, hasAmbientAudio, hasError, isAmbientAudioPlaying, isEntered])
 
-
-  useEffect(() => {
-    const onChange = () => {
-      console.log("fullscreenElement:", document.fullscreenElement)
-    }
-
-    const onError = () => {
-      console.error("fullscreenerror fired")
-    }
-
-    document.addEventListener("fullscreenchange", onChange)
-    document.addEventListener("fullscreenerror", onError)
-
-    return () => {
-      document.removeEventListener("fullscreenchange", onChange)
-      document.removeEventListener("fullscreenerror", onError)
-    }
-  }, [])
 
   // Gyro relativo limitado al eje horizontal. El pitch solo cambia con drag.
   useEffect(() => {
@@ -542,7 +569,7 @@ export function Viewer180({
 
       loader.load(
         scene.media.src,
-        (texture) => {
+        (texture: THREE.Texture) => {
           createMesh(texture)
         },
         undefined,
@@ -895,6 +922,19 @@ export function Viewer180({
       .catch(() => setIsPlaying(false))
   }, [isVideo])
 
+  const resetView = useCallback(() => {
+    const nextYaw = scene.camera.initialYaw + calibrationYaw
+    const nextPitch = scene.camera.initialPitch + calibrationPitch
+
+    yawRef.current = nextYaw
+    pitchRef.current = nextPitch
+    targetYawRef.current = nextYaw
+    targetPitchRef.current = nextPitch
+    motionAnchorYawRef.current = nextYaw
+    baselineDeviceQuaternionRef.current = null
+    setActiveHotspotId(null)
+  }, [calibrationPitch, calibrationYaw, scene.camera.initialPitch, scene.camera.initialYaw])
+
   const toggleAmbientAudio = useCallback(() => {
     const audio = ambientAudioRef.current
     if (!audio || !ambientAudio) return
@@ -922,19 +962,14 @@ export function Viewer180({
     try {
       if (el.requestFullscreen) {
         await el.requestFullscreen()
-        console.log("Document fullscreen entered")
         return
       }
 
       if (el.webkitRequestFullscreen) {
         await el.webkitRequestFullscreen()
-        console.log("Document fullscreen entered via webkit")
-        return
       }
-
-      console.error("Fullscreen API not available")
     } catch (err) {
-      console.error("Fullscreen request failed:", err)
+      // Fullscreen is an enhancement; unsupported browsers keep normal chrome.
     }
   }, [])
 
@@ -1033,9 +1068,7 @@ isVideo ? t("videoLoadError") : t("imageLoadError")
                 onPointerUp={(event) => event.stopPropagation()}
                 onClick={(event) => {
                   event.stopPropagation()
-                  setActiveHotspotId((current) =>
-                    current === hotspot.id ? null : hotspot.id
-                  )
+                  toggleHotspot(hotspot.id)
                 }}
               >
                 <span className="relative flex flex-col items-center pt-7">
@@ -1133,11 +1166,11 @@ isVideo ? t("videoLoadError") : t("imageLoadError")
             </div>
             <button
               type="button"
-              className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-white/60 active:opacity-60"
+              className="grid h-8 w-8 place-items-center rounded-full border border-white/10 text-white/60 active:opacity-60"
               aria-label={t("closeHistoricalPoint")}
               onClick={() => setActiveHotspotId(null)}
             >
-              ×
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
 
@@ -1156,6 +1189,52 @@ isVideo ? t("videoLoadError") : t("imageLoadError")
                 controls
                 preload="none"
               />
+            </div>
+          )}
+
+          {hotspots.length > 1 && activeHotspotIndex >= 0 && (
+            <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
+              <div className="flex items-center gap-1.5" aria-hidden="true">
+                {hotspots.map((hotspot, index) => {
+                  const isActive = index === activeHotspotIndex
+                  const isVisited = visitedHotspotIds.has(hotspot.id)
+
+                  return (
+                    <span
+                      key={hotspot.id}
+                      className={`h-1.5 rounded-full transition-all ${
+                        isActive
+                          ? "w-5 bg-white/85"
+                          : isVisited
+                            ? "w-1.5 bg-white/45"
+                            : "w-1.5 bg-white/18"
+                      }`}
+                    />
+                  )
+                })}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="min-w-8 text-center text-[10px] font-medium text-white/45">
+                  {activeHotspotIndex + 1}/{hotspots.length}
+                </span>
+                <button
+                  type="button"
+                  className="grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-white/5 text-white/65 active:opacity-60"
+                  aria-label={t("previousPoint")}
+                  onClick={() => openRelativeHotspot(-1)}
+                >
+                  <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className="grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-white/5 text-white/75 active:opacity-60"
+                  aria-label={t("nextPoint")}
+                  onClick={() => openRelativeHotspot(1)}
+                >
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -1200,6 +1279,7 @@ isVideo ? t("videoLoadError") : t("imageLoadError")
             gyroEnabled={gyroEnabled}
             onToggleMute={isVideo ? toggleMute : toggleAmbientAudio}
             onReplay={replay}
+            onResetView={resetView}
             onToggleHelp={() => setShowHelp((s) => !s)}
             onRequestFullscreen={requestFullscreen}
             supportsFullscreen={supportsFullscreen}
@@ -1208,6 +1288,9 @@ isVideo ? t("videoLoadError") : t("imageLoadError")
             muteLabel={isVideo ? t("mute") : t("soundOff")}
             unmuteLabel={isVideo ? t("unmute") : t("soundOn")}
             replayLabel={t("replay")}
+            resetViewLabel={t("resetView")}
+            helpLabel={t("help")}
+            fullscreenLabel={t("fullscreen")}
           />
         </>
       )}
