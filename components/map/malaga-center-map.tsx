@@ -53,6 +53,66 @@ function getPoiKind(poi: MapPoi): PoiKind {
   return "civic"
 }
 
+function getPoiMarkerSvg(kind: PoiKind) {
+  const common = `
+    <ellipse class="poi-ink poi-shadow" cx="32" cy="52" rx="19" ry="7" />
+    <path class="poi-paper" d="M12 44 32 32l20 12-20 12-20-12Z" />
+  `
+
+  const icons: Record<PoiKind, string> = {
+    wall: `
+      ${common}
+      <path class="poi-mid" d="M17 27 32 18l15 9v18l-15 9-15-9V27Z" />
+      <path class="poi-dark" d="M32 18v36l15-9V27L32 18Z" />
+      <path class="poi-light" d="M17 27 32 18v36l-15-9V27Z" />
+      <path class="poi-cut" d="M20 24h5v-6h5v6h5v-6h5v6h4v5H20v-5Z" />
+      <path class="poi-line" d="M22 34h20M22 40h20M28 32v17M36 32v17" />
+      <path class="poi-hole" d="M29 41c0-3 6-3 6 0v9h-6v-9Z" />
+    `,
+    market: `
+      ${common}
+      <path class="poi-mid" d="M14 35 32 23l18 12v12L32 57 14 47V35Z" />
+      <path class="poi-dark" d="M32 23v34l18-10V35L32 23Z" />
+      <path class="poi-light" d="M14 35 32 23v34L14 47V35Z" />
+      <path class="poi-cut" d="M19 35c5-9 21-9 26 0v4H19v-4Z" />
+      <path class="poi-paper" d="M23 39c0-6 18-6 18 0v11H23V39Z" />
+      <path class="poi-hole" d="M27 41c0-4 10-4 10 0v10H27V41Z" />
+      <path class="poi-line" d="M19 35h26M23 30h18M17 47l15 8 15-8" />
+    `,
+    theatre: `
+      ${common}
+      <path class="poi-mid" d="M13 43c3-14 35-14 38 0L32 56 13 43Z" />
+      <path class="poi-dark" d="M32 31c10 0 18 4 19 12L32 56V31Z" />
+      <path class="poi-light" d="M13 43c1-8 9-12 19-12v25L13 43Z" />
+      <path class="poi-line" d="M20 42c2-7 22-7 24 0M24 46c2-4 14-4 16 0M32 32v23M16 44l16 10 16-10" />
+      <path class="poi-cut" d="M27 40h10v5H27z" />
+    `,
+    street: `
+      ${common}
+      <path class="poi-mid" d="M16 45 32 22l16 23-16 11-16-11Z" />
+      <path class="poi-light" d="M20 43 32 27v29L20 43Z" />
+      <path class="poi-dark" d="M32 27 44 43 32 56V27Z" />
+      <path class="poi-paper" d="M29 30h6l3 21-6 4-6-4 3-21Z" />
+      <path class="poi-line" d="M24 39h16M21 44h22M18 49h28M32 31v23" />
+      <path class="poi-cut" d="M19 32h6v9h-6zM39 32h6v9h-6z" />
+    `,
+    civic: `
+      ${common}
+      <path class="poi-mid" d="M16 38 32 24l16 14v11L32 57 16 49V38Z" />
+      <path class="poi-dark" d="M32 24v33l16-8V38L32 24Z" />
+      <path class="poi-light" d="M16 38 32 24v33l-16-8V38Z" />
+      <path class="poi-cut" d="M32 29 36 38l9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1 4-9Z" />
+      <path class="poi-line" d="M18 48 32 55l14-7M22 38l10-8 10 8" />
+    `,
+  }
+
+  return `
+    <svg class="timeless-map-marker__icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      ${icons[kind]}
+    </svg>
+  `
+}
+
 function getPoiCategoryLabel(poi: MapPoi, language: "es" | "en") {
   const kind = getPoiKind(poi)
 
@@ -112,35 +172,37 @@ function applyTimelessMapStyle(map: MapLibreMap) {
     const id = layer.id.toLowerCase()
 
     if (layer.type === "background") {
-      map.setPaintProperty(layer.id, "background-color", "#f2eee6")
+      map.setPaintProperty(layer.id, "background-color", "#eee6d8")
       return
     }
 
     if (layer.type === "fill") {
       if (id.includes("water")) {
-        map.setPaintProperty(layer.id, "fill-color", "#79a7ad")
-        map.setPaintProperty(layer.id, "fill-opacity", 0.9)
+        map.setPaintProperty(layer.id, "fill-color", "#638c94")
+        map.setPaintProperty(layer.id, "fill-opacity", 0.86)
       } else if (id.includes("park") || id.includes("wood")) {
-        map.setPaintProperty(layer.id, "fill-color", "#bbcfad")
-        map.setPaintProperty(layer.id, "fill-opacity", 0.78)
+        map.setPaintProperty(layer.id, "fill-color", "#aab79b")
+        map.setPaintProperty(layer.id, "fill-opacity", 0.62)
       } else if (id.includes("residential") || id.includes("landuse")) {
-        map.setPaintProperty(layer.id, "fill-color", "#e9dfd1")
-        map.setPaintProperty(layer.id, "fill-opacity", 0.72)
+        map.setPaintProperty(layer.id, "fill-color", "#e6dac7")
+        map.setPaintProperty(layer.id, "fill-opacity", 0.48)
       } else if (id === "building") {
-        map.setPaintProperty(layer.id, "fill-color", "#c8b69f")
-        map.setPaintProperty(layer.id, "fill-outline-color", "#a3907b")
-        map.setPaintProperty(layer.id, "fill-opacity", 0.34)
+        map.setPaintProperty(layer.id, "fill-color", "#cdbca5")
+        map.setPaintProperty(layer.id, "fill-outline-color", "#b4a18a")
+        map.setPaintProperty(layer.id, "fill-opacity", 0.24)
       } else if (id.includes("pier")) {
-        map.setPaintProperty(layer.id, "fill-color", "#e5d7c7")
+        map.setPaintProperty(layer.id, "fill-color", "#ded0bc")
       }
       return
     }
 
     if (layer.type === "line") {
       if (id.includes("waterway")) {
-        map.setPaintProperty(layer.id, "line-color", "#5e9299")
+        map.setPaintProperty(layer.id, "line-color", "#47747b")
+        map.setPaintProperty(layer.id, "line-opacity", 0.54)
       } else if (id.includes("casing")) {
-        map.setPaintProperty(layer.id, "line-color", "#c8baa7")
+        map.setPaintProperty(layer.id, "line-color", "#c8b89f")
+        map.setPaintProperty(layer.id, "line-opacity", 0.42)
       } else if (
         id.includes("highway") ||
         id.includes("road") ||
@@ -150,23 +212,40 @@ function applyTimelessMapStyle(map: MapLibreMap) {
           layer.id,
           "line-color",
           id.includes("major") || id.includes("motorway")
-            ? "#fffaf2"
-            : "#f5eadb",
+            ? "#f5eadc"
+            : "#ded0bb",
+        )
+        map.setPaintProperty(
+          layer.id,
+          "line-opacity",
+          id.includes("path") || id.includes("minor") ? 0.54 : 0.72,
         )
       } else if (id.includes("railway")) {
-        map.setPaintProperty(layer.id, "line-color", "#8d8277")
+        map.setPaintProperty(layer.id, "line-color", "#8d8070")
+        map.setPaintProperty(layer.id, "line-opacity", 0.34)
       } else if (id.includes("boundary")) {
-        map.setPaintProperty(layer.id, "line-color", "#897565")
+        map.setPaintProperty(layer.id, "line-color", "#9a826a")
+        map.setPaintProperty(layer.id, "line-opacity", 0.24)
       }
       return
     }
 
     if (layer.type === "symbol" && layer.layout?.["text-field"]) {
       const isWaterLabel = id.includes("water")
+      const isPoiLabel =
+        id.includes("poi") ||
+        id.includes("place_of_worship") ||
+        id.includes("shop") ||
+        id.includes("housenumber")
       const isMajorPlace =
         id.includes("city") ||
         id.includes("country") ||
         id.includes("state")
+
+      if (isPoiLabel) {
+        map.setLayoutProperty(layer.id, "visibility", "none")
+        return
+      }
 
       map.setLayoutProperty(
         layer.id,
@@ -176,11 +255,12 @@ function applyTimelessMapStyle(map: MapLibreMap) {
       map.setPaintProperty(
         layer.id,
         "text-color",
-        isWaterLabel ? "#356d73" : isMajorPlace ? "#25201c" : "#675d52",
+        isWaterLabel ? "#315f66" : isMajorPlace ? "#2a2118" : "#75695d",
       )
-      map.setPaintProperty(layer.id, "text-halo-color", "#f5efe7")
-      map.setPaintProperty(layer.id, "text-halo-width", 1.35)
-      map.setPaintProperty(layer.id, "text-halo-blur", 0.35)
+      map.setPaintProperty(layer.id, "text-halo-color", "#f3ecdf")
+      map.setPaintProperty(layer.id, "text-halo-width", isMajorPlace ? 1.6 : 1.1)
+      map.setPaintProperty(layer.id, "text-halo-blur", 0.45)
+      map.setPaintProperty(layer.id, "text-opacity", isMajorPlace ? 0.86 : 0.58)
     }
   })
 
@@ -200,9 +280,9 @@ function applyTimelessMapStyle(map: MapLibreMap) {
             ["linear"],
             ["zoom"],
             14,
-            "#cdbda9",
+            "#c7b49a",
             17,
-            "#b4a08a",
+            "#a89278",
           ],
           "fill-extrusion-height": [
             "interpolate",
@@ -223,7 +303,7 @@ function applyTimelessMapStyle(map: MapLibreMap) {
             ["get", "render_min_height"],
             0,
           ],
-          "fill-extrusion-opacity": 0.66,
+          "fill-extrusion-opacity": 0.48,
           "fill-extrusion-vertical-gradient": true,
         },
       },
@@ -299,11 +379,18 @@ export function MalagaCenterMap({
   const selectedCategory = selectedPoi
     ? getPoiCategoryLabel(selectedPoi, language)
     : null
-  selectedPoiIdRef.current = selectedPoiId
-  filteredPoiIdsRef.current = filteredPoiIds
+
+  useEffect(() => {
+    selectedPoiIdRef.current = selectedPoiId
+  }, [selectedPoiId])
+
+  useEffect(() => {
+    filteredPoiIdsRef.current = filteredPoiIds
+  }, [filteredPoiIds])
 
   useEffect(() => {
     let cancelled = false
+    const markers = markersRef.current
 
     async function initializeMap() {
       if (!mapContainerRef.current || mapRef.current) return
@@ -317,7 +404,7 @@ export function MalagaCenterMap({
           style: "https://tiles.openfreemap.org/styles/positron",
           center: MALAGA_CENTER,
           zoom: fullscreen ? 14.8 : embedded ? 14.25 : 14.65,
-          pitch: fullscreen ? 42 : 34,
+          pitch: fullscreen ? 46 : 38,
           bearing: -12,
           minZoom: 11,
           maxZoom: 19,
@@ -372,10 +459,11 @@ export function MalagaCenterMap({
         }
 
         localizedPois.forEach((poi) => {
+          const kind = getPoiKind(poi)
           const markerButton = document.createElement("button")
           markerButton.type = "button"
           markerButton.className = "timeless-map-marker"
-          markerButton.dataset.kind = getPoiKind(poi)
+          markerButton.dataset.kind = kind
           markerButton.dataset.status = poi.status
           markerButton.dataset.selected = String(
             poi.id === selectedPoiIdRef.current,
@@ -386,12 +474,14 @@ export function MalagaCenterMap({
           markerButton.setAttribute("aria-label", `${t("selectPoi")} ${poi.title}`)
           markerButton.innerHTML = `
             <span class="timeless-map-marker__halo"></span>
-            <span class="timeless-map-marker__pin">
-              <span class="timeless-map-marker__dot"></span>
+            <span class="timeless-map-marker__badge">
+              ${getPoiMarkerSvg(kind)}
             </span>
-            <span class="timeless-map-marker__stem"></span>
-            <span class="timeless-map-marker__label">${poi.title}</span>
+            <span class="timeless-map-marker__pin"></span>
+            <span class="timeless-map-marker__label"></span>
           `
+          const label = markerButton.querySelector(".timeless-map-marker__label")
+          if (label) label.textContent = poi.title
           markerButton.addEventListener("click", () => {
             setSelectedPoiId(poi.id)
             map.flyTo({
@@ -412,7 +502,7 @@ export function MalagaCenterMap({
             .setLngLat(getPoiCoordinates(poi))
             .addTo(map)
 
-          markersRef.current.set(poi.id, marker)
+          markers.set(poi.id, marker)
         })
 
         map.on("load", () => {
@@ -439,7 +529,7 @@ export function MalagaCenterMap({
 
     return () => {
       cancelled = true
-      markersRef.current.clear()
+      markers.clear()
       mapRef.current?.remove()
       mapRef.current = null
       geolocateControlRef.current = null
@@ -531,7 +621,8 @@ export function MalagaCenterMap({
       <div className="absolute inset-0">
         <div ref={mapContainerRef} className="h-full w-full" />
       </div>
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(35,24,16,0.06),transparent_20%,transparent_80%,rgba(35,24,16,0.08))]" />
+      <div className="timeless-map-texture pointer-events-none absolute inset-0 z-[1]" />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(35,24,16,0.08),transparent_24%,transparent_76%,rgba(35,24,16,0.1))]" />
 
       {!mapReady && !mapError && (
         <div className="absolute inset-0 z-30 grid place-items-center bg-[#eee3d1]">
