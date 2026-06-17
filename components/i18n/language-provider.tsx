@@ -47,6 +47,7 @@ export const copy = {
       "Comprueba la conexión e inténtalo de nuevo para explorar los puntos Timeless.",
     searchPlaces: "Buscar lugares históricos",
     clearSearch: "Limpiar búsqueda",
+    toggleSceneList: "Mostrar escenas",
     allPlaces: "Todos",
     respawnAvailable: "Con escena",
     noPlacesFound: "No hay lugares que coincidan con la búsqueda.",
@@ -106,9 +107,13 @@ export const copy = {
     backToMalagaMap: "Volver al mapa de Málaga",
     backPrevious: "Volver a la vista anterior",
     beginExperience: "Comenzar la experiencia",
+    playIntro: "Reproducir intro",
+    playScene: "Reproducir escena",
     rotatePhoneTitle: "Gira el móvil",
     rotatePhoneMessage: "Coloca el teléfono en horizontal antes de comenzar la experiencia.",
     rotatePhoneAction: "Continuar",
+    rotateMapTitle: "Gira el dispositivo",
+    rotateMapMessage: "La entrada a la escena comenzará automáticamente.",
     permissionsRequired: "Al comenzar se activará el movimiento del dispositivo si está disponible",
     beforeStart: "Antes de empezar",
     permissionsTitle: "Acepta los permisos para iniciar la experiencia de cámara y movimiento",
@@ -163,6 +168,8 @@ export const copy = {
     available: "Disponible",
     comingSoon: "Próximamente",
     openViewer: "Entrar al visor 180°",
+    startScene: "Iniciar escena",
+    enteringScene: "Entrando en la escena",
     howToArrive: "Cómo llegar",
     distanceFromYou: "Distancia",
     exactPoint: "Punto de activación",
@@ -212,6 +219,7 @@ export const copy = {
       "Check your connection and try again to explore Timeless locations.",
     searchPlaces: "Search historic places",
     clearSearch: "Clear search",
+    toggleSceneList: "Show scenes",
     allPlaces: "All",
     respawnAvailable: "With scene",
     noPlacesFound: "No places match your search.",
@@ -271,9 +279,13 @@ export const copy = {
     backToMalagaMap: "Back to Málaga map",
     backPrevious: "Back to previous view",
     beginExperience: "Start experience",
+    playIntro: "Play intro",
+    playScene: "Play scene",
     rotatePhoneTitle: "Rotate your phone",
     rotatePhoneMessage: "Put your phone in landscape orientation before beginning the experience.",
     rotatePhoneAction: "Continue",
+    rotateMapTitle: "Rotate your device",
+    rotateMapMessage: "The scene entry will start automatically.",
     permissionsRequired: "Device motion will be enabled when available",
     beforeStart: "Before starting",
     permissionsTitle: "Accept permissions to start the camera and motion experience",
@@ -328,6 +340,8 @@ export const copy = {
     available: "Available",
     comingSoon: "Coming soon",
     openViewer: "Enter 180° viewer",
+    startScene: "Start scene",
+    enteringScene: "Entering scene",
     howToArrive: "How to get there",
     distanceFromYou: "Distance",
     exactPoint: "Activation point",
@@ -357,7 +371,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>("es")
 
   useEffect(() => {
-    setLanguageState(getInitialLanguage())
+    queueMicrotask(() => {
+      setLanguageState(getInitialLanguage())
+    })
   }, [])
 
   useEffect(() => {

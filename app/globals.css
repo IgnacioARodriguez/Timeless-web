@@ -360,6 +360,279 @@
   transform: translate3d(0, 0.75rem, 0);
 }
 
+.timeless-map--transitioning {
+  cursor: wait;
+}
+
+.timeless-map--transitioning .timeless-map-marker,
+.timeless-map--transitioning .maplibregl-ctrl,
+.timeless-map--transitioning .timeless-poi-sheet {
+  pointer-events: none;
+}
+
+.timeless-map--transitioning .maplibregl-canvas {
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.timeless-map--transitioning .timeless-poi-sheet {
+  animation: timeless-poi-sheet-exit 360ms ease-out both;
+}
+
+.timeless-orientation-gate {
+  background:
+    radial-gradient(circle at 50% 45%, rgb(255 246 229 / 0.08), transparent 32%),
+    rgb(0 0 0 / 0.72);
+  color: rgb(255 248 236 / 0.92);
+  backdrop-filter: blur(10px);
+  animation: timeless-orientation-gate-in 260ms ease-out both;
+}
+
+.timeless-orientation-gate__panel {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  max-width: 18rem;
+  text-align: center;
+}
+
+.timeless-orientation-gate__close {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.36);
+  color: rgb(255 248 236 / 0.82);
+  backdrop-filter: blur(12px);
+}
+
+.timeless-orientation-gate__close:active {
+  opacity: 0.72;
+}
+
+.timeless-orientation-gate__icon {
+  position: relative;
+  display: grid;
+  width: 4.75rem;
+  height: 4.75rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  color: rgb(255 248 236 / 0.86);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.34);
+}
+
+.timeless-orientation-gate__icon svg:first-child {
+  animation: timeless-orientation-phone-rotate 1.7s ease-in-out infinite;
+}
+
+.timeless-orientation-gate__icon svg:last-child {
+  position: absolute;
+  right: 0.85rem;
+  bottom: 0.85rem;
+  color: rgb(213 168 102 / 0.9);
+}
+
+.timeless-orientation-gate__panel p {
+  margin: 0;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.timeless-orientation-gate__panel span {
+  max-width: 15rem;
+  color: rgb(255 248 236 / 0.56);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+@keyframes timeless-orientation-gate-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes timeless-orientation-phone-rotate {
+  0%,
+  24% {
+    transform: rotate(0deg);
+  }
+
+  72%,
+  100% {
+    transform: rotate(90deg);
+  }
+}
+
+.timeless-scene-transition {
+  opacity: 0;
+  animation: timeless-scene-transition-in 2550ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+.timeless-scene-transition__vignette,
+.timeless-scene-transition__focus {
+  position: absolute;
+  inset: 0;
+}
+
+.timeless-scene-transition__vignette {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 15%, rgb(10 8 7 / 0.32) 48%, rgb(4 3 3 / 0.96) 100%),
+    linear-gradient(180deg, rgb(255 246 226 / 0.12), rgb(0 0 0 / 0.72));
+  backdrop-filter: blur(0);
+  animation: timeless-scene-transition-vignette 2550ms ease-in both;
+}
+
+.timeless-scene-transition__focus {
+  background:
+    radial-gradient(circle at 50% 50%, rgb(255 246 220 / 0.42) 0 0.4rem, transparent 0.55rem),
+    radial-gradient(circle at 50% 50%, transparent 0 9%, rgb(255 246 220 / 0.2) 9.5%, transparent 18%),
+    radial-gradient(circle at 50% 50%, transparent 0 23%, rgb(255 255 255 / 0.13) 24%, transparent 25%);
+  mix-blend-mode: screen;
+  transform: scale(1.35) rotate(0deg);
+  animation: timeless-scene-transition-focus 2550ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+.timeless-scene-transition__label {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.35rem, env(safe-area-inset-bottom));
+  display: grid;
+  width: min(22rem, calc(100% - 2rem));
+  transform: translate3d(-50%, 0.7rem, 0);
+  gap: 0.35rem;
+  text-align: center;
+  opacity: 0;
+  animation: timeless-scene-transition-label 2550ms ease-out both;
+}
+
+.timeless-scene-transition__label span {
+  color: rgb(255 246 231 / 0.66);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.timeless-scene-transition__label strong {
+  display: block;
+  overflow: hidden;
+  color: rgb(255 249 238 / 0.92);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  text-shadow: 0 0.8rem 2.4rem rgb(0 0 0 / 0.52);
+  white-space: nowrap;
+}
+
+@keyframes timeless-poi-sheet-exit {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0) scale(0.98);
+  }
+}
+
+@keyframes timeless-scene-transition-in {
+  0% {
+    opacity: 0;
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  74% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes timeless-scene-transition-vignette {
+  0% {
+    background:
+      radial-gradient(circle at 50% 50%, transparent 0 26%, rgb(10 8 7 / 0.16) 60%, rgb(4 3 3 / 0.62) 100%),
+      linear-gradient(180deg, rgb(255 246 226 / 0.08), rgb(0 0 0 / 0.3));
+    backdrop-filter: blur(0);
+  }
+
+  58% {
+    backdrop-filter: blur(1px);
+  }
+
+  100% {
+    background:
+      radial-gradient(circle at 50% 50%, rgb(255 246 226 / 0.08) 0 2%, rgb(10 8 7 / 0.44) 28%, rgb(0 0 0 / 0.98) 100%),
+      linear-gradient(180deg, rgb(255 246 226 / 0.2), rgb(0 0 0 / 0.94));
+    backdrop-filter: blur(5px);
+  }
+}
+
+@keyframes timeless-scene-transition-focus {
+  0% {
+    opacity: 0;
+    transform: scale(1.7) rotate(0deg);
+  }
+
+  20% {
+    opacity: 0.86;
+  }
+
+  76% {
+    opacity: 0.68;
+    transform: scale(0.72) rotate(115deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.18) rotate(172deg);
+  }
+}
+
+@keyframes timeless-scene-transition-label {
+  8% {
+    opacity: 0;
+    transform: translate3d(-50%, 0.7rem, 0);
+  }
+
+  25%,
+  78% {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(-50%, -0.5rem, 0);
+  }
+}
+
 .maplibregl-ctrl-bottom-right {
   transition:
     opacity 240ms ease,
@@ -368,6 +641,37 @@
 
 @media (prefers-reduced-motion: reduce) {
   .timeless-poi-sheet {
+    animation: none;
+  }
+
+  .timeless-map--transitioning .timeless-poi-sheet,
+  .timeless-scene-transition,
+  .timeless-scene-transition__vignette,
+  .timeless-scene-transition__focus,
+  .timeless-scene-transition__label {
+    animation: none;
+  }
+
+  .timeless-scene-transition {
+    opacity: 1;
+  }
+
+  .timeless-scene-transition__vignette {
+    background: rgb(0 0 0 / 0.78);
+    backdrop-filter: none;
+  }
+
+  .timeless-scene-transition__focus {
+    display: none;
+  }
+
+  .timeless-scene-transition__label {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  .timeless-orientation-gate,
+  .timeless-orientation-gate__icon svg:first-child {
     animation: none;
   }
 }
@@ -980,6 +1284,140 @@
   animation: timeless-fade-in 600ms ease-in forwards;
 }
 
+.timeless-preroll-bridge {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.timeless-preroll-bridge::before,
+.timeless-preroll-bridge::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.timeless-preroll-bridge::before {
+  z-index: 2;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.08), transparent 18%, transparent 82%, rgb(0 0 0 / 0.1));
+  opacity: 1;
+}
+
+.timeless-preroll-bridge::after {
+  z-index: 4;
+  background: #000;
+  opacity: 0;
+}
+
+.timeless-preroll-bridge__video {
+  position: absolute;
+  inset: -2%;
+  display: block;
+  z-index: 1;
+  width: 104%;
+  height: 104%;
+  object-fit: cover;
+  object-position: center 46%;
+  transform: translate3d(0, -1.5%, 0) scale(1.025);
+  transform-origin: 50% 50%;
+}
+
+.timeless-preroll-bridge__play {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  z-index: 5;
+  transform: translateX(-50%);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.54);
+  color: rgb(255 248 236 / 0.92);
+  padding: 0.9rem 1.25rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.42);
+  backdrop-filter: blur(14px);
+}
+
+.timeless-preroll-bridge__play:active {
+  opacity: 0.72;
+}
+
+.timeless-preroll-bridge--exiting::before {
+  animation: timeless-preroll-soften 520ms ease-out forwards;
+}
+
+.timeless-preroll-bridge--exiting::after {
+  animation: timeless-preroll-blackout 520ms ease-out forwards;
+}
+
+.timeless-preroll-bridge--exiting .timeless-preroll-bridge__video {
+  animation: timeless-preroll-video-close 520ms ease-out
+    forwards;
+}
+
+.timeless-scene-reveal {
+  background: #000;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.timeless-scene-reveal--active {
+  animation: timeless-scene-reveal 520ms ease-out forwards;
+}
+
+@keyframes timeless-preroll-video-close {
+  0% {
+    opacity: 1;
+    filter: none;
+    transform: translate3d(0, -1.5%, 0) scale(1.025);
+  }
+
+  100% {
+    opacity: 0;
+    filter: none;
+    transform: translate3d(0, -1.5%, 0) scale(1.025);
+  }
+}
+
+@keyframes timeless-preroll-soften {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes timeless-preroll-blackout {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes timeless-scene-reveal {
+  0% {
+    opacity: 1;
+    backdrop-filter: none;
+  }
+
+  100% {
+    opacity: 0;
+    backdrop-filter: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .timeless-map-marker__tap-pulse {
     animation: none;
@@ -989,5 +1427,25 @@
   .timeless-fade-out,
   .timeless-fade-in {
     animation: none;
+  }
+
+  .timeless-preroll-bridge--exiting::before,
+  .timeless-preroll-bridge--exiting::after,
+  .timeless-preroll-bridge--exiting .timeless-preroll-bridge__video,
+  .timeless-scene-reveal--active {
+    animation: none;
+  }
+
+  .timeless-preroll-bridge--exiting::after {
+    opacity: 1;
+  }
+
+  .timeless-preroll-bridge--exiting .timeless-preroll-bridge__video,
+  .timeless-preroll-bridge__play {
+    opacity: 0;
+  }
+
+  .timeless-scene-reveal--active {
+    opacity: 0;
   }
 }

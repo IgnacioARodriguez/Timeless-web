@@ -1,102 +1,53 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
+import { useRouter } from "next/navigation"
 import type { Scene } from "@/types/scene"
-import { IntroStep } from "@/components/experience/intro-step"
-import { OrientationStep } from "@/components/experience/orientation-step"
 import { ViewerStep } from "@/components/experience/viewer-step"
-import { BackButton } from "@/components/navigation/back-button"
-import { LanguageSwitch } from "@/components/i18n/language-switch"
 import { useLanguage } from "@/components/i18n/language-provider"
 import { getLocalizedScene } from "@/lib/localized-scene"
-import { requestAppFullscreen } from "@/lib/app-fullscreen"
-import { requestOrientationPermission } from "@/lib/device-orientation"
 
 interface SceneExperienceShellProps {
   scene: Scene
 }
 
+const MOTION_PERMISSION_STORAGE_KEY = "timeless-motion-permission"
+
+function getInitialMotionEnabled() {
+  if (typeof window === "undefined") return false
+
+  const permissionState = window.sessionStorage.getItem(
+    MOTION_PERMISSION_STORAGE_KEY,
+  )
+
+  return permissionState !== "denied"
+}
+
 export function SceneExperienceShell({ scene }: SceneExperienceShellProps) {
-  const { language, t } = useLanguage()
+  const router = useRouter()
+  const { language } = useLanguage()
   const localizedScene = getLocalizedScene(scene, language)
-  const [step, setStep] = useState<"orientation" | "intro" | "viewer">("orientation")
-  const [motionEnabled, setMotionEnabled] = useState(false)
-  const [autoStartAmbientAudio, setAutoStartAmbientAudio] = useState(false)
-  const [requestingPermissions, setRequestingPermissions] = useState(false)
+  const motionEnabled = getInitialMotionEnabled()
+  const sceneWithoutAmbientAudio = useMemo<Scene>(
+    () => ({
+      ...localizedScene,
+      ambientAudio: undefined,
+    }),
+    [localizedScene],
+  )
 
-  async function handleBeginExperience() {
-    if (requestingPermissions) return
-
-    setRequestingPermissions(true)
-
-    // Start both permission-gated APIs synchronously from the same user gesture.
-    const fullscreenRequest = requestAppFullscreen()
-    const orientationRequest = requestOrientationPermission()
-    const [orientationState] = await Promise.all([
-      orientationRequest,
-      fullscreenRequest,
-    ])
-
-    setMotionEnabled(orientationState === "granted")
-    setRequestingPermissions(false)
-    setAutoStartAmbientAudio(true)
-    setStep("viewer")
+  function handleExit() {
+    router.push("/")
   }
-
-  function handleContinueOrientation() {
-    setStep("intro")
-  }
-
-  function handleRestart() {
-    setMotionEnabled(false)
-    setAutoStartAmbientAudio(false)
-    setRequestingPermissions(false)
-    setStep("intro")
-  }
-
-  const showShellControls = step !== "viewer"
 
   return (
     <div className="timeless-app-viewport bg-black">
-      {showShellControls && (
-        <>
-          <BackButton
-            href="/"
-            label={t("mapBack")}
-            variant="dark"
-            className="absolute left-4 top-4 z-50 sm:left-6 sm:top-6"
-          />
-
-          <LanguageSwitch
-            variant="dark"
-            className="absolute right-4 top-4 z-50 sm:right-6 sm:top-6"
-          />
-        </>
-      )}
-
-      {step === "orientation" && (
-        <OrientationStep
-          scene={localizedScene}
-          onContinue={handleContinueOrientation}
-        />
-      )}
-
-      {step === "intro" && (
-        <IntroStep
-          scene={localizedScene}
-          onBegin={handleBeginExperience}
-          isStarting={requestingPermissions}
-        />
-      )}
-
-      {step === "viewer" && (
-        <ViewerStep
-          scene={localizedScene}
-          motionEnabled={motionEnabled}
-          autoStartAmbientAudio={autoStartAmbientAudio}
-          onExit={handleRestart}
-        />
-      )}
+      <ViewerStep
+        scene={sceneWithoutAmbientAudio}
+        motionEnabled={motionEnabled}
+        autoStartAmbientAudio={false}
+        onExit={handleExit}
+      />
     </div>
   )
 }
