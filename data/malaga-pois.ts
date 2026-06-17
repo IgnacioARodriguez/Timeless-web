@@ -85,7 +85,7 @@ export const malagaCenterPois: MapPoi[] = [
     locationLabel: "Calle Marqués de Larios",
     status: "available",
     sceneId: "calle-larios-1891",
-    previewImage: "/assets/calle-larios/poi-calle-larios.png",
+    previewImage: "/assets/calle-larios/panorama.png",
     directions: {
       latitude: 36.718271,
       longitude: -4.421444,

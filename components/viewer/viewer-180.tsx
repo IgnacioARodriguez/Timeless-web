@@ -12,6 +12,7 @@ import type { Scene, SceneHotspot } from "@/types/scene"
 interface Viewer180Props {
   scene: Scene
   motionEnabled?: boolean
+  sceneMediaPlaybackEnabled?: boolean
   autoStartAmbientAudio?: boolean
   onExit?: () => void
 }
@@ -31,7 +32,7 @@ function pickBestVideoSource(video: HTMLVideoElement, media: SceneVideoMedia) {
   return playableSource?.src ?? media.src
 }
 
-const VIEWER_FOV = 55
+const VIEWER_FOV = 40
 const HORIZON_PITCH_OFFSET = 0
 const HOTSPOT_RADIUS = 420
 const CYLINDER_RADIUS = 500
@@ -189,6 +190,7 @@ function deviceQuaternionFromOrientation(
 export function Viewer180({
   scene,
   motionEnabled = false,
+  sceneMediaPlaybackEnabled = true,
   autoStartAmbientAudio = false,
   onExit,
 }: Viewer180Props) {
@@ -203,6 +205,7 @@ export function Viewer180({
   const [hasError, setHasError] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [isPlaying, setIsPlaying] = useState(isImage)
+  const [needsPlaybackGesture, setNeedsPlaybackGesture] = useState(false)
   const [isMuted, setIsMuted] = useState(videoMedia?.muted ?? false)
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null)
   const [visitedHotspotIds, setVisitedHotspotIds] = useState<Set<string>>(
@@ -241,10 +244,15 @@ export function Viewer180({
   const hiddenVideoRef = useRef<HTMLVideoElement | null>(null)
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null)
   const ambientAudioAutoStartedRef = useRef(false)
+  const sceneMediaPlaybackEnabledRef = useRef(sceneMediaPlaybackEnabled)
 
   const ambientAudio = scene.ambientAudio
   const hasAmbientAudio = Boolean(ambientAudio?.src)
   const [isAmbientAudioPlaying, setIsAmbientAudioPlaying] = useState(false)
+
+  useEffect(() => {
+    sceneMediaPlaybackEnabledRef.current = sceneMediaPlaybackEnabled
+  }, [sceneMediaPlaybackEnabled])
 
   // The calibration step stores raw device sensor readings. Do not apply those
   // values directly as camera degrees: a phone held upright commonly reports
@@ -295,6 +303,7 @@ export function Viewer180({
     setActiveHotspotId(null)
     setVisitedHotspotIds(new Set())
     setHotspotPositions([])
+    setNeedsPlaybackGesture(false)
     smoothedHotspotPositionsRef.current.clear()
     lastHotspotPositionsRef.current = []
 
@@ -611,20 +620,27 @@ export function Viewer180({
         const videoTexture = new THREE.VideoTexture(video)
         createMesh(videoTexture)
 
-        video
-          .play()
-          .then(() => {
-            if (!disposed) {
-              setIsLoading(false)
-              setIsPlaying(true)
-            }
-          })
-          .catch(() => {
-            if (!disposed) {
-              setIsLoading(false)
-              setIsPlaying(false)
-            }
-          })
+        setIsLoading(false)
+        setIsPlaying(false)
+
+        if (sceneMediaPlaybackEnabledRef.current) {
+          video
+            .play()
+            .then(() => {
+              if (!disposed) {
+                setNeedsPlaybackGesture(false)
+                setIsLoading(false)
+                setIsPlaying(true)
+              }
+            })
+            .catch(() => {
+              if (!disposed) {
+                setNeedsPlaybackGesture(true)
+                setIsLoading(false)
+                setIsPlaying(false)
+              }
+            })
+        }
       }
 
       // loadeddata gives us the first decoded frame. canplay is kept as a
@@ -855,6 +871,25 @@ export function Viewer180({
     }
   }, [scene, hotspots, isImage, isVideo, setMediaError, setMediaReady])
 
+  useEffect(() => {
+    if (!sceneMediaPlaybackEnabled || !isVideo || !hiddenVideoRef.current) return
+
+    const video = hiddenVideoRef.current
+
+    video
+      .play()
+      .then(() => {
+        setNeedsPlaybackGesture(false)
+        setIsLoading(false)
+        setIsPlaying(true)
+      })
+      .catch(() => {
+        setNeedsPlaybackGesture(true)
+        setIsLoading(false)
+        setIsPlaying(false)
+      })
+  }, [isVideo, sceneMediaPlaybackEnabled])
+
   // Finger drag is always available. If gyro is active, dragging temporarily
   // overrides sensor updates and re-anchors motion from the new view.
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
@@ -918,8 +953,14 @@ export function Viewer180({
     hiddenVideoRef.current.currentTime = 0
     hiddenVideoRef.current
       .play()
-      .then(() => setIsPlaying(true))
-      .catch(() => setIsPlaying(false))
+      .then(() => {
+        setNeedsPlaybackGesture(false)
+        setIsPlaying(true)
+      })
+      .catch(() => {
+        setNeedsPlaybackGesture(true)
+        setIsPlaying(false)
+      })
   }, [isVideo])
 
   const resetView = useCallback(() => {
@@ -1240,6 +1281,18 @@ isVideo ? t("videoLoadError") : t("imageLoadError")
         </div>
       )}
 
+      {isEntered && !hasError && needsPlaybackGesture && isVideo && (
+        <div className="absolute inset-0 z-30 grid place-items-center bg-black/28 px-6 backdrop-blur-[1px]">
+          <button
+            type="button"
+            onClick={replay}
+            className="rounded-full border border-white/18 bg-black/52 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white/86 shadow-[0_1rem_3rem_rgba(0,0,0,0.35)] backdrop-blur-md active:opacity-70"
+          >
+            {t("playScene")}
+          </button>
+        </div>
+      )}
+
       {showHelp && (
         <div className="absolute inset-0 z-20 bg-black/70 flex flex-col items-center justify-center px-8 text-center">
           <p className="text-xs tracking-[0.2em] uppercase text-white/40 font-sans mb-4">
@@ -1287,7 +1340,7 @@ isVideo ? t("videoLoadError") : t("imageLoadError")
             showReplay={isVideo}
             muteLabel={isVideo ? t("mute") : t("soundOff")}
             unmuteLabel={isVideo ? t("unmute") : t("soundOn")}
-            replayLabel={t("replay")}
+            replayLabel={needsPlaybackGesture ? t("playScene") : t("replay")}
             resetViewLabel={t("resetView")}
             helpLabel={t("help")}
             fullscreenLabel={t("fullscreen")}

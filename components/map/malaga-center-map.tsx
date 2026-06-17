@@ -1,16 +1,26 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import Link from "next/link"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react"
+import { useRouter } from "next/navigation"
 import {
   ArrowRight,
   CalendarDays,
+  ChevronDown,
   Clock,
   ExternalLink,
   LocateFixed,
   MapPin,
   Navigation,
+  RotateCw,
   Search,
+  Smartphone,
   Sparkles,
   X,
 } from "lucide-react"
@@ -24,9 +34,27 @@ import { malagaCenterPois } from "@/data/malaga-pois"
 import { getLocalizedPoi } from "@/lib/localized-city"
 import { cn } from "@/lib/utils"
 import { requestAppFullscreen } from "@/lib/app-fullscreen"
+import { requestOrientationPermission } from "@/lib/device-orientation"
 import type { MapPoi } from "@/types/poi"
 
 const MALAGA_CENTER: [number, number] = [-4.4214, 36.7212]
+const MOTION_PERMISSION_STORAGE_KEY = "timeless-motion-permission"
+
+function isPortraitViewport() {
+  if (typeof window === "undefined") return false
+
+  return window.innerHeight > window.innerWidth
+}
+
+function requestLandscapeOrientationLock() {
+  if (typeof window === "undefined") return
+
+  const orientation = window.screen.orientation as ScreenOrientation & {
+    lock?: (orientation: "landscape") => Promise<void>
+  }
+
+  void orientation.lock?.("landscape").catch(() => {})
+}
 
 interface MalagaCenterMapProps {
   embedded?: boolean
@@ -316,6 +344,7 @@ export function MalagaCenterMap({
   embedded = false,
   fullscreen = false,
 }: MalagaCenterMapProps) {
+  const router = useRouter()
   const { language, t } = useLanguage()
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
@@ -323,6 +352,8 @@ export function MalagaCenterMap({
   const markersRef = useRef<Map<string, Marker>>(new Map())
   const selectedPoiIdRef = useRef<string | null>(null)
   const filteredPoiIdsRef = useRef<Set<string>>(new Set())
+  const transitionActiveRef = useRef(false)
+  const transitionTimeoutsRef = useRef<number[]>([])
   const localizedPois = useMemo(
     () => malagaCenterPois.map((poi) => getLocalizedPoi(poi, language)),
     [language],
@@ -338,9 +369,16 @@ export function MalagaCenterMap({
   )
   const [activeFilter, setActiveFilter] = useState<PoiFilter>("all")
   const [query, setQuery] = useState("")
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false)
   const [mapReady, setMapReady] = useState(false)
   const [mapError, setMapError] = useState(false)
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [orientationPromptPoiId, setOrientationPromptPoiId] = useState<
+    string | null
+  >(null)
+  const [transitioningPoiId, setTransitioningPoiId] = useState<string | null>(
+    null,
+  )
   const [geolocationIssue, setGeolocationIssue] = useState<
     "insecure" | "denied" | "unavailable" | null
   >(null)
@@ -379,6 +417,11 @@ export function MalagaCenterMap({
   const selectedCategory = selectedPoi
     ? getPoiCategoryLabel(selectedPoi, language)
     : null
+  const activeTransitionPoiId = orientationPromptPoiId ?? transitioningPoiId
+  const orientationPromptPoi =
+    localizedPois.find((poi) => poi.id === orientationPromptPoiId) ?? null
+  const transitioningPoi =
+    localizedPois.find((poi) => poi.id === transitioningPoiId) ?? null
 
   useEffect(() => {
     selectedPoiIdRef.current = selectedPoiId
@@ -387,6 +430,19 @@ export function MalagaCenterMap({
   useEffect(() => {
     filteredPoiIdsRef.current = filteredPoiIds
   }, [filteredPoiIds])
+
+  useEffect(() => {
+    transitionActiveRef.current = Boolean(activeTransitionPoiId)
+  }, [activeTransitionPoiId])
+
+  useEffect(() => {
+    return () => {
+      transitionTimeoutsRef.current.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId)
+      })
+      transitionTimeoutsRef.current = []
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -483,6 +539,8 @@ export function MalagaCenterMap({
           const label = markerButton.querySelector(".timeless-map-marker__label")
           if (label) label.textContent = poi.title
           markerButton.addEventListener("click", () => {
+            if (transitionActiveRef.current) return
+
             setSelectedPoiId(poi.id)
             map.flyTo({
               center: getPoiCoordinates(poi),
@@ -565,8 +623,11 @@ export function MalagaCenterMap({
   }, [fullscreen])
 
   function selectPoi(poi: MapPoi) {
+    if (activeTransitionPoiId) return
+
     setSelectedPoiId(poi.id)
     setQuery("")
+    setSearchDropdownOpen(false)
     mapRef.current?.flyTo({
       center: getPoiCoordinates(poi),
       zoom: 16.35,
@@ -574,6 +635,135 @@ export function MalagaCenterMap({
       duration: 900,
     })
   }
+
+  const queueTransitionStep = useCallback((callback: () => void, delay: number) => {
+    const timeoutId = window.setTimeout(callback, delay)
+    transitionTimeoutsRef.current.push(timeoutId)
+  }, [])
+
+  function preloadPoiPreview(poi: MapPoi) {
+    if (!poi.previewImage) return
+
+    const image = new Image()
+    image.decoding = "async"
+    image.src = poi.previewImage
+  }
+
+  const beginMapSceneTransition = useCallback((poi: MapPoi) => {
+    if (!poi.sceneId) return
+
+    const destination = `/scene/${poi.sceneId}`
+    const map = mapRef.current
+
+    setOrientationPromptPoiId(null)
+    setTransitioningPoiId(poi.id)
+
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches
+
+    if (!map || reducedMotion) {
+      queueTransitionStep(() => {
+        router.push(destination)
+      }, reducedMotion ? 220 : 700)
+      return
+    }
+
+    const center = getPoiCoordinates(poi)
+    const currentBearing = map.getBearing()
+    const firstBearing = currentBearing + 72
+    const secondBearing = currentBearing + 168
+
+    map.stop()
+    map.easeTo({
+      center,
+      zoom: Math.max(map.getZoom(), 15.7),
+      pitch: 0,
+      bearing: firstBearing,
+      duration: 850,
+      easing: (value) => 1 - Math.pow(1 - value, 3),
+    })
+
+    queueTransitionStep(() => {
+      map.flyTo({
+        center,
+        zoom: 18.35,
+        pitch: 58,
+        bearing: secondBearing,
+        speed: 0.8,
+        curve: 1.18,
+        duration: 1650,
+        easing: (value) => value * value * (3 - 2 * value),
+      })
+    }, 720)
+
+    queueTransitionStep(() => {
+      router.push(destination)
+    }, 2450)
+  }, [queueTransitionStep, router])
+
+  function startSceneTransition(poi: MapPoi) {
+    if (!poi.sceneId || activeTransitionPoiId) return
+
+    const destination = `/scene/${poi.sceneId}`
+    const motionPermissionRequest = requestOrientationPermission()
+      .then((state) => {
+        window.sessionStorage.setItem(MOTION_PERMISSION_STORAGE_KEY, state)
+        return state
+      })
+      .catch(() => {
+        window.sessionStorage.setItem(MOTION_PERMISSION_STORAGE_KEY, "denied")
+        return "denied" as const
+      })
+
+    setSelectedPoiId(poi.id)
+    setQuery("")
+    setGeolocationIssue(null)
+    setSearchDropdownOpen(false)
+    preloadPoiPreview(poi)
+    router.prefetch(destination)
+    void requestAppFullscreen()
+    void motionPermissionRequest
+    requestLandscapeOrientationLock()
+
+    if (isPortraitViewport()) {
+      setOrientationPromptPoiId(poi.id)
+      return
+    }
+
+    beginMapSceneTransition(poi)
+  }
+
+  useEffect(() => {
+    if (!orientationPromptPoiId) return
+
+    let frameId: number | null = null
+
+    const continueWhenLandscape = () => {
+      if (isPortraitViewport()) return
+
+      const poi = localizedPois.find(
+        (candidate) => candidate.id === orientationPromptPoiId,
+      )
+
+      if (poi) {
+        beginMapSceneTransition(poi)
+      }
+    }
+
+    frameId = window.requestAnimationFrame(continueWhenLandscape)
+    window.addEventListener("resize", continueWhenLandscape)
+    window.addEventListener("orientationchange", continueWhenLandscape)
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId)
+      }
+
+      window.removeEventListener("resize", continueWhenLandscape)
+      window.removeEventListener("orientationchange", continueWhenLandscape)
+    }
+  }, [beginMapSceneTransition, localizedPois, orientationPromptPoiId])
 
   function retryGeolocation() {
     if (!window.isSecureContext) {
@@ -585,15 +775,35 @@ export function MalagaCenterMap({
   }
 
   function resetView() {
+    if (activeTransitionPoiId) return
+
     setSelectedPoiId(null)
     setActiveFilter("all")
     setQuery("")
+    setSearchDropdownOpen(false)
     mapRef.current?.flyTo({
       center: MALAGA_CENTER,
       zoom: fullscreen ? 14.8 : embedded ? 14.25 : 14.65,
       offset: [0, 0],
       duration: 850,
     })
+  }
+
+  function handleMapPointerDownCapture(event: PointerEvent<HTMLElement>) {
+    const target = event.target
+    if (!(target instanceof HTMLElement)) return
+
+    if (
+      searchDropdownOpen &&
+      !target.closest(".timeless-map-search-panel")
+    ) {
+      setSearchDropdownOpen(false)
+    }
+
+    if (!selectedPoi || activeTransitionPoiId) return
+    if (target.closest(".timeless-poi-sheet")) return
+
+    setSelectedPoiId(null)
   }
 
   const filterOptions: Array<{
@@ -608,9 +818,11 @@ export function MalagaCenterMap({
 
   return (
     <section
+      onPointerDownCapture={handleMapPointerDownCapture}
       className={cn(
         "relative w-full overflow-hidden border border-black/10 bg-[#ded2bf] shadow-[0_28px_90px_rgba(43,31,20,0.18)]",
         selectedPoi && "timeless-map--poi-open",
+        activeTransitionPoiId && "timeless-map--transitioning",
         fullscreen
           ? "h-dvh border-0 shadow-none"
           : embedded
@@ -651,12 +863,16 @@ export function MalagaCenterMap({
 
       <div className="absolute left-3 right-3 top-3 z-20 sm:left-4 sm:right-auto sm:top-4 sm:w-[25rem]">
         <div className="flex items-start gap-2">
-          <div className="min-w-0 flex-1 overflow-hidden rounded-2xl border border-white/75 bg-[#fbf7ef]/95 shadow-[0_16px_42px_rgba(38,31,24,0.16)] backdrop-blur-xl">
+          <div className="timeless-map-search-panel min-w-0 flex-1 overflow-hidden rounded-2xl border border-white/75 bg-[#fbf7ef]/95 shadow-[0_16px_42px_rgba(38,31,24,0.16)] backdrop-blur-xl">
             <div className="flex items-center gap-2 border-b border-[#2c2118]/10 px-3 py-2">
               <Search className="h-4 w-4 shrink-0 text-[#7a5330]" />
               <input
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  setQuery(event.target.value)
+                  setSearchDropdownOpen(true)
+                }}
+                disabled={Boolean(activeTransitionPoiId)}
                 placeholder={t("searchPlaces")}
                 className="h-9 min-w-0 flex-1 bg-transparent text-sm font-medium text-[#25201c] outline-none placeholder:text-[#6d6257]/70"
                 suppressHydrationWarning
@@ -671,63 +887,80 @@ export function MalagaCenterMap({
                   <X className="h-4 w-4" />
                 </button>
               )}
-            </div>
-
-            <div className="flex gap-1.5 overflow-x-auto px-2.5 py-2">
-              {filterOptions.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setActiveFilter(option.id)}
+              <button
+                type="button"
+                onClick={() => setSearchDropdownOpen((open) => !open)}
+                disabled={Boolean(activeTransitionPoiId)}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[#66594c] transition-colors hover:bg-[#2c2118]/7"
+                aria-expanded={searchDropdownOpen}
+                aria-label={t("toggleSceneList")}
+              >
+                <ChevronDown
                   className={cn(
-                    "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.08em] transition-colors",
-                    activeFilter === option.id
-                      ? "bg-[#25201c] text-[#fbf7ef]"
-                      : "bg-[#ece2d4] text-[#66594c] hover:bg-[#dfd0bf]",
+                    "h-4 w-4 transition-transform",
+                    searchDropdownOpen && "rotate-180",
                   )}
-                >
-                  {option.id === "all" ? (
-                    <MapPin className="h-3.5 w-3.5" />
-                  ) : option.id === "available" ? (
-                    <Sparkles className="h-3.5 w-3.5" />
-                  ) : (
-                    <Clock className="h-3.5 w-3.5" />
-                  )}
-                  {option.label}
-                  <span className="text-[10px] opacity-70">{option.count}</span>
-                </button>
-              ))}
+                />
+              </button>
             </div>
 
-            <div className="hidden grid-cols-3 border-t border-[#2c2118]/8 bg-white/35 text-center sm:grid">
-              <div className="px-2 py-2">
-                <span className="block text-sm font-bold text-[#25201c]">
-                  {localizedPois.length}
-                </span>
-                <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#74685d]">
-                  {t("allPlaces")}
-                </span>
-              </div>
-              <div className="border-x border-[#2c2118]/8 px-2 py-2">
-                <span className="block text-sm font-bold text-[#25201c]">
-                  {availableCount}
-                </span>
-                <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#74685d]">
-                  {t("availableScenes")}
-                </span>
-              </div>
-              <div className="px-2 py-2">
-                <span className="block text-sm font-bold text-[#25201c]">
-                  {futureCount}
-                </span>
-                <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#74685d]">
-                  {t("comingSoon")}
-                </span>
-              </div>
-            </div>
+            {searchDropdownOpen && (
+              <div className="timeless-map-search-dropdown border-t border-[#2c2118]/10 bg-[#fbf7ef]/92">
+                <div className="timeless-map-filter-row flex gap-1.5 overflow-x-auto px-2.5 py-2">
+                  {filterOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setActiveFilter(option.id)}
+                      disabled={Boolean(activeTransitionPoiId)}
+                      className={cn(
+                        "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.08em] transition-colors",
+                        activeFilter === option.id
+                          ? "bg-[#25201c] text-[#fbf7ef]"
+                          : "bg-[#ece2d4] text-[#66594c] hover:bg-[#dfd0bf]",
+                      )}
+                    >
+                      {option.id === "all" ? (
+                        <MapPin className="h-3.5 w-3.5" />
+                      ) : option.id === "available" ? (
+                        <Sparkles className="h-3.5 w-3.5" />
+                      ) : (
+                        <Clock className="h-3.5 w-3.5" />
+                      )}
+                      {option.label}
+                      <span className="text-[10px] opacity-70">{option.count}</span>
+                    </button>
+                  ))}
+                </div>
 
-            {(query || activeFilter !== "all") && (
-              <div className="max-h-60 overflow-y-auto border-t border-[#2c2118]/10 bg-[#fbf7ef]/80 p-2">
+                <div className="timeless-map-stats grid grid-cols-3 border-t border-[#2c2118]/8 bg-white/35 text-center">
+                  <div className="px-2 py-2">
+                    <span className="block text-sm font-bold text-[#25201c]">
+                      {localizedPois.length}
+                    </span>
+                    <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#74685d]">
+                      {t("allPlaces")}
+                    </span>
+                  </div>
+                  <div className="border-x border-[#2c2118]/8 px-2 py-2">
+                    <span className="block text-sm font-bold text-[#25201c]">
+                      {availableCount}
+                    </span>
+                    <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#74685d]">
+                      {t("availableScenes")}
+                    </span>
+                  </div>
+                  <div className="px-2 py-2">
+                    <span className="block text-sm font-bold text-[#25201c]">
+                      {futureCount}
+                    </span>
+                    <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#74685d]">
+                      {t("comingSoon")}
+                    </span>
+                  </div>
+                </div>
+
+              <div className="max-h-[min(22rem,calc(100dvh-8rem))] overflow-y-auto border-t border-[#2c2118]/10 p-2">
                 {filteredPois.length > 0 ? (
                   filteredPois.map((poi) => {
                     const distance = userLocation
@@ -739,6 +972,7 @@ export function MalagaCenterMap({
                         key={poi.id}
                         type="button"
                         onClick={() => selectPoi(poi)}
+                        disabled={Boolean(activeTransitionPoiId)}
                         className={cn(
                           "flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-white/85",
                           selectedPoiId === poi.id && "bg-white shadow-sm",
@@ -772,12 +1006,14 @@ export function MalagaCenterMap({
                   </p>
                 )}
               </div>
+              </div>
             )}
           </div>
 
           <button
             type="button"
             onClick={resetView}
+            disabled={Boolean(activeTransitionPoiId)}
             className={cn(
               "grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/75 bg-[#fbf7ef]/95 text-[#4f4439] shadow-[0_16px_42px_rgba(38,31,24,0.16)] backdrop-blur-xl transition-all duration-300 hover:bg-white",
               selectedPoi && "sm:translate-x-1 sm:opacity-80",
@@ -813,126 +1049,165 @@ export function MalagaCenterMap({
       )}
 
       {selectedPoi && (
-        <article className="timeless-poi-sheet absolute inset-x-3 bottom-3 z-30 max-h-[64dvh] overflow-y-auto rounded-2xl border border-white/14 bg-[#1f1a16]/97 text-[#fbf3e8] shadow-[0_22px_70px_rgba(18,14,10,0.36)] backdrop-blur-xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-20 sm:w-[25rem] sm:max-h-none">
+        <article className="timeless-poi-sheet absolute inset-x-3 bottom-3 z-30 max-h-[64dvh] overflow-hidden rounded-2xl border border-white/14 bg-[#1f1a16]/97 text-[#fbf3e8] shadow-[0_22px_70px_rgba(18,14,10,0.36)] backdrop-blur-xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-20 sm:w-[25rem] sm:max-h-none">
           <div className="absolute left-1/2 top-2 z-20 h-1 w-10 -translate-x-1/2 rounded-full bg-white/25 sm:hidden" />
 
           <button
             type="button"
             onClick={() => setSelectedPoiId(null)}
-            className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border border-white/14 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-black/45"
+            disabled={Boolean(activeTransitionPoiId)}
+            className="absolute right-3 top-3 z-40 grid h-9 w-9 place-items-center rounded-full border border-white/14 bg-black/45 text-white shadow-[0_8px_24px_rgba(0,0,0,0.28)] backdrop-blur-md transition-colors hover:bg-black/60"
             aria-label={t("closeHistoricalPoint")}
           >
             <X className="h-4 w-4" />
           </button>
 
-          {selectedPoi.previewImage && (
-            <div className="relative aspect-[16/9] overflow-hidden rounded-t-2xl">
-              <img
-                src={selectedPoi.previewImage}
-                alt={selectedPoi.title}
-                className="h-full w-full object-cover"
-                draggable={false}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1f1a16] via-transparent to-black/15" />
-            </div>
-          )}
-
-          <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
-            <div className="flex flex-wrap items-center gap-2 pr-10">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/8 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/74">
-                <span
-                  className="timeless-result-dot"
-                  data-kind={getPoiKind(selectedPoi)}
-                  data-status={selectedPoi.status}
-                  aria-hidden="true"
+          <div className="max-h-[64dvh] overflow-y-auto sm:h-full sm:max-h-none">
+            {selectedPoi.previewImage && (
+              <div className="relative aspect-[16/9] overflow-hidden rounded-t-2xl">
+                <img
+                  src={selectedPoi.previewImage}
+                  alt={selectedPoi.title}
+                  className="h-full w-full object-cover"
+                  draggable={false}
                 />
-                {selectedCategory}
-              </span>
-              <span className="rounded-full border border-white/12 bg-white/8 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/74">
-                {selectedPoi.status === "available"
-                  ? t("available")
-                  : t("comingSoon")}
-              </span>
-            </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1f1a16] via-transparent to-black/15" />
+              </div>
+            )}
 
-            <h3 className="mt-3 pr-10 font-serif text-2xl font-light leading-none tracking-[-0.04em] sm:text-3xl">
-              {selectedPoi.title}
-            </h3>
-
-            <p className="mt-3 text-sm leading-6 text-[#fbf3e8]/72">
-              {selectedPoi.shortDescription}
-            </p>
-
-            <div className="mt-4 grid gap-3 border-y border-white/10 py-4 text-sm">
-              <div className="flex gap-3">
-                <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#d5a866]" />
-                <span className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-white/42">
-                    {t("historicalPoint")}
-                  </span>
-                  <span className="mt-0.5 block text-[#fbf3e8]/82">
-                    {selectedPoi.period}
-                  </span>
+            <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
+              <div className="flex flex-wrap items-center gap-2 pr-10">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/8 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/74">
+                  <span
+                    className="timeless-result-dot"
+                    data-kind={getPoiKind(selectedPoi)}
+                    data-status={selectedPoi.status}
+                    aria-hidden="true"
+                  />
+                  {selectedCategory}
+                </span>
+                <span className="rounded-full border border-white/12 bg-white/8 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/74">
+                  {selectedPoi.status === "available"
+                    ? t("available")
+                    : t("comingSoon")}
                 </span>
               </div>
-              <div className="flex gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#d5a866]" />
-                <span className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-white/42">
-                    {t("exactPoint")}
-                  </span>
-                  <span className="mt-0.5 block text-[#fbf3e8]/82">
-                    {selectedPoi.locationLabel}
-                  </span>
-                </span>
-              </div>
-              {selectedDistance && (
+
+              <h3 className="mt-3 pr-10 font-serif text-2xl font-light leading-none tracking-[-0.04em] sm:text-3xl">
+                {selectedPoi.title}
+              </h3>
+
+              <p className="mt-3 text-sm leading-6 text-[#fbf3e8]/72">
+                {selectedPoi.shortDescription}
+              </p>
+
+              <div className="mt-4 grid gap-3 border-y border-white/10 py-4 text-sm">
                 <div className="flex gap-3">
-                  <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-[#d5a866]" />
+                  <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#d5a866]" />
                   <span className="min-w-0">
                     <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-white/42">
-                      {t("distanceFromYou")}
+                      {t("historicalPoint")}
                     </span>
                     <span className="mt-0.5 block text-[#fbf3e8]/82">
-                      {selectedDistance}
+                      {selectedPoi.period}
                     </span>
                   </span>
                 </div>
-              )}
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {selectedPoi.status === "available" && selectedPoi.sceneId ? (
-                <Link
-                  href={`/scene/${selectedPoi.sceneId}`}
-                  onClick={() => {
-                    void requestAppFullscreen()
-                  }}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#fbf3e8] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[#1f1a16] transition-opacity active:opacity-80"
-                >
-                  {t("openViewer")}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              ) : (
-                <div className="flex w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/7 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/48">
-                  <Clock className="h-4 w-4" />
-                  {t("sceneInDevelopment")}
+                <div className="flex gap-3">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#d5a866]" />
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-white/42">
+                      {t("exactPoint")}
+                    </span>
+                    <span className="mt-0.5 block text-[#fbf3e8]/82">
+                      {selectedPoi.locationLabel}
+                    </span>
+                  </span>
                 </div>
-              )}
+                {selectedDistance && (
+                  <div className="flex gap-3">
+                    <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-[#d5a866]" />
+                    <span className="min-w-0">
+                      <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-white/42">
+                        {t("distanceFromYou")}
+                      </span>
+                      <span className="mt-0.5 block text-[#fbf3e8]/82">
+                        {selectedDistance}
+                      </span>
+                    </span>
+                  </div>
+                )}
+              </div>
 
-              <a
-                href={getDirectionsHref(selectedPoi)}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/7 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[#fbf3e8] transition-colors hover:bg-white/12"
-              >
-                <Navigation className="h-4 w-4" />
-                {t("howToArrive")}
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
+              <div className="mt-4 grid gap-2">
+                {selectedPoi.status === "available" && selectedPoi.sceneId ? (
+                  <button
+                    type="button"
+                    onClick={() => startSceneTransition(selectedPoi)}
+                    disabled={Boolean(activeTransitionPoiId)}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#fbf3e8] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[#1f1a16] transition-opacity active:opacity-80"
+                  >
+                    {activeTransitionPoiId === selectedPoi.id
+                      ? t("enteringScene")
+                      : t("startScene")}
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <div className="flex w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/7 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/48">
+                    <Clock className="h-4 w-4" />
+                    {t("sceneInDevelopment")}
+                  </div>
+                )}
+
+                <a
+                  href={getDirectionsHref(selectedPoi)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/7 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-[#fbf3e8] transition-colors hover:bg-white/12"
+                >
+                  <Navigation className="h-4 w-4" />
+                  {t("howToArrive")}
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
             </div>
           </div>
         </article>
+      )}
+
+      {orientationPromptPoi && (
+        <div className="timeless-orientation-gate absolute inset-0 z-50 grid place-items-center px-6">
+          <button
+            type="button"
+            className="timeless-orientation-gate__close"
+            onClick={() => setOrientationPromptPoiId(null)}
+            aria-label={t("closeHistoricalPoint")}
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <div className="timeless-orientation-gate__panel">
+            <div className="timeless-orientation-gate__icon" aria-hidden="true">
+              <Smartphone className="h-8 w-8" />
+              <RotateCw className="h-5 w-5" />
+            </div>
+            <p>{t("rotateMapTitle")}</p>
+            <span>{t("rotateMapMessage")}</span>
+          </div>
+        </div>
+      )}
+
+      {transitioningPoi && (
+        <div
+          className="timeless-scene-transition pointer-events-none absolute inset-0 z-50"
+          aria-hidden="true"
+        >
+          <div className="timeless-scene-transition__vignette" />
+          <div className="timeless-scene-transition__focus" />
+          <div className="timeless-scene-transition__label">
+            <span>{t("enteringScene")}</span>
+            <strong>{transitioningPoi.title}</strong>
+          </div>
+        </div>
       )}
     </section>
   )

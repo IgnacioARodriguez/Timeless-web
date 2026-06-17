@@ -6,8 +6,8 @@
     "description": "Viaja a la Málaga del siglo XIII y mira cómo pudo ser este tramo de muralla cuando todavía defendía la ciudad. Verás la torre, el gran muro, la defensa exterior y el espacio abierto que protegía el acceso.",
     "poster": "/assets/carreteria/panorama.png",
     "media": {
-      "type": "video",
-      "src": "/assets/carreteria/master.mp4",
+      "type": "image",
+      "src": "/assets/carreteria/panorama.png",
       "projection": "cylindrical",
       "loop":true,
       "muted":false,
@@ -21,8 +21,8 @@
     "camera": {
       "initialYaw": 0,
       "initialPitch": 0,
-      "minYaw": -65,
-      "maxYaw": 65,
+      "minYaw": -40,
+      "maxYaw": 40,
       "minPitch": -25,
       "maxPitch": 25
     },
@@ -138,17 +138,6 @@
         }
       }
     ],
-    "ambientAudio": {
-      "src": "/assets/audio/carreteria-ambient.mp3",
-      "label": "Ambiente sonoro de la muralla",
-      "volume": 0.32,
-      "loop": true,
-      "i18n": {
-        "en": {
-          "label": "Wall ambient sound"
-        }
-      }
-    },
     "i18n": {
       "en": {
         "title": "Almohad Wall of Carretería — Málaga, 13th century",
