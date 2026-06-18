@@ -1258,6 +1258,105 @@
   opacity: 0.64;
 }
 
+.timeless-map-marker {
+  width: 7.7rem;
+  height: 6.05rem;
+}
+
+.timeless-map-marker[data-has-icon="true"] .timeless-map-marker__badge {
+  top: 0;
+  width: 7.35rem;
+  height: 5rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  clip-path: none;
+}
+
+.timeless-map-marker[data-has-icon="true"] .timeless-map-marker__icon {
+  display: block;
+  width: 7.35rem;
+  height: 5rem;
+  max-width: none;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 9px rgb(36 27 18 / 0.32));
+}
+
+.timeless-map-marker[data-poi-id="atarazanas"] .timeless-map-marker__icon {
+  width: 6.4rem;
+  height: 5.4rem;
+}
+
+.timeless-map-marker[data-poi-id="calle-larios"] .timeless-map-marker__icon {
+  width: 6.85rem;
+  height: 4.75rem;
+}
+
+.timeless-map-marker[data-has-icon="true"] .timeless-map-marker__pin {
+  display: none;
+}
+
+.timeless-map-marker[data-has-icon="true"] .timeless-map-marker__halo {
+  bottom: 0.48rem;
+  width: 4.4rem;
+  height: 0.74rem;
+  opacity: 0.42;
+}
+
+.timeless-map-marker[data-has-icon="true"][data-status="coming-soon"]
+  .timeless-map-marker__badge {
+  opacity: 0.7;
+  filter: saturate(0.28);
+}
+
+.timeless-map-marker[data-has-icon="true"]:hover .timeless-map-marker__badge,
+.timeless-map-marker[data-has-icon="true"]:focus-visible
+  .timeless-map-marker__badge {
+  transform: translate(-50%, -0.18rem) scale(1.04);
+  box-shadow: none;
+}
+
+.timeless-map-marker[data-has-icon="true"][data-selected="true"]
+  .timeless-map-marker__badge {
+  transform: translate(-50%, -0.3rem) scale(1.14);
+  box-shadow: none;
+}
+
+.timeless-map-marker[data-has-icon="false"] {
+  width: 3.05rem;
+  height: 3.55rem;
+}
+
+.timeless-map-marker[data-has-icon="false"] .timeless-map-marker__badge {
+  top: 0.12rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 2px solid rgb(255 255 255 / 0.9);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgb(255 255 255 / 0.38), transparent 28%),
+    var(--marker-color, #77716a);
+  box-shadow:
+    0 8px 18px rgb(27 22 18 / 0.22),
+    0 0 0 0.42rem var(--marker-soft, rgb(72 68 62 / 0.1));
+  clip-path: none;
+}
+
+.timeless-map-marker__fallback-dot {
+  display: block;
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: white;
+  box-shadow: 0 0 0 0.24rem rgb(255 255 255 / 0.2);
+}
+
+.timeless-map-marker[data-has-icon="false"] .timeless-map-marker__pin {
+  bottom: 0.68rem;
+  display: block;
+}
+
 @keyframes timeless-fade-out {
   from {
     opacity: 1;
@@ -1288,11 +1387,15 @@
   display: grid;
   place-items: center;
   overflow: hidden;
+  background: #000;
   isolation: isolate;
 }
 
-.timeless-preroll-bridge::before,
-.timeless-preroll-bridge::after {
+.timeless-preroll-bridge--exiting {
+  background: transparent;
+}
+
+.timeless-preroll-bridge::before {
   position: absolute;
   inset: 0;
   content: "";
@@ -1303,12 +1406,6 @@
   z-index: 2;
   background: linear-gradient(180deg, rgb(0 0 0 / 0.08), transparent 18%, transparent 82%, rgb(0 0 0 / 0.1));
   opacity: 1;
-}
-
-.timeless-preroll-bridge::after {
-  z-index: 4;
-  background: #000;
-  opacity: 0;
 }
 
 .timeless-preroll-bridge__video {
@@ -1350,26 +1447,12 @@
 }
 
 .timeless-preroll-bridge--exiting::before {
-  animation: timeless-preroll-soften 520ms ease-out forwards;
-}
-
-.timeless-preroll-bridge--exiting::after {
-  animation: timeless-preroll-blackout 520ms ease-out forwards;
+  animation: timeless-preroll-soften 720ms ease-out forwards;
 }
 
 .timeless-preroll-bridge--exiting .timeless-preroll-bridge__video {
-  animation: timeless-preroll-video-close 520ms ease-out
+  animation: timeless-preroll-video-close 720ms ease-out
     forwards;
-}
-
-.timeless-scene-reveal {
-  background: #000;
-  opacity: 1;
-  pointer-events: none;
-}
-
-.timeless-scene-reveal--active {
-  animation: timeless-scene-reveal 520ms ease-out forwards;
 }
 
 @keyframes timeless-preroll-video-close {
@@ -1396,28 +1479,6 @@
   }
 }
 
-@keyframes timeless-preroll-blackout {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes timeless-scene-reveal {
-  0% {
-    opacity: 1;
-    backdrop-filter: none;
-  }
-
-  100% {
-    opacity: 0;
-    backdrop-filter: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .timeless-map-marker__tap-pulse {
     animation: none;
@@ -1430,22 +1491,12 @@
   }
 
   .timeless-preroll-bridge--exiting::before,
-  .timeless-preroll-bridge--exiting::after,
-  .timeless-preroll-bridge--exiting .timeless-preroll-bridge__video,
-  .timeless-scene-reveal--active {
+  .timeless-preroll-bridge--exiting .timeless-preroll-bridge__video {
     animation: none;
-  }
-
-  .timeless-preroll-bridge--exiting::after {
-    opacity: 1;
   }
 
   .timeless-preroll-bridge--exiting .timeless-preroll-bridge__video,
   .timeless-preroll-bridge__play {
-    opacity: 0;
-  }
-
-  .timeless-scene-reveal--active {
     opacity: 0;
   }
 }

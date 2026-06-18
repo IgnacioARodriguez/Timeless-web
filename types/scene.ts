@@ -9,6 +9,13 @@ export type SceneMedia =
     type: "image"
     src: string
     projection: "cylindrical" | "180" | "flat"
+    preroll?: {
+      src: string
+      sources?: SceneMediaSource[]
+      poster?: string
+      muted?: boolean
+      loop?: boolean
+    }
   }
   | {
     type: "video"

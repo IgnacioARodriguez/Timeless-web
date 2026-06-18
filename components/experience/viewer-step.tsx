@@ -5,8 +5,7 @@ import { Viewer180 } from "@/components/viewer/viewer-180"
 import { useLanguage } from "@/components/i18n/language-provider"
 import type { Scene, SceneMediaSource } from "@/types/scene"
 
-const PREROLL_FADE_DURATION = 520
-const SCENE_REVEAL_DURATION = 520
+const PREROLL_FADE_DURATION = 720
 
 interface ViewerStepProps {
   scene: Scene
@@ -48,13 +47,12 @@ export function ViewerStep({
   const [isPrerollFadingOut, setIsPrerollFadingOut] = useState(false)
   const [isPrerollPlaybackBlocked, setIsPrerollPlaybackBlocked] =
     useState(false)
-  const [isSceneRevealVisible, setIsSceneRevealVisible] = useState(false)
-  const [isSceneRevealActive, setIsSceneRevealActive] = useState(false)
   const prerollVideoRef = useRef<HTMLVideoElement | null>(null)
   const transitionTimeoutsRef = useRef<number[]>([])
   const isPrerollBlockingScene =
     Boolean(prerollMedia) &&
-    (isPrerollVisible || isPrerollFadingOut || isSceneRevealVisible)
+    isPrerollVisible &&
+    !isPrerollFadingOut
 
   useEffect(() => {
     let cancelled = false
@@ -70,8 +68,6 @@ export function ViewerStep({
       setIsPrerollVisible(Boolean(prerollMedia))
       setIsPrerollFadingOut(false)
       setIsPrerollPlaybackBlocked(false)
-      setIsSceneRevealVisible(false)
-      setIsSceneRevealActive(false)
     })
 
     return () => {
@@ -130,22 +126,12 @@ export function ViewerStep({
 
       setIsPrerollFadingOut(true)
 
-      const blackoutTimeout = window.setTimeout(() => {
+      const fadeTimeout = window.setTimeout(() => {
         setIsPrerollVisible(false)
-        setIsSceneRevealVisible(true)
-
-        window.requestAnimationFrame(() => {
-          setIsSceneRevealActive(true)
-        })
+        setIsPrerollFadingOut(false)
       }, PREROLL_FADE_DURATION)
 
-      const revealTimeout = window.setTimeout(() => {
-        setIsSceneRevealVisible(false)
-        setIsSceneRevealActive(false)
-        setIsPrerollFadingOut(false)
-      }, PREROLL_FADE_DURATION + SCENE_REVEAL_DURATION)
-
-      transitionTimeoutsRef.current.push(blackoutTimeout, revealTimeout)
+      transitionTimeoutsRef.current.push(fadeTimeout)
     }
 
     video.addEventListener("timeupdate", handleTimeUpdate)
@@ -199,7 +185,7 @@ export function ViewerStep({
 
       {isPrerollVisible && prerollMedia && (
         <div
-          className={`timeless-preroll-bridge absolute inset-0 z-30 bg-black ${
+          className={`timeless-preroll-bridge absolute inset-0 z-30 ${
             isPrerollFadingOut ? "timeless-preroll-bridge--exiting" : ""
           }`}
         >
@@ -221,14 +207,6 @@ export function ViewerStep({
         </div>
       )}
 
-      {isSceneRevealVisible && (
-        <div
-          className={`timeless-scene-reveal absolute inset-0 z-30 ${
-            isSceneRevealActive ? "timeless-scene-reveal--active" : ""
-          }`}
-          aria-hidden="true"
-        />
-      )}
     </div>
   )
 }
