@@ -39,6 +39,7 @@ import type { MapPoi } from "@/types/poi"
 
 const MALAGA_CENTER: [number, number] = [-4.4214, 36.7212]
 const MOTION_PERMISSION_STORAGE_KEY = "timeless-motion-permission"
+const POST_ORIENTATION_TRANSITION_DELAY_MS = 1000
 
 function isPortraitViewport() {
   if (typeof window === "undefined") return false
@@ -79,66 +80,6 @@ function getPoiKind(poi: MapPoi): PoiKind {
   if (poi.id.includes("teatro")) return "theatre"
   if (poi.id.includes("larios")) return "street"
   return "civic"
-}
-
-function getPoiMarkerSvg(kind: PoiKind) {
-  const common = `
-    <ellipse class="poi-ink poi-shadow" cx="32" cy="52" rx="19" ry="7" />
-    <path class="poi-paper" d="M12 44 32 32l20 12-20 12-20-12Z" />
-  `
-
-  const icons: Record<PoiKind, string> = {
-    wall: `
-      ${common}
-      <path class="poi-mid" d="M17 27 32 18l15 9v18l-15 9-15-9V27Z" />
-      <path class="poi-dark" d="M32 18v36l15-9V27L32 18Z" />
-      <path class="poi-light" d="M17 27 32 18v36l-15-9V27Z" />
-      <path class="poi-cut" d="M20 24h5v-6h5v6h5v-6h5v6h4v5H20v-5Z" />
-      <path class="poi-line" d="M22 34h20M22 40h20M28 32v17M36 32v17" />
-      <path class="poi-hole" d="M29 41c0-3 6-3 6 0v9h-6v-9Z" />
-    `,
-    market: `
-      ${common}
-      <path class="poi-mid" d="M14 35 32 23l18 12v12L32 57 14 47V35Z" />
-      <path class="poi-dark" d="M32 23v34l18-10V35L32 23Z" />
-      <path class="poi-light" d="M14 35 32 23v34L14 47V35Z" />
-      <path class="poi-cut" d="M19 35c5-9 21-9 26 0v4H19v-4Z" />
-      <path class="poi-paper" d="M23 39c0-6 18-6 18 0v11H23V39Z" />
-      <path class="poi-hole" d="M27 41c0-4 10-4 10 0v10H27V41Z" />
-      <path class="poi-line" d="M19 35h26M23 30h18M17 47l15 8 15-8" />
-    `,
-    theatre: `
-      ${common}
-      <path class="poi-mid" d="M13 43c3-14 35-14 38 0L32 56 13 43Z" />
-      <path class="poi-dark" d="M32 31c10 0 18 4 19 12L32 56V31Z" />
-      <path class="poi-light" d="M13 43c1-8 9-12 19-12v25L13 43Z" />
-      <path class="poi-line" d="M20 42c2-7 22-7 24 0M24 46c2-4 14-4 16 0M32 32v23M16 44l16 10 16-10" />
-      <path class="poi-cut" d="M27 40h10v5H27z" />
-    `,
-    street: `
-      ${common}
-      <path class="poi-mid" d="M16 45 32 22l16 23-16 11-16-11Z" />
-      <path class="poi-light" d="M20 43 32 27v29L20 43Z" />
-      <path class="poi-dark" d="M32 27 44 43 32 56V27Z" />
-      <path class="poi-paper" d="M29 30h6l3 21-6 4-6-4 3-21Z" />
-      <path class="poi-line" d="M24 39h16M21 44h22M18 49h28M32 31v23" />
-      <path class="poi-cut" d="M19 32h6v9h-6zM39 32h6v9h-6z" />
-    `,
-    civic: `
-      ${common}
-      <path class="poi-mid" d="M16 38 32 24l16 14v11L32 57 16 49V38Z" />
-      <path class="poi-dark" d="M32 24v33l16-8V38L32 24Z" />
-      <path class="poi-light" d="M16 38 32 24v33l-16-8V38Z" />
-      <path class="poi-cut" d="M32 29 36 38l9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1 4-9Z" />
-      <path class="poi-line" d="M18 48 32 55l14-7M22 38l10-8 10 8" />
-    `,
-  }
-
-  return `
-    <svg class="timeless-map-marker__icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      ${icons[kind]}
-    </svg>
-  `
 }
 
 function getPoiCategoryLabel(poi: MapPoi, language: "es" | "en") {
@@ -340,6 +281,17 @@ function applyTimelessMapStyle(map: MapLibreMap) {
   }
 }
 
+function disableMapNavigation(map: MapLibreMap) {
+  map.dragPan.disable()
+  map.scrollZoom.disable()
+  map.boxZoom.disable()
+  map.dragRotate.disable()
+  map.keyboard.disable()
+  map.doubleClickZoom.disable()
+  map.touchZoomRotate.disable()
+  map.touchPitch.disable()
+}
+
 export function MalagaCenterMap({
   embedded = false,
   fullscreen = false,
@@ -520,6 +472,8 @@ export function MalagaCenterMap({
           markerButton.type = "button"
           markerButton.className = "timeless-map-marker"
           markerButton.dataset.kind = kind
+          markerButton.dataset.poiId = poi.id
+          markerButton.dataset.hasIcon = String(Boolean(poi.iconImage))
           markerButton.dataset.status = poi.status
           markerButton.dataset.selected = String(
             poi.id === selectedPoiIdRef.current,
@@ -528,10 +482,14 @@ export function MalagaCenterMap({
             filteredPoiIdsRef.current.has(poi.id),
           )
           markerButton.setAttribute("aria-label", `${t("selectPoi")} ${poi.title}`)
+          const markerIconMarkup = poi.iconImage
+            ? `<img class="timeless-map-marker__icon timeless-map-marker__icon--image" src="${poi.iconImage}" alt="" aria-hidden="true" draggable="false" />`
+            : `<span class="timeless-map-marker__fallback" aria-hidden="true"><span class="timeless-map-marker__fallback-dot"></span></span>`
+
           markerButton.innerHTML = `
             <span class="timeless-map-marker__halo"></span>
             <span class="timeless-map-marker__badge">
-              ${getPoiMarkerSvg(kind)}
+              ${markerIconMarkup}
             </span>
             <span class="timeless-map-marker__pin"></span>
             <span class="timeless-map-marker__label"></span>
@@ -675,6 +633,7 @@ export function MalagaCenterMap({
     const secondBearing = currentBearing + 168
 
     map.stop()
+    disableMapNavigation(map)
     map.easeTo({
       center,
       zoom: Math.max(map.getZoom(), 15.7),
@@ -738,8 +697,11 @@ export function MalagaCenterMap({
     if (!orientationPromptPoiId) return
 
     let frameId: number | null = null
+    let transitionTimeoutId: number | null = null
+    let transitionQueued = false
 
     const continueWhenLandscape = () => {
+      if (transitionQueued) return
       if (isPortraitViewport()) return
 
       const poi = localizedPois.find(
@@ -747,7 +709,10 @@ export function MalagaCenterMap({
       )
 
       if (poi) {
-        beginMapSceneTransition(poi)
+        transitionQueued = true
+        transitionTimeoutId = window.setTimeout(() => {
+          beginMapSceneTransition(poi)
+        }, POST_ORIENTATION_TRANSITION_DELAY_MS)
       }
     }
 
@@ -758,6 +723,9 @@ export function MalagaCenterMap({
     return () => {
       if (frameId !== null) {
         window.cancelAnimationFrame(frameId)
+      }
+      if (transitionTimeoutId !== null) {
+        window.clearTimeout(transitionTimeoutId)
       }
 
       window.removeEventListener("resize", continueWhenLandscape)
@@ -1198,7 +1166,7 @@ export function MalagaCenterMap({
 
       {transitioningPoi && (
         <div
-          className="timeless-scene-transition pointer-events-none absolute inset-0 z-50"
+          className="timeless-scene-transition absolute inset-0 z-50"
           aria-hidden="true"
         >
           <div className="timeless-scene-transition__vignette" />

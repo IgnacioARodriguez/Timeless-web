@@ -11,6 +11,7 @@ export const malagaCenterPois: MapPoi[] = [
     status: "available",
     sceneId: "carreteria-almohade",
     previewImage: "/assets/carreteria/panorama.png",
+    iconImage: "/assets/carreteria/poi-muralla.png",
     directions: {
       latitude: 36.723456,
       longitude: -4.423008,
@@ -57,7 +58,8 @@ export const malagaCenterPois: MapPoi[] = [
     locationLabel: "Mercado de Atarazanas",
     status: "available",
     sceneId: "atarazanas-nazari",
-    previewImage: "/assets/atarazanas/panorama.png",
+    previewImage: "/assets/atarazanas/reconstruccion-atarazanas-v2.png",
+    iconImage: "/assets/atarazanas/poi-atarazanas.png",
     directions: {
       latitude: 36.718676,
       longitude: -4.424228,
@@ -85,7 +87,8 @@ export const malagaCenterPois: MapPoi[] = [
     locationLabel: "Calle Marqués de Larios",
     status: "available",
     sceneId: "calle-larios-1891",
-    previewImage: "/assets/calle-larios/panorama.png",
+    previewImage: "/assets/calle-larios/larios-1891-reconstruction.png",
+    iconImage: "/assets/calle-larios/poi-calle-larios.png",
     directions: {
       latitude: 36.718271,
       longitude: -4.421444,
@@ -114,6 +117,7 @@ export const malagaCenterPois: MapPoi[] = [
     status: "available",
     sceneId: "teatro-romano-malaca",
     previewImage: "/assets/teatro-romano/panorama.png",
+    iconImage: "/assets/teatro-romano/poi-teatro.png",
     directions: {
       latitude: 36.72125299697328,
       longitude: -4.4172272713502485,

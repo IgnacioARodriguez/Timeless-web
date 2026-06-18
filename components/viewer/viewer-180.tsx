@@ -32,7 +32,7 @@ function pickBestVideoSource(video: HTMLVideoElement, media: SceneVideoMedia) {
   return playableSource?.src ?? media.src
 }
 
-const VIEWER_FOV = 40
+const VIEWER_FOV = 55
 const HORIZON_PITCH_OFFSET = 0
 const HOTSPOT_RADIUS = 420
 const CYLINDER_RADIUS = 500
@@ -92,7 +92,7 @@ function createEdgeFadeMaterial(texture: THREE.Texture, videoAspect: number = 16
   // Adapt fade parameters based on video aspect ratio
   // Wider videos (higher aspect) need gentler horizontal fade
   const aspectRatio = Math.max(1, Math.min(videoAspect, 3))
-  const fadeShapeX = 0.85 + (1 - Math.min(aspectRatio / 3, 1)) * 0.1
+  const fadeShapeX = 0.85 + (1 - Math.min(aspectRatio / 3, 1)) * 10
   const fadePower = 2.5 + Math.min(aspectRatio, 2) * 0.3
 
   material.onBeforeCompile = (shader: any) => {
@@ -272,6 +272,7 @@ export function Viewer180({
   // Base del gyro en espacio 3D real.
   const baselineDeviceQuaternionRef = useRef<THREE.Quaternion | null>(null)
   const motionAnchorYawRef = useRef(yawRef.current)
+  const motionAnchorPitchRef = useRef(pitchRef.current)
 
   // Drag fallback.
   const dragRef = useRef({
@@ -297,6 +298,7 @@ export function Viewer180({
     setGyroEnabled(motionEnabled)
     baselineDeviceQuaternionRef.current = null
     motionAnchorYawRef.current = targetYawRef.current
+    motionAnchorPitchRef.current = targetPitchRef.current
   }, [motionEnabled])
 
   useEffect(() => {
@@ -389,7 +391,7 @@ export function Viewer180({
   }, [ambientAudio, autoStartAmbientAudio, hasAmbientAudio, hasError, isAmbientAudioPlaying, isEntered])
 
 
-  // Gyro relativo limitado al eje horizontal. El pitch solo cambia con drag.
+  // Relative gyro controls both horizontal yaw and vertical pitch.
   useEffect(() => {
     function handleOrientation(e: DeviceOrientationEvent) {
       if (!gyroEnabled || dragRef.current.active) return
@@ -422,16 +424,27 @@ export function Viewer180({
         scene.camera.minYaw + calibrationYaw,
         scene.camera.maxYaw + calibrationYaw
       )
+      const nextPitch = clamp(
+        motionAnchorPitchRef.current + THREE.MathUtils.radToDeg(deltaEuler.x),
+        scene.camera.minPitch + calibrationPitch,
+        scene.camera.maxPitch + calibrationPitch
+      )
 
       if (Math.abs(nextYaw - targetYawRef.current) > GYRO_TARGET_DEADZONE_DEG) {
         targetYawRef.current = nextYaw
+      }
+      if (
+        Math.abs(nextPitch - targetPitchRef.current) >
+        GYRO_TARGET_DEADZONE_DEG
+      ) {
+        targetPitchRef.current = nextPitch
       }
     }
 
     window.addEventListener("deviceorientation", handleOrientation, true)
     return () =>
       window.removeEventListener("deviceorientation", handleOrientation, true)
-  }, [gyroEnabled, scene.camera, calibrationYaw])
+  }, [gyroEnabled, scene.camera, calibrationPitch, calibrationYaw])
 
   // Si rota portrait <-> landscape, reinicia la baseline para evitar saltos.
   useEffect(() => {
@@ -440,6 +453,7 @@ export function Viewer180({
 
       baselineDeviceQuaternionRef.current = null
       motionAnchorYawRef.current = targetYawRef.current
+      motionAnchorPitchRef.current = targetPitchRef.current
     }
 
     window.addEventListener("orientationchange", handleOrientationChange)
@@ -938,6 +952,7 @@ export function Viewer180({
     if (wasDragging && gyroEnabled) {
       baselineDeviceQuaternionRef.current = null
       motionAnchorYawRef.current = targetYawRef.current
+      motionAnchorPitchRef.current = targetPitchRef.current
     }
   }
 
@@ -972,6 +987,7 @@ export function Viewer180({
     targetYawRef.current = nextYaw
     targetPitchRef.current = nextPitch
     motionAnchorYawRef.current = nextYaw
+    motionAnchorPitchRef.current = nextPitch
     baselineDeviceQuaternionRef.current = null
     setActiveHotspotId(null)
   }, [calibrationPitch, calibrationYaw, scene.camera.initialPitch, scene.camera.initialYaw])

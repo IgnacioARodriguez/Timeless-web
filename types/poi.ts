@@ -17,6 +17,7 @@ export interface MapPoi {
   status: PoiStatus
   sceneId?: string
   previewImage?: string
+  iconImage?: string
   directions?: {
     latitude: number
     longitude: number

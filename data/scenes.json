@@ -9,8 +9,6 @@
       "type": "image",
       "src": "/assets/carreteria/panorama.png",
       "projection": "cylindrical",
-      "loop":true,
-      "muted":false,
       "preroll": {
         "src": "/assets/carreteria/intro.mp4",
         "poster": "/assets/carreteria/panorama.png",
@@ -151,13 +149,17 @@
     "title": "Atarazanas medievales — Málaga nazarí",
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
     "description": "Imagina esta zona antes del mercado actual: junto al mar, con barcos, trabajadores y un gran edificio portuario donde se reparaban y guardaban embarcaciones.",
-    "poster": "/assets/atarazanas/panorama.png",
+    "poster": "/assets/atarazanas/reconstruccion-atarazanas-v2.png",
     "media": {
-      "type": "video",
-      "src": "/assets/atarazanas/master.mp4",
+      "type": "image",
+      "src": "/assets/atarazanas/reconstruccion-atarazanas-v2.png",
       "projection": "cylindrical",
-      "loop": true,
-      "muted": false
+      "preroll": {
+        "src": "/assets/atarazanas/intro.mp4",
+        "poster": "/assets/atarazanas/panorama.png",
+        "muted": false,
+        "loop": false
+      }
     },
     "camera": {
       "initialYaw": 0,
@@ -316,11 +318,15 @@
     "description": "Entra en la Malaca romana y mira el teatro como un espacio vivo: gradas, accesos, escenario y una ciudad organizada alrededor de sus lugares públicos.",
     "poster": "/assets/teatro-romano/panorama.png",
     "media": {
-      "type": "video",
-      "src": "/assets/teatro-romano/master.mp4",
+      "type": "image",
+      "src": "/assets/teatro-romano/panorama.png",
       "projection": "cylindrical",
-      "loop": true,
-      "muted": true
+      "preroll": {
+        "src": "/assets/teatro-romano/intro.mp4",
+        "poster": "/assets/teatro-romano/panorama.png",
+        "muted": false,
+        "loop": false
+      }
     },
     "camera": {
       "initialYaw": 0,
@@ -488,22 +494,19 @@
     "title": "Calle Larios — Málaga, 1891",
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
     "description": "Viaja a la Málaga de finales del siglo XIX y observa Calle Larios como una nueva avenida burguesa: una operación urbana moderna pensada para abrir el centro histórico, ordenar el comercio y proyectar una imagen renovada de la ciudad.",
-    "poster": "/assets/calle-larios/panorama.png",
+    "poster": "/assets/calle-larios/larios-1891-reconstruction.png",
     "media": {
-      "type": "video",
-      "src": "/assets/calle-larios/master.mp4",
-      "poster": "/assets/calle-larios/panorama.png",
-      "projection": "cylindrical",
-      "loop": true,
-      "muted": false
+      "type": "image",
+      "src": "/assets/calle-larios/larios-1891-reconstruction.png",
+      "projection": "cylindrical"
     },
     "camera": {
       "initialYaw": 0,
       "initialPitch": 0,
-      "minYaw": -65,
-      "maxYaw": 65,
-      "minPitch": -25,
-      "maxPitch": 25
+      "minYaw": -40,
+      "maxYaw": 40,
+      "minPitch": -15,
+      "maxPitch": 15
     },
     "hotspots": [
       {
