@@ -812,6 +812,11 @@
   --marker-soft: rgb(47 118 111 / 0.16);
 }
 
+.timeless-map-marker[data-kind="port"] {
+  --marker-color: #2f6270;
+  --marker-soft: rgb(47 98 112 / 0.16);
+}
+
 .timeless-map-marker[data-kind="theatre"] {
   --marker-color: #7d5d18;
   --marker-soft: rgb(125 93 24 / 0.16);
@@ -961,6 +966,10 @@
   --marker-color: #2f766f;
 }
 
+.timeless-result-dot[data-kind="port"] {
+  --marker-color: #2f6270;
+}
+
 .timeless-result-dot[data-kind="theatre"] {
   --marker-color: #7d5d18;
 }
@@ -1007,6 +1016,13 @@
   --marker-mid: #a9bda6;
   --marker-dark: #58716b;
   --marker-soft: rgb(38 61 57 / 0.16);
+}
+
+.timeless-map-marker[data-kind="port"] {
+  --marker-ink: #263c46;
+  --marker-mid: #a8bec5;
+  --marker-dark: #526c78;
+  --marker-soft: rgb(38 60 70 / 0.16);
 }
 
 .timeless-map-marker[data-kind="theatre"] {
@@ -1239,6 +1255,10 @@
 
 .timeless-result-dot[data-kind="market"] {
   --marker-color: #263d39;
+}
+
+.timeless-result-dot[data-kind="port"] {
+  --marker-color: #263c46;
 }
 
 .timeless-result-dot[data-kind="theatre"] {

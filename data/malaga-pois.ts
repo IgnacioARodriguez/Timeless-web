@@ -108,6 +108,34 @@ export const malagaCenterPois: MapPoi[] = [
     },
   },
   {
+    id: "puerto-malaga-1791",
+    title: "Puerto de Málaga",
+    period: "Málaga ilustrada · 1791",
+    shortDescription:
+      "Reconstrucción inmersiva del puerto visto desde el entorno actual de Muelle 2: una Málaga de muelles de piedra, comercio marítimo, defensas, barcos de vela y ciudad histórica.",
+    locationLabel: "Muelle 2 · Palmeral de las Sorpresas",
+    status: "available",
+    sceneId: "puerto-malaga-1791",
+    previewImage: "/assets/puerto-1791/panorama.png",
+    directions: {
+      latitude: 36.71785,
+      longitude: -4.41785,
+      label: "Muelle 2 · Palmeral de las Sorpresas",
+    },
+    coordinates: { latitude: 36.71785, longitude: -4.41785 },
+    mapPosition: { x: 45.0, y: 69.0 },
+    i18n: {
+      en: {
+        title: "Port of Málaga",
+        period: "Enlightenment Málaga · 1791",
+        shortDescription:
+          "Immersive reconstruction of the port from the present-day Muelle 2 area: a Málaga of stone quays, maritime trade, defences, sailing vessels and the historic city.",
+        locationLabel: "Muelle 2 · Palmeral de las Sorpresas",
+        directionsLabel: "Muelle 2 · Palmeral de las Sorpresas",
+      },
+    },
+  },
+  {
     id: "teatro-romano",
     title: "Teatro Romano",
     period: "Malaca romana",

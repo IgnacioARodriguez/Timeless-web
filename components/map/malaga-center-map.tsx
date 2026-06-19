@@ -63,7 +63,7 @@ interface MalagaCenterMapProps {
 }
 
 type PoiFilter = "all" | "available" | "future"
-type PoiKind = "wall" | "market" | "theatre" | "street" | "civic"
+type PoiKind = "wall" | "market" | "port" | "theatre" | "street" | "civic"
 
 interface UserLocation {
   latitude: number
@@ -77,6 +77,7 @@ function getPoiCoordinates(poi: MapPoi): [number, number] {
 function getPoiKind(poi: MapPoi): PoiKind {
   if (poi.id.includes("muralla")) return "wall"
   if (poi.id.includes("atarazanas")) return "market"
+  if (poi.id.includes("puerto")) return "port"
   if (poi.id.includes("teatro")) return "theatre"
   if (poi.id.includes("larios")) return "street"
   return "civic"
@@ -88,6 +89,7 @@ function getPoiCategoryLabel(poi: MapPoi, language: "es" | "en") {
   const labels: Record<PoiKind, { es: string; en: string }> = {
     wall: { es: "Defensa", en: "Defence" },
     market: { es: "Mercado", en: "Market" },
+    port: { es: "Puerto", en: "Port" },
     theatre: { es: "Teatro", en: "Theatre" },
     street: { es: "Eje urbano", en: "Urban axis" },
     civic: { es: "Plaza", en: "Square" },

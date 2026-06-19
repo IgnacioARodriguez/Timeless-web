@@ -498,7 +498,13 @@
     "media": {
       "type": "image",
       "src": "/assets/calle-larios/larios-1891-reconstruction.png",
-      "projection": "cylindrical"
+      "projection": "cylindrical",
+      "preroll": {
+        "src": "/assets/calle-larios/intro.mp4",
+        "poster": "/assets/calle-larios/panorama.png",
+        "muted": false,
+        "loop": false
+      }
     },
     "camera": {
       "initialYaw": 0,
@@ -625,6 +631,195 @@
         "title": "Calle Larios — Málaga, 1891",
         "subtitle": "Immersive 180° historical reconstruction",
         "description": "Travel to late 19th-century Málaga and see Calle Larios as a new bourgeois avenue: a modern urban operation designed to open up the historic centre, organize commerce and project a renewed image of the city."
+      }
+    }
+  },
+  {
+    "id": "puerto-malaga-1791",
+    "title": "Puerto de Málaga — 1791",
+    "subtitle": "Reconstrucción histórica inmersiva de 180º",
+    "description": "Sitúate junto al actual Muelle 2 y observa el puerto de Málaga como un espacio comercial y defensivo de finales del siglo XVIII: muelles de piedra, barcos de vela, carga, ciudad histórica y los grandes hitos del paisaje urbano.",
+    "poster": "/assets/puerto-1791/panorama.png",
+    "media": {
+      "type": "image",
+      "src": "/assets/puerto-1791/panorama.png",
+      "projection": "cylindrical",
+      "preroll": {
+        "src": "/assets/puerto-1791/intro.mp4",
+        "poster": "/assets/puerto-1791/panorama.png",
+        "muted": false,
+        "loop": false
+      }
+    },
+    "camera": {
+      "initialYaw": 0,
+      "initialPitch": 0,
+      "minYaw": -65,
+      "maxYaw": 65,
+      "minPitch": -25,
+      "maxPitch": 25
+    },
+    "hotspots": [
+      {
+        "id": "puerto-muelle-trabajo",
+        "label": "Muelle",
+        "title": "Un muelle de trabajo, no un paseo",
+        "description": "La escena sustituye el frente marítimo de ocio actual por un borde portuario funcional: piedra gastada por la sal, amarres, toneles, sacos y trabajadores moviendo mercancías. En 1791 este espacio se entiende mejor como infraestructura económica y estratégica.",
+        "yaw": 55,
+        "pitch": -18,
+        "focus": {
+          "shape": "rect",
+          "width": 360,
+          "height": 190,
+          "offsetX": 0,
+          "offsetY": 15
+        },
+        "i18n": {
+          "en": {
+            "label": "Quay",
+            "title": "A working quay, not a promenade",
+            "description": "The scene replaces today's leisure waterfront with a functional port edge: salt-worn stone, moorings, barrels, sacks and workers moving goods. In 1791 this place is better understood as economic and strategic infrastructure."
+          }
+        }
+      },
+      {
+        "id": "puerto-catedral-ciudad",
+        "label": "Catedral",
+        "title": "La ciudad densa detrás del puerto",
+        "description": "La Catedral sirve como ancla visual para situar la Málaga histórica. A su alrededor aparece un tejido urbano bajo, compacto, de fachadas sobrias y cubiertas de teja, propio de una ciudad mediterránea española de finales del siglo XVIII.",
+        "yaw": 45,
+        "pitch": 12,
+        "focus": {
+          "shape": "rect",
+          "width": 210,
+          "height": 280,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Cathedral",
+            "title": "The dense city behind the port",
+            "description": "The Cathedral works as a visual anchor for historic Málaga. Around it stands a low, compact urban fabric of sober façades and tiled roofs, consistent with a late eighteenth-century Spanish Mediterranean city."
+          }
+        }
+      },
+      {
+        "id": "puerto-frente-maritimo",
+        "label": "Frente urbano",
+        "title": "La ciudad tocaba el puerto",
+        "description": "El frente marítimo no era una franja turística separada de la ciudad. Muros, accesos, almacenes y edificios bajos conectaban directamente la vida urbana con la actividad portuaria.",
+        "yaw": 0,
+        "pitch": -2,
+        "focus": {
+          "shape": "rect",
+          "width": 440,
+          "height": 150,
+          "offsetX": 0,
+          "offsetY": 8
+        },
+        "i18n": {
+          "en": {
+            "label": "Urban edge",
+            "title": "The city touched the port",
+            "description": "The waterfront was not a tourist strip separated from the city. Walls, access points, stores and low buildings connected urban life directly with port activity."
+          }
+        }
+      },
+      {
+        "id": "puerto-defensas",
+        "label": "Defensa",
+        "title": "Puerto comercial y punto estratégico",
+        "description": "Las formas defensivas recuerdan que el puerto no era solo un lugar de intercambio. Málaga necesitaba controlar el abrigo, los accesos y el tráfico marítimo, combinando comercio, vigilancia y protección.",
+        "yaw": -5,
+        "pitch": -6,
+        "focus": {
+          "shape": "rect",
+          "width": 250,
+          "height": 170,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Defence",
+            "title": "A commercial port and strategic point",
+            "description": "The defensive forms recall that the port was not only a place of exchange. Málaga needed to control shelter, access and maritime traffic, combining trade, surveillance and protection."
+          }
+        }
+      },
+      {
+        "id": "puerto-gibralfaro-alcazaba",
+        "label": "Alcazaba",
+        "title": "Alcazaba y Gibralfaro sobre la rada",
+        "description": "La Alcazaba y Gibralfaro dominan visualmente la ciudad y el puerto. En una reconstrucción de 1791 son hitos indispensables: conectan la topografía real de Málaga con su memoria militar y urbana.",
+        "yaw": -38,
+        "pitch": 18,
+        "focus": {
+          "shape": "ellipse",
+          "width": 470,
+          "height": 230,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Alcazaba",
+            "title": "Alcazaba and Gibralfaro above the harbour",
+            "description": "The Alcazaba and Gibralfaro visually dominate the city and port. In a 1791 reconstruction they are essential landmarks, tying Málaga's real topography to its military and urban memory."
+          }
+        }
+      },
+      {
+        "id": "puerto-darsena-barcos",
+        "label": "Barcos",
+        "title": "Vela mediterránea y tráfico de cabotaje",
+        "description": "Los barcos de vela y las barcas de servicio muestran un puerto anterior al vapor. Son embarcaciones de trabajo: transporte, carga, maniobra y enlace entre los buques y los muelles.",
+        "yaw": -55,
+        "pitch": -14,
+        "focus": {
+          "shape": "ellipse",
+          "width": 420,
+          "height": 270,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Boats",
+            "title": "Mediterranean sail and coastal traffic",
+            "description": "The sailing vessels and service boats show a port before steam power. These are working craft: transport, loading, manoeuvring and connecting ships with the quays."
+          }
+        }
+      },
+      {
+        "id": "puerto-aterramiento",
+        "label": "Arenas",
+        "title": "El problema de los aterramientos",
+        "description": "El tono más claro en los bordes del agua sugiere de forma contenida un problema histórico del puerto: los aportes de arena y sedimento, especialmente vinculados al Guadalmedina, que obligaban a mantener y controlar la dársena.",
+        "yaw": -15,
+        "pitch": -30,
+        "focus": {
+          "shape": "ellipse",
+          "width": 360,
+          "height": 170,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "i18n": {
+          "en": {
+            "label": "Silting",
+            "title": "The silting problem",
+            "description": "The lighter tone along the water's edge subtly suggests a historical port problem: sand and sediment deposits, especially linked to the Guadalmedina, which required maintenance and control of the basin."
+          }
+        }
+      }
+    ],
+    "i18n": {
+      "en": {
+        "title": "Port of Málaga — 1791",
+        "subtitle": "Immersive 180° historical reconstruction",
+        "description": "Stand beside today's Muelle 2 and see Málaga's port as a late eighteenth-century commercial and defensive space: stone quays, sailing vessels, cargo handling, the historic city and the major landmarks of the urban landscape."
       }
     }
   }
