@@ -316,14 +316,14 @@
     "title": "Teatro Romano — Malaca romana",
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
     "description": "Entra en la Malaca romana y mira el teatro como un espacio vivo: gradas, accesos, escenario y una ciudad organizada alrededor de sus lugares públicos.",
-    "poster": "/assets/teatro-romano/malaca-blender-180-4k.jpg",
+    "poster": "/assets/teatro-romano/malaca-inmersivo-180-4k.jpg",
     "media": {
       "type": "image",
-      "src": "/assets/teatro-romano/malaca-blender-180-4k.jpg",
+      "src": "/assets/teatro-romano/malaca-inmersivo-180-4k.jpg",
       "projection": "equirectangular-180",
       "preroll": {
         "src": "/assets/teatro-romano/intro.mp4",
-        "poster": "/assets/teatro-romano/malaca-blender-180-4k.jpg",
+        "poster": "/assets/teatro-romano/malaca-inmersivo-180-4k.jpg",
         "muted": false,
         "loop": false
       }
