@@ -530,6 +530,21 @@ export function Viewer180({
         return { geometry, positionZ: -distance, rotationY: 0 }
       }
 
+      if (scene.media.projection === "equirectangular-180") {
+        // Blender panorama: longitude -90°..90°, latitude -45°..45°.
+        const geometry = new THREE.SphereGeometry(
+          CYLINDER_RADIUS,
+          128,
+          64,
+          Math.PI,
+          Math.PI,
+          Math.PI / 4,
+          Math.PI / 2
+        )
+        geometry.scale(-1, 1, 1)
+        return { geometry, positionZ: 0, rotationY: 0 }
+      }
+
       // The texture spans a 180° cylindrical arc. Deriving the cylinder height
       // from the source aspect ratio preserves every pixel without stretching.
       const cylinderHeight =

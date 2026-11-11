@@ -8,7 +8,7 @@ export type SceneMedia =
   | {
     type: "image"
     src: string
-    projection: "cylindrical" | "180" | "flat"
+    projection: "cylindrical" | "180" | "equirectangular-180" | "flat"
     preroll?: {
       src: string
       sources?: SceneMediaSource[]
@@ -23,7 +23,7 @@ export type SceneMedia =
     /** Optional codec-specific alternatives. The viewer picks the first playable source. */
     sources?: SceneMediaSource[]
     poster?: string
-    projection: "cylindrical" | "180" | "flat"
+    projection: "cylindrical" | "180" | "equirectangular-180" | "flat"
     loop: boolean
     muted: boolean
     preroll?: {

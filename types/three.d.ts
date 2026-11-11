@@ -9,6 +9,7 @@ declare module "three" {
   export type WebGLRenderer = any
 
   export const CylinderGeometry: any
+  export const SphereGeometry: any
   export const DoubleSide: any
   export const Euler: any
   export const LinearFilter: any
