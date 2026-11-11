@@ -497,7 +497,7 @@ export function Viewer180({
     threeSceneRef.current = threeScene
 
     const camera = new THREE.PerspectiveCamera(
-      VIEWER_FOV,
+      scene.camera.fov ?? VIEWER_FOV,
       container.clientWidth / container.clientHeight,
       0.1,
       1100

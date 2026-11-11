@@ -56,6 +56,8 @@ export interface SceneAmbientAudio {
 }
 
 export interface SceneCamera {
+  /** Vertical field of view in degrees; smaller values bring the scene closer. */
+  fov?: number
   initialYaw: number
   initialPitch: number
   minYaw: number
