@@ -736,6 +736,24 @@ export function Viewer180({
     const renderLoop = () => {
       frameRef.current = window.requestAnimationFrame(renderLoop)
 
+      // This panorama covers only 180° × 90°. Keep the entire viewport,
+      // including its corners, inside the image for both drag and gyro input.
+      if (scene.id === "teatro-romano-malaca" && scene.media.projection === "equirectangular-180") {
+        const currentCamera = cameraRef.current
+        if (currentCamera) {
+          const halfVertical = THREE.MathUtils.degToRad(currentCamera.fov / 2)
+          const halfHorizontal = Math.atan(
+            (Math.tan(halfVertical) * currentCamera.aspect) / Math.cos(Math.PI / 4)
+          )
+          const yawLimit = Math.max(0, 90 - THREE.MathUtils.radToDeg(halfHorizontal) - 3)
+          const pitchLimit = Math.max(0, 45 - currentCamera.fov / 2 - 3)
+          targetYawRef.current = clamp(targetYawRef.current, -yawLimit, yawLimit)
+          targetPitchRef.current = clamp(targetPitchRef.current, -pitchLimit, pitchLimit)
+          yawRef.current = clamp(yawRef.current, -yawLimit, yawLimit)
+          pitchRef.current = clamp(pitchRef.current, -pitchLimit, pitchLimit)
+        }
+      }
+
       // Suavizado para quitar jitter del sensor.
       yawRef.current = THREE.MathUtils.lerp(
         yawRef.current,
