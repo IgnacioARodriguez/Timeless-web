@@ -409,7 +409,7 @@
         "label": "Accesos",
         "title": "Entradas para moverse sin caos",
         "description": "Estos accesos laterales permitían entrar y salir de la parte baja del teatro. En un edificio con mucho público, controlar los movimientos era tan importante como construir las gradas.",
-        "yaw": -56,
+        "yaw": -18,
         "pitch": -2,
         "focus": {
           "shape": "rect",
@@ -431,8 +431,8 @@
         "label": "Asientos",
         "title": "Los mejores asientos no eran para todos",
         "description": "Las primeras filas estaban reservadas para personas importantes de la ciudad. En el teatro romano, el lugar donde te sentabas también decía quién eras.",
-        "yaw": 45,
-        "pitch": 0,
+        "yaw": 5,
+        "pitch": -1,
         "focus": {
           "shape": "ellipse",
           "width": 260,
@@ -453,8 +453,8 @@
         "label": "Ciudad",
         "title": "Un teatro dentro de la ciudad",
         "description": "El teatro no era solo un lugar para ver espectáculos. Era un espacio público importante de Malaca, conectado con la vida urbana, la política, la imagen de la ciudad y sus jerarquías sociales.",
-        "yaw": -35,
-        "pitch": 35,
+        "yaw": -15,
+        "pitch": 12,
         "focus": {
           "shape": "ellipse",
           "width": 350,
