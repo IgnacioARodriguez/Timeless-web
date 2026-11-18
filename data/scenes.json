@@ -344,7 +344,7 @@
         "title": "Dónde se sentaba el público",
         "description": "Las gradas aprovechaban la pendiente natural del terreno. Por eso el teatro parece nacer de la ladera: los romanos usaban el paisaje para construir mejor y ver mejor el espectáculo.",
         "yaw": 0,
-        "pitch": -1,
+        "pitch": 3,
         "focus": {
           "shape": "ellipse",
           "width": 390,
@@ -366,7 +366,7 @@
         "title": "El centro del teatro",
         "description": "Esta zona semicircular estaba entre las gradas y el escenario. Era uno de los puntos más visibles del teatro y ayudaba a separar el espacio del público del espacio de la representación.",
         "yaw": 0,
-        "pitch": -4,
+        "pitch": -2,
         "focus": {
           "shape": "ellipse",
           "width": 300,
