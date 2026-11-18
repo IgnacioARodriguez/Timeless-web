@@ -144,7 +144,7 @@ export const malagaCenterPois: MapPoi[] = [
     locationLabel: "Calle Alcazabilla",
     status: "available",
     sceneId: "teatro-romano-malaca",
-    previewImage: "/assets/teatro-romano/panorama.png",
+    previewImage: "/assets/teatro-romano/panorama-v26b-180x90.png",
     iconImage: "/assets/teatro-romano/poi-teatro.png",
     directions: {
       latitude: 36.72125299697328,

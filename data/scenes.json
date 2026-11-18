@@ -316,14 +316,14 @@
     "title": "Teatro Romano — Malaca romana",
     "subtitle": "Reconstrucción histórica inmersiva de 180º",
     "description": "Entra en la Malaca romana y mira el teatro como un espacio vivo: gradas, accesos, escenario y una ciudad organizada alrededor de sus lugares públicos.",
-    "poster": "/assets/teatro-romano/malaca-evento-romano.jpg",
+    "poster": "/assets/teatro-romano/panorama-v26b-180x90.png",
     "media": {
       "type": "image",
-      "src": "/assets/teatro-romano/malaca-evento-romano.jpg",
+      "src": "/assets/teatro-romano/panorama-v26b-180x90.png",
       "projection": "equirectangular-180",
       "preroll": {
         "src": "/assets/teatro-romano/intro.mp4",
-        "poster": "/assets/teatro-romano/malaca-evento-romano.jpg",
+        "poster": "/assets/teatro-romano/panorama-v26b-180x90.png",
         "muted": false,
         "loop": false
       }
@@ -344,7 +344,7 @@
         "title": "Dónde se sentaba el público",
         "description": "Las gradas aprovechaban la pendiente natural del terreno. Por eso el teatro parece nacer de la ladera: los romanos usaban el paisaje para construir mejor y ver mejor el espectáculo.",
         "yaw": 0,
-        "pitch": 7,
+        "pitch": -1,
         "focus": {
           "shape": "ellipse",
           "width": 390,
@@ -366,7 +366,7 @@
         "title": "El centro del teatro",
         "description": "Esta zona semicircular estaba entre las gradas y el escenario. Era uno de los puntos más visibles del teatro y ayudaba a separar el espacio del público del espacio de la representación.",
         "yaw": 0,
-        "pitch": -25,
+        "pitch": -4,
         "focus": {
           "shape": "ellipse",
           "width": 300,
